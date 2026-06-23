@@ -21,6 +21,15 @@ export default function RootLayout() {
               presentation: 'card',
             }}
           />
+          <Stack.Screen
+            name="plan"
+            options={{
+              headerShown: true,
+              title: 'Plan my day',
+              headerBackTitle: 'Back',
+              presentation: 'card',
+            }}
+          />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>

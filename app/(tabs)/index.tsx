@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AreaGrid } from '@/components/home/AreaGrid';
@@ -64,11 +64,7 @@ export default function HomeScreen() {
 
       {/* Plan my day */}
       <View className="mt-3.5">
-        <PlanMyDayCard
-          onPress={() =>
-            Alert.alert('Plan my day', 'Trip planner coming soon!')
-          }
-        />
+        <PlanMyDayCard onPress={() => router.push('/plan')} />
       </View>
 
       {/* Explore by area */}
