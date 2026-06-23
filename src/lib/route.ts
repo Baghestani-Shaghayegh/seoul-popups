@@ -38,34 +38,61 @@ export interface RouteStop {
   walkFromPrevMin: number;
 }
 
+/** Nearest-neighbor ordering starting from a given index. */
+function nearestNeighborOrder(popups: Popup[], startIdx: number): Popup[] {
+  const remaining = popups.map((_, i) => i).filter((i) => i !== startIdx);
+  const order: Popup[] = [popups[startIdx]];
+  let current = startIdx;
+
+  while (remaining.length > 0) {
+    let bestPos = 0;
+    let bestDist = Infinity;
+    remaining.forEach((idx, pos) => {
+      const d = haversineMeters(popups[current], popups[idx]);
+      if (d < bestDist) {
+        bestDist = d;
+        bestPos = pos;
+      }
+    });
+    current = remaining[bestPos];
+    order.push(popups[current]);
+    remaining.splice(bestPos, 1);
+  }
+  return order;
+}
+
+/** Total straight-line distance along an ordered list of stops. */
+function totalDistance(order: Popup[]): number {
+  let sum = 0;
+  for (let i = 1; i < order.length; i++) {
+    sum += haversineMeters(order[i - 1], order[i]);
+  }
+  return sum;
+}
+
 /**
- * Order the selected popups into a walking route using a nearest-neighbor
- * heuristic (start at the first popup, repeatedly hop to the closest unvisited
- * one). Good enough for a handful of nearby stops; distances are straight-line
- * estimates until we wire in a real routing API.
+ * Order the selected popups into the shortest walking route we can cheaply find:
+ * run a nearest-neighbor pass from *every* possible starting popup and keep the
+ * order with the smallest total distance. This avoids the back-and-forth a
+ * single fixed start can cause. Distances are straight-line estimates until we
+ * wire in a real routing API.
  */
 export function buildRoute(popups: Popup[]): RouteStop[] {
   if (popups.length === 0) return [];
 
-  const remaining = [...popups];
-  const ordered: Popup[] = [remaining.shift()!];
-
-  while (remaining.length > 0) {
-    const last = ordered[ordered.length - 1];
-    let bestIdx = 0;
-    let bestDist = Infinity;
-    remaining.forEach((p, i) => {
-      const d = haversineMeters(last, p);
-      if (d < bestDist) {
-        bestDist = d;
-        bestIdx = i;
-      }
-    });
-    ordered.push(remaining.splice(bestIdx, 1)[0]);
+  let best = popups;
+  let bestDist = Infinity;
+  for (let s = 0; s < popups.length; s++) {
+    const order = nearestNeighborOrder(popups, s);
+    const d = totalDistance(order);
+    if (d < bestDist) {
+      bestDist = d;
+      best = order;
+    }
   }
 
-  return ordered.map((popup, i) => {
-    const prev = i > 0 ? ordered[i - 1] : null;
+  return best.map((popup, i) => {
+    const prev = i > 0 ? best[i - 1] : null;
     const meters = prev ? haversineMeters(prev, popup) : 0;
     return {
       popup,
