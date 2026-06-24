@@ -9,12 +9,7 @@ import { DatePickerSheet } from '@/components/plan/DatePickerSheet';
 import { SelectablePopupRow } from '@/components/plan/SelectablePopupRow';
 import { usePopups } from '@/hooks/usePopups';
 import { buildRoute, totalWalkMinutes, type RouteStop } from '@/lib/route';
-import {
-  formatDayChip,
-  formatWeekdayDate,
-  todayIso,
-  upcomingIsoDates,
-} from '@/lib/format';
+import { formatWeekdayDate, todayIso } from '@/lib/format';
 import { colors } from '@/constants/theme';
 import { NEIGHBORHOODS, type Neighborhood } from '@/types/popup';
 
@@ -22,14 +17,13 @@ export default function PlanScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
-  const dates = useMemo(() => upcomingIsoDates(14), []);
   const [date, setDate] = useState<string>(todayIso());
   const [neighborhood, setNeighborhood] = useState<Neighborhood | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [route, setRoute] = useState<RouteStop[] | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
 
-  const dateInStrip = dates.includes(date);
+  const isToday = date === todayIso();
 
   // Popups running on the chosen date in the chosen area.
   const { popups } = usePopups({
@@ -181,43 +175,35 @@ export default function PlanScreen() {
         <Text className="mb-2 mt-5 text-sm font-bold text-ink">
           1. Choose a day
         </Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerClassName="gap-2 pr-2"
-        >
-          {dates.map((d) => (
-            <Chip
-              key={d}
-              label={d === todayIso() ? 'Today' : formatDayChip(d)}
-              selected={date === d}
-              onPress={() => pickDate(d)}
-            />
-          ))}
-        </ScrollView>
-
-        <Pressable
-          onPress={() => setShowCalendar(true)}
-          style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-          className={`mt-2 flex-row items-center gap-1.5 self-start rounded-full border px-3.5 py-2 ${
-            dateInStrip
-              ? 'border-gray-300 bg-white'
-              : 'border-brand bg-brand-light/30'
-          }`}
-        >
-          <Ionicons
-            name="calendar-outline"
-            size={16}
-            color={dateInStrip ? colors.muted : colors.brand.dark}
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Chip
+            label="Today"
+            selected={isToday}
+            onPress={() => pickDate(todayIso())}
           />
-          <Text
-            className={`text-sm font-semibold ${
-              dateInStrip ? 'text-ink' : 'text-brand-dark'
+          <Pressable
+            onPress={() => setShowCalendar(true)}
+            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+            className={`flex-row items-center gap-1.5 rounded-full border px-3.5 py-2 ${
+              isToday
+                ? 'border-gray-300 bg-white'
+                : 'border-brand bg-brand-light/30'
             }`}
           >
-            {dateInStrip ? 'Pick a specific date' : formatWeekdayDate(date)}
-          </Text>
-        </Pressable>
+            <Ionicons
+              name="calendar-outline"
+              size={16}
+              color={isToday ? colors.muted : colors.brand.dark}
+            />
+            <Text
+              className={`text-sm font-semibold ${
+                isToday ? 'text-ink' : 'text-brand-dark'
+              }`}
+            >
+              {isToday ? 'Pick a date' : formatWeekdayDate(date)}
+            </Text>
+          </Pressable>
+        </View>
 
         {/* 2. Area */}
         <Text className="mb-2 mt-5 text-sm font-bold text-ink">
