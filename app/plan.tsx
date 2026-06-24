@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Chip } from '@/components/ui/Chip';
+import { DatePickerSheet } from '@/components/plan/DatePickerSheet';
 import { SelectablePopupRow } from '@/components/plan/SelectablePopupRow';
 import { usePopups } from '@/hooks/usePopups';
 import { buildRoute, totalWalkMinutes, type RouteStop } from '@/lib/route';
@@ -26,6 +27,9 @@ export default function PlanScreen() {
   const [neighborhood, setNeighborhood] = useState<Neighborhood | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [route, setRoute] = useState<RouteStop[] | null>(null);
+  const [showCalendar, setShowCalendar] = useState(false);
+
+  const dateInStrip = dates.includes(date);
 
   // Popups running on the chosen date in the chosen area.
   const { popups } = usePopups({
@@ -192,6 +196,29 @@ export default function PlanScreen() {
           ))}
         </ScrollView>
 
+        <Pressable
+          onPress={() => setShowCalendar(true)}
+          style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+          className={`mt-2 flex-row items-center gap-1.5 self-start rounded-full border px-3.5 py-2 ${
+            dateInStrip
+              ? 'border-gray-300 bg-white'
+              : 'border-brand bg-brand-light/30'
+          }`}
+        >
+          <Ionicons
+            name="calendar-outline"
+            size={16}
+            color={dateInStrip ? colors.muted : colors.brand.dark}
+          />
+          <Text
+            className={`text-sm font-semibold ${
+              dateInStrip ? 'text-ink' : 'text-brand-dark'
+            }`}
+          >
+            {dateInStrip ? 'Pick a specific date' : formatWeekdayDate(date)}
+          </Text>
+        </Pressable>
+
         {/* 2. Area */}
         <Text className="mb-2 mt-5 text-sm font-bold text-ink">
           2. Choose an area
@@ -251,6 +278,13 @@ export default function PlanScreen() {
           </Text>
         </Pressable>
       </View>
+
+      <DatePickerSheet
+        visible={showCalendar}
+        selected={date}
+        onSelect={pickDate}
+        onClose={() => setShowCalendar(false)}
+      />
     </View>
   );
 }
