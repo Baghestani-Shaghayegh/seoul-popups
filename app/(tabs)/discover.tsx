@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -32,30 +32,43 @@ const SORT_OPTIONS: FilterOption<SortKey>[] = [
 
 type SheetName = 'location' | 'category' | 'status' | 'period' | 'sort';
 
-/** Read an optional ?neighborhood= param, validated against known values. */
-function useInitialNeighborhoods(): Neighborhood[] {
-  const { neighborhood } = useLocalSearchParams<{ neighborhood?: string }>();
-  return NEIGHBORHOODS.includes(neighborhood as Neighborhood)
-    ? [neighborhood as Neighborhood]
-    : [];
-}
-
 export default function DiscoverScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const searchRef = useRef<TextInput>(null);
 
-  // When arriving from the Home search bar (?focus=1), open the keyboard.
-  const { focus } = useLocalSearchParams<{ focus?: string }>();
+  // Route params are validated before use (they can arrive via deep links)
+  // and cleared once consumed — this tab stays mounted, so a later tap on a
+  // Home area card / search bar updates params on the existing screen.
+  const { neighborhood, focus } = useLocalSearchParams<{
+    neighborhood?: string;
+    focus?: string;
+  }>();
+  const paramNeighborhood = NEIGHBORHOODS.includes(neighborhood as Neighborhood)
+    ? (neighborhood as Neighborhood)
+    : null;
+
+  // When arriving from the Home search bar (?focus=1), open the keyboard once.
   useFocusEffect(
     useCallback(() => {
-      if (focus) searchRef.current?.focus();
-    }, [focus]),
+      if (focus) {
+        searchRef.current?.focus();
+        router.setParams({ focus: '' });
+      }
+    }, [focus, router]),
   );
 
   const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>(
-    useInitialNeighborhoods(),
+    paramNeighborhood ? [paramNeighborhood] : [],
   );
+
+  // Apply ?neighborhood= whenever it changes (e.g. tapping an area on Home).
+  useEffect(() => {
+    if (paramNeighborhood) {
+      setNeighborhoods([paramNeighborhood]);
+      router.setParams({ neighborhood: '' });
+    }
+  }, [paramNeighborhood, router]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [statuses, setStatuses] = useState<PopupStatus[]>([]);
   const [datePreset, setDatePreset] = useState<DatePreset>('anytime');
