@@ -30,7 +30,10 @@ export default function PlanScreen() {
     neighborhoods: neighborhood ? [neighborhood] : [],
     dateRange: { start: date, end: date },
   });
-  const areaPopups = neighborhood ? popups : [];
+  const areaPopups = useMemo(
+    () => (neighborhood ? popups : []),
+    [neighborhood, popups],
+  );
 
   const selectedPopups = useMemo(
     () => areaPopups.filter((p) => selectedIds.includes(p.id)),
@@ -55,7 +58,7 @@ export default function PlanScreen() {
     );
 
   // ---- Route results view ----
-  if (route) {
+  if (route && route.length > 0) {
     const totalWalk = totalWalkMinutes(route);
     const first = route[0].popup;
     return (

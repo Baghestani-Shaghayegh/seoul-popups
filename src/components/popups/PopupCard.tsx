@@ -1,7 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 import { PopupImage } from '@/components/popups/PopupImage';
 import { formatDateRange } from '@/lib/format';
-import { daysUntilEnd, endingLabel } from '@/lib/popupStatus';
+import { endingLabel, isEndingSoon } from '@/lib/popupStatus';
 import type { Popup } from '@/types/popup';
 
 interface PopupCardProps {
@@ -9,12 +9,9 @@ interface PopupCardProps {
   onPress?: () => void;
 }
 
-const ENDING_SOON_DAYS = 7;
-
 /** A tappable card summarizing a single popup in the Discover list. */
 export function PopupCard({ popup, onPress }: PopupCardProps) {
-  const daysLeft = daysUntilEnd(popup);
-  const endingSoon = daysLeft >= 0 && daysLeft <= ENDING_SOON_DAYS;
+  const endingSoon = isEndingSoon(popup);
 
   return (
     <Pressable

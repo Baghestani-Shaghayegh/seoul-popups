@@ -3,17 +3,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 
 import { PopupImage } from '@/components/popups/PopupImage';
-import { MOCK_POPUPS } from '@/data/mockPopups';
+import { usePopup } from '@/hooks/usePopups';
 import { formatDateRange } from '@/lib/format';
 
-/**
- * Popup detail screen. Currently reads from mock data by id.
- * To go live, fetch the single popup from Supabase by `id`.
- */
+/** Popup detail screen. Data comes from usePopup (mock → Supabase swap point). */
 export default function PopupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const popup = MOCK_POPUPS.find((p) => p.id === id);
+  const { popup } = usePopup(id);
 
   if (!popup) {
     return (

@@ -23,6 +23,12 @@ interface UsePopupsResult {
   error: string | null;
 }
 
+interface UsePopupResult {
+  popup: Popup | null;
+  loading: boolean;
+  error: string | null;
+}
+
 function matchesQuery(popup: Popup, q: string): boolean {
   const haystack =
     `${popup.name} ${popup.tagline} ${popup.neighborhood} ${popup.category}`.toLowerCase();
@@ -77,4 +83,17 @@ export function usePopups(filters: PopupFilters): UsePopupsResult {
   }, [neighborhoodsKey, categoriesKey, statusesKey, rangeKey, query]);
 
   return { popups, loading: false, error: null };
+}
+
+/**
+ * Returns a single popup by id (null if unknown). Same mock → Supabase swap
+ * point as usePopups: change only this body to fetch by id and the detail
+ * screen won't need to change.
+ */
+export function usePopup(id: string | undefined): UsePopupResult {
+  const popup = useMemo(
+    () => MOCK_POPUPS.find((p) => p.id === id) ?? null,
+    [id],
+  );
+  return { popup, loading: false, error: null };
 }
