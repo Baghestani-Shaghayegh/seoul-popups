@@ -1,7 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, Text, View } from 'react-native';
-import { colors } from '@/constants/theme';
+import { Pressable, Text, View } from 'react-native';
+import { BottomSheet } from '@/components/ui/BottomSheet';
 import type { FilterOption } from '@/components/popups/FilterSheet';
 
 interface MultiFilterSheetProps<T extends string> {
@@ -40,72 +39,48 @@ export function MultiFilterSheet<T extends string>({
     );
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <View className="flex-1 justify-end">
-        <Pressable className="absolute inset-0 bg-black/40" onPress={onClose} />
-        <View className="rounded-t-3xl bg-white pb-9 pt-3">
-          <View className="mb-1 h-1 w-10 self-center rounded-full bg-gray-300" />
-          <View className="flex-row items-center justify-between px-5 py-2">
-            <Text className="text-lg font-bold text-ink">{title}</Text>
-            <Pressable onPress={onClose} hitSlop={8}>
-              <Ionicons name="close" size={22} color={colors.ink} />
-            </Pressable>
-          </View>
-
-          <View className="flex-row flex-wrap gap-2.5 px-5 py-2">
-            {options.map((o) => {
-              const selected = draft.includes(o.key);
-              return (
-                <Pressable
-                  key={o.key}
-                  onPress={() => toggle(o.key)}
-                  style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-                  className={`rounded-full border px-4 py-2.5 ${
-                    selected
-                      ? 'border-brand bg-brand'
-                      : 'border-gray-300 bg-white'
-                  }`}
-                >
-                  <Text
-                    className={`text-sm font-semibold ${
-                      selected ? 'text-white' : 'text-ink'
-                    }`}
-                  >
-                    {o.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          <View className="mt-3 flex-row items-center gap-4 px-5 pt-2">
+    <BottomSheet visible={visible} title={title} onClose={onClose}>
+      <View className="flex-row flex-wrap gap-2.5 px-5 py-2">
+        {options.map((o) => {
+          const selected = draft.includes(o.key);
+          return (
             <Pressable
-              onPress={() => setDraft([])}
-              hitSlop={6}
-              className="py-2"
+              key={o.key}
+              onPress={() => toggle(o.key)}
+              style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+              className={`rounded-full border px-4 py-2.5 ${
+                selected ? 'border-brand bg-brand' : 'border-gray-300 bg-white'
+              }`}
             >
-              <Text className="text-base font-semibold text-muted underline">
-                Reset
+              <Text
+                className={`text-sm font-semibold ${
+                  selected ? 'text-white' : 'text-ink'
+                }`}
+              >
+                {o.label}
               </Text>
             </Pressable>
-            <Pressable
-              onPress={() => {
-                onApply(draft);
-                onClose();
-              }}
-              style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
-              className="flex-1 items-center rounded-2xl bg-brand py-3.5"
-            >
-              <Text className="text-base font-bold text-white">Apply</Text>
-            </Pressable>
-          </View>
-        </View>
+          );
+        })}
       </View>
-    </Modal>
+
+      <View className="mt-3 flex-row items-center gap-4 px-5 pt-2">
+        <Pressable onPress={() => setDraft([])} hitSlop={6} className="py-2">
+          <Text className="text-base font-semibold text-muted underline">
+            Reset
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => {
+            onApply(draft);
+            onClose();
+          }}
+          style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+          className="flex-1 items-center rounded-2xl bg-brand py-3.5"
+        >
+          <Text className="text-base font-bold text-white">Apply</Text>
+        </Pressable>
+      </View>
+    </BottomSheet>
   );
 }
