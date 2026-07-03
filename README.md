@@ -46,22 +46,33 @@ Until keys are set, the app runs on mock data (`src/data/mockPopups.ts`).
 | `npm run format`    | Format with Prettier           |
 | `npm run typecheck` | Type-check with TypeScript     |
 
+## Docs
+
+- **[FEATURES.md](FEATURES.md)** — roadmap; source of truth for what to build next
+- **[PLAYBOOK.md](PLAYBOOK.md)** — how we write code here (conventions, definition of done)
+- **[SECURITY.md](SECURITY.md)** — threat model + security checklists
+
 ## Project structure
 
 ```
 app/                     # Expo Router routes (file = route)
   _layout.tsx            # Root stack; loads global.css, providers
   (tabs)/                # Bottom-tab group
-    _layout.tsx          #   Tabs: Discover + Map
-    index.tsx            #   Discover screen (list + filters)
-    map.tsx              #   Map screen (placeholder)
+    _layout.tsx          #   Tabs: Home · Discover · Map · Saved
+    index.tsx            #   Home (curated landing)
+    discover.tsx         #   Discover (full list + search + filters)
+    map.tsx              #   Map (placeholder)
+    saved.tsx            #   Saved (placeholder, Phase 1)
   popup/[id].tsx         # Popup detail (dynamic route)
+  plan.tsx               # "Plan my day" trip planner
   +not-found.tsx         # Fallback for unmatched routes
 src/
-  components/ui/         # Generic UI primitives (Chip)
-  components/popups/     # Feature components (PopupCard, NeighborhoodFilter)
-  hooks/                 # Data hooks (usePopups)
-  lib/                   # supabase client, formatting helpers
+  components/ui/         # Generic UI primitives (Chip, BottomSheet)
+  components/home/       # Home sections (SearchBar, AreaGrid, ...)
+  components/popups/     # Popup components (PopupCard, filter sheets, ...)
+  components/plan/       # Plan-my-day components
+  hooks/                 # Data hooks (usePopups, usePopup, useHomeSections)
+  lib/                   # supabase client, dates, status, route math
   data/                  # Mock seed data
   types/                 # Domain types
   constants/             # theme (colors), neighborhood metadata
@@ -77,9 +88,5 @@ error }` return shape and the screens won't need changes.
 
 ## Roadmap
 
-- [x] Project structure + tooling
-- [x] Discover screen (mock data)
-- [x] Popup detail screen
-- [ ] Wire Supabase
-- [ ] Map screen (clustered pins, "Plan my day" route)
-- [ ] In-app reservations
+See **[FEATURES.md](FEATURES.md)**. Short version: the full UI (Home, Discover,
+detail, Plan my day) is built on mock data — next step is wiring Supabase.
