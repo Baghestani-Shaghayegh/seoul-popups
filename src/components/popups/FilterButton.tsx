@@ -11,7 +11,10 @@ interface FilterButtonProps {
   onPress: () => void;
 }
 
-/** A multi-select dropdown trigger that shows how many options are selected. */
+/**
+ * A multi-select dropdown trigger that shows how many options are selected.
+ * Active filters are purple (color-role rule: purple = your selection).
+ */
 export function FilterButton({
   label,
   count = 0,
@@ -23,12 +26,12 @@ export function FilterButton({
     <Pressable
       onPress={onPress}
       style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-      className={`flex-row items-center gap-1.5 rounded-full border px-4 py-2 ${
-        active ? 'border-brand bg-brand-light/30' : 'border-gray-300 bg-white'
+      className={`flex-row items-center gap-1.5 rounded-full border px-4 py-2.5 ${
+        active ? 'border-purple bg-purple' : 'border-line-strong bg-surface'
       }`}
     >
       <Text
-        className={`text-sm font-semibold ${active ? 'text-brand-dark' : 'text-ink'}`}
+        className={`text-[13px] font-bold ${active ? 'text-white' : 'text-muted'}`}
       >
         {label}
         {active ? ` ${count}` : ''}
@@ -36,7 +39,7 @@ export function FilterButton({
       <Ionicons
         name={open ? 'chevron-up' : 'chevron-down'}
         size={14}
-        color={active ? colors.brand.dark : colors.muted}
+        color={active ? '#fff' : colors.faint}
       />
     </Pressable>
   );

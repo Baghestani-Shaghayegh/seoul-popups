@@ -10,7 +10,7 @@ import {
   type FilterOption,
 } from '@/components/popups/FilterSheet';
 import { MultiFilterSheet } from '@/components/popups/MultiFilterSheet';
-import { PopupCard } from '@/components/popups/PopupCard';
+import { RailCard } from '@/components/popups/RailCard';
 import { usePopups } from '@/hooks/usePopups';
 import { colors } from '@/constants/theme';
 import { DATE_PRESETS, presetToRange, type DatePreset } from '@/lib/dateRanges';
@@ -125,17 +125,18 @@ export default function DiscoverScreen() {
   }));
 
   return (
-    <View className="flex-1 bg-gray-50" style={{ paddingTop: insets.top }}>
+    <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
       {/* Header */}
       <View className="px-4 pb-2 pt-2">
         <Text className="text-3xl font-extrabold text-ink">Discover</Text>
         <Text className="mt-0.5 text-sm text-muted">
-          {sorted.length} {sorted.length === 1 ? 'pop-up' : 'pop-ups'}
+          {sorted.length} {sorted.length === 1 ? 'pop-up' : 'pop-ups'} happening
+          near you
         </Text>
       </View>
 
       {/* Search */}
-      <View className="mx-4 mb-3 h-14 flex-row items-center gap-2.5 rounded-2xl border border-gray-200 bg-gray-100 px-4">
+      <View className="mx-4 mb-3 h-14 flex-row items-center gap-2.5 rounded-2xl border border-line-strong bg-surface px-4 shadow-sm">
         <Ionicons name="search" size={20} color={colors.muted} />
         <TextInput
           ref={searchRef}
@@ -180,7 +181,7 @@ export default function DiscoverScreen() {
         <Pressable
           onPress={() => setOpenSheet('period')}
           style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-          className="flex-row items-center gap-1 rounded-lg bg-gray-100 px-3 py-1.5"
+          className="flex-row items-center gap-1 rounded-lg bg-well px-3 py-1.5"
         >
           <Text className="text-sm text-ink">Period: {periodLabel}</Text>
           <Ionicons name="chevron-down" size={14} color={colors.muted} />
@@ -196,20 +197,28 @@ export default function DiscoverScreen() {
         </Pressable>
       </View>
 
-      {/* Results */}
+      {/* Results grid */}
       <FlatList
         data={sorted}
         keyExtractor={(item) => item.id}
-        contentContainerClassName="px-4 pb-8 pt-1"
+        numColumns={2}
+        columnWrapperClassName="justify-between px-4"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         renderItem={({ item }) => (
-          <PopupCard
-            popup={item}
-            onPress={() =>
-              router.push({ pathname: '/popup/[id]', params: { id: item.id } })
-            }
-          />
+          <View className="mb-4 w-[48%]">
+            <RailCard
+              popup={item}
+              grid
+              onPress={() =>
+                router.push({
+                  pathname: '/popup/[id]',
+                  params: { id: item.id },
+                })
+              }
+            />
+          </View>
         )}
         ListEmptyComponent={
           <View className="items-center px-8 py-20">
