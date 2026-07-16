@@ -1,76 +1,120 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AreaGrid } from '@/components/home/AreaGrid';
+import { DayStrip } from '@/components/home/DayStrip';
 import { PlanMyDayCard } from '@/components/home/PlanMyDayCard';
-import { SearchBar } from '@/components/home/SearchBar';
 import { SectionHeader } from '@/components/home/SectionHeader';
-import { EndingSoonCard } from '@/components/popups/EndingSoonCard';
-import { PopupCard } from '@/components/popups/PopupCard';
+import { FeatureCard } from '@/components/popups/FeatureCard';
+import { RailCard } from '@/components/popups/RailCard';
+import { colors } from '@/constants/theme';
 import { useHomeSections } from '@/hooks/useHomeSections';
 import { formatWeekdayDate, todayIso } from '@/lib/format';
-import { colors } from '@/constants/theme';
-import type { Neighborhood } from '@/types/popup';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { liveCount, featured, endingSoon, countsByArea } = useHomeSections();
+  const [selectedDay, setSelectedDay] = useState(todayIso());
+  const { liveCount, featured, dayPicks, endingSoon } =
+    useHomeSections(selectedDay);
 
   const openPopup = (id: string) =>
     router.push({ pathname: '/popup/[id]', params: { id } });
 
-  const openDiscover = (neighborhood?: Neighborhood) =>
-    router.push(
-      neighborhood
-        ? { pathname: '/discover', params: { neighborhood } }
-        : '/discover',
-    );
+  const openDiscover = () => router.push('/discover');
+
+  const dayPicksTitle =
+    selectedDay === todayIso()
+      ? 'Happening today'
+      : `On ${formatWeekdayDate(selectedDay)}`;
 
   return (
     <ScrollView
-      className="flex-1 bg-gray-50"
-      contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 24 }}
+      className="flex-1 bg-bg"
+      contentContainerStyle={{
+        paddingTop: insets.top + 8,
+        paddingBottom: insets.bottom + 120, // clear the floating tab bar
+      }}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header */}
-      <View className="mb-3.5 flex-row items-start justify-between px-4">
-        <View>
-          <View className="flex-row items-center gap-1">
-            <Ionicons name="location" size={18} color={colors.brand.DEFAULT} />
-            <Text className="text-2xl font-extrabold text-ink">Seoul</Text>
+      {/* Header: greeting + notification bell */}
+      <View className="flex-row items-center justify-between px-4">
+        <View className="flex-row items-center gap-3">
+          <View className="h-11 w-11 items-center justify-center rounded-2xl bg-brand-light">
+            <Text className="text-base font-extrabold text-brand-dark">S</Text>
           </View>
-          <Text className="mt-0.5 text-xs text-muted">
-            {formatWeekdayDate(todayIso())} · {liveCount} pop-ups live
-          </Text>
+          <View>
+            <Text className="text-lg font-extrabold text-ink">Hi, Sara</Text>
+            <Text className="text-xs text-muted">Let’s plan your day</Text>
+          </View>
         </View>
-        <View className="h-9 w-9 items-center justify-center rounded-full bg-gray-100">
-          <Ionicons
-            name="notifications-outline"
-            size={19}
-            color={colors.muted}
+        <View className="h-11 w-11 items-center justify-center rounded-2xl border border-line-strong bg-surface">
+          <Ionicons name="notifications-outline" size={19} color={colors.ink} />
+          <View className="absolute right-3 top-3 h-2 w-2 rounded-full border-2 border-surface bg-brand" />
+        </View>
+      </View>
+
+      {/* Location pill */}
+      <View className="mt-3.5 flex-row px-4">
+        <Pressable
+          onPress={openDiscover}
+          style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+          className="flex-row items-center gap-2 rounded-full border border-line-strong bg-surface py-2 pl-2 pr-3.5"
+        >
+          <View className="h-6 w-6 items-center justify-center rounded-full bg-brand-light">
+            <Ionicons name="location" size={13} color={colors.brand.DEFAULT} />
+          </View>
+          <Text className="text-[13px] font-bold text-ink">
+            Seongsu <Text className="text-faint">· Seoul ▾</Text>
+          </Text>
+        </Pressable>
+      </View>
+
+      {/* Plan my day hero */}
+      <View className="mt-3.5">
+        <PlanMyDayCard
+          eyebrow={`${liveCount} picks near you today`}
+          onPress={() => router.push('/plan')}
+        />
+      </View>
+
+      {/* Feature */}
+      {featured && (
+        <View className="mt-5">
+          <SectionHeader title="Feature" onSeeAll={openDiscover} />
+          <FeatureCard
+            popup={featured}
+            onPress={() => openPopup(featured.id)}
           />
         </View>
-      </View>
+      )}
 
-      {/* Search */}
-      <SearchBar
-        onPress={() =>
-          router.push({ pathname: '/discover', params: { focus: '1' } })
-        }
-      />
-
-      {/* Plan my day */}
-      <View className="mt-3.5">
-        <PlanMyDayCard onPress={() => router.push('/plan')} />
-      </View>
-
-      {/* Explore by area */}
+      {/* Pick a day */}
       <View className="mt-5">
-        <SectionHeader title="Explore by area" />
-        <AreaGrid counts={countsByArea} onSelect={openDiscover} />
+        <SectionHeader title="Pick a day" />
+        <DayStrip selectedIso={selectedDay} onSelect={setSelectedDay} />
+      </View>
+
+      {/* Pop-ups on the selected day */}
+      <View className="mt-4">
+        <SectionHeader title={dayPicksTitle} onSeeAll={openDiscover} />
+        {dayPicks.length > 0 ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerClassName="gap-3.5 px-4"
+          >
+            {dayPicks.map((p) => (
+              <RailCard key={p.id} popup={p} onPress={() => openPopup(p.id)} />
+            ))}
+          </ScrollView>
+        ) : (
+          <Text className="px-4 text-sm text-muted">
+            Nothing on that day yet — try another one.
+          </Text>
+        )}
       </View>
 
       {/* Ending soon */}
@@ -78,35 +122,18 @@ export default function HomeScreen() {
         <View className="mt-5">
           <SectionHeader
             title="Ending soon"
-            icon="time-outline"
-            onSeeAll={() => openDiscover()}
+            actionLabel="Saved"
+            onSeeAll={() => router.push('/saved')}
           />
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerClassName="gap-2.5 px-4"
+            contentContainerClassName="gap-3.5 px-4"
           >
             {endingSoon.map((p) => (
-              <EndingSoonCard
-                key={p.id}
-                popup={p}
-                onPress={() => openPopup(p.id)}
-              />
+              <RailCard key={p.id} popup={p} onPress={() => openPopup(p.id)} />
             ))}
           </ScrollView>
-        </View>
-      )}
-
-      {/* Featured */}
-      {featured && (
-        <View className="mt-5">
-          <SectionHeader title="Featured today" />
-          <View className="px-4">
-            <PopupCard
-              popup={featured}
-              onPress={() => openPopup(featured.id)}
-            />
-          </View>
         </View>
       )}
     </ScrollView>

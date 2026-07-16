@@ -1,15 +1,17 @@
 import { useMemo } from 'react';
 import { usePopups } from './usePopups';
-import { isActiveToday } from '@/lib/popupStatus';
-import { NEIGHBORHOODS, type Neighborhood, type Popup } from '@/types/popup';
+import { todayIso } from '@/lib/format';
+import { isActiveOn, isActiveToday } from '@/lib/popupStatus';
+import type { Popup } from '@/types/popup';
 
-const ENDING_SOON_LIMIT = 6;
+const RAIL_LIMIT = 6;
 
 export interface HomeSections {
   liveCount: number;
   featured: Popup | null;
+  /** Pop-ups running on the day picked in the day strip. */
+  dayPicks: Popup[];
   endingSoon: Popup[];
-  countsByArea: Record<Neighborhood, number>;
 }
 
 /**
@@ -17,29 +19,27 @@ export interface HomeSections {
  * Same data source as everything else (usePopups), so it goes live with Supabase
  * automatically.
  */
-export function useHomeSections(): HomeSections {
+export function useHomeSections(
+  selectedDateIso: string = todayIso(),
+): HomeSections {
   const { popups } = usePopups({});
 
   return useMemo(() => {
     const live = popups.filter(isActiveToday);
 
+    const dayPicks = popups
+      .filter((p) => isActiveOn(p, selectedDateIso))
+      .slice(0, RAIL_LIMIT);
+
     const endingSoon = [...live]
       .sort((a, b) => a.endDate.localeCompare(b.endDate))
-      .slice(0, ENDING_SOON_LIMIT);
-
-    const countsByArea = NEIGHBORHOODS.reduce(
-      (acc, n) => {
-        acc[n] = live.filter((p) => p.neighborhood === n).length;
-        return acc;
-      },
-      {} as Record<Neighborhood, number>,
-    );
+      .slice(0, RAIL_LIMIT);
 
     return {
       liveCount: live.length,
       featured: live[0] ?? null,
+      dayPicks,
       endingSoon,
-      countsByArea,
     };
-  }, [popups]);
+  }, [popups, selectedDateIso]);
 }

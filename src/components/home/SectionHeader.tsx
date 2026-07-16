@@ -1,26 +1,24 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
-import { colors } from '@/constants/theme';
 
 interface SectionHeaderProps {
   title: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  /** Label for the pink action link, defaults to "See all". */
+  actionLabel?: string;
   onSeeAll?: () => void;
 }
 
-/** Row title for a Home section, with an optional "See all" action. */
-export function SectionHeader({ title, icon, onSeeAll }: SectionHeaderProps) {
+/** Row title for a Home section, with an optional pink action link. */
+export function SectionHeader({
+  title,
+  actionLabel = 'See all',
+  onSeeAll,
+}: SectionHeaderProps) {
   return (
-    <View className="mb-2 flex-row items-center justify-between px-4">
-      <View className="flex-row items-center gap-1.5">
-        {icon && (
-          <Ionicons name={icon} size={16} color={colors.brand.DEFAULT} />
-        )}
-        <Text className="text-base font-bold text-ink">{title}</Text>
-      </View>
+    <View className="mb-2 flex-row items-baseline justify-between px-4">
+      <Text className="text-[17px] font-extrabold text-ink">{title}</Text>
       {onSeeAll && (
-        <Pressable onPress={onSeeAll}>
-          <Text className="text-xs font-semibold text-muted">See all</Text>
+        <Pressable onPress={onSeeAll} hitSlop={8}>
+          <Text className="text-xs font-bold text-brand">{actionLabel}</Text>
         </Pressable>
       )}
     </View>
