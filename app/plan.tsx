@@ -62,10 +62,10 @@ export default function PlanScreen() {
     const totalWalk = totalWalkMinutes(route);
     const first = route[0].popup;
     return (
-      <View className="flex-1 bg-gray-50">
+      <View className="flex-1 bg-bg">
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-          <View className="mb-4 rounded-2xl bg-brand p-4">
-            <Text className="text-xs font-semibold uppercase tracking-wide text-brand-light">
+          <View className="mb-4 rounded-2xl bg-purple p-4">
+            <Text className="text-xs font-semibold uppercase tracking-wide text-[#D8CBFF]">
               Your day in {neighborhood} · {formatWeekdayDate(date)}
             </Text>
             <Text className="mt-1 text-xl font-extrabold text-white">
@@ -74,7 +74,7 @@ export default function PlanScreen() {
           </View>
 
           {/* Getting there */}
-          <View className="mb-4 flex-row items-center gap-2 rounded-2xl bg-white p-4">
+          <View className="mb-4 flex-row items-center gap-2 rounded-2xl bg-surface p-4">
             <Ionicons name="train" size={20} color={colors.brand.DEFAULT} />
             <Text className="flex-1 text-sm text-ink">
               Start at {first.subway.station} Station ({first.subway.line}),
@@ -89,13 +89,13 @@ export default function PlanScreen() {
               <View key={stop.popup.id} className="flex-row">
                 {/* Rail: number + connecting line */}
                 <View className="mr-3 items-center" style={{ width: 28 }}>
-                  <View className="h-7 w-7 items-center justify-center rounded-full bg-brand">
+                  <View className="h-7 w-7 items-center justify-center rounded-full bg-purple">
                     <Text className="text-sm font-bold text-white">
                       {i + 1}
                     </Text>
                   </View>
                   {!isLast && (
-                    <View className="my-1 w-0.5 flex-1 bg-brand-light" />
+                    <View className="my-1 w-0.5 flex-1 bg-purple-light" />
                   )}
                 </View>
 
@@ -109,7 +109,7 @@ export default function PlanScreen() {
                       })
                     }
                     style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
-                    className="flex-row items-center gap-3 rounded-2xl bg-white p-3"
+                    className="flex-row items-center gap-3 rounded-2xl bg-surface p-3"
                   >
                     <View className="flex-1">
                       <Text
@@ -148,13 +148,13 @@ export default function PlanScreen() {
         </ScrollView>
 
         <View
-          className="border-t border-gray-100 bg-white px-4 pt-3"
+          className="border-t border-line bg-surface px-4 pt-3"
           style={{ paddingBottom: insets.bottom + 12 }}
         >
           <Pressable
             onPress={() => setRoute(null)}
             style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
-            className="items-center rounded-2xl border border-gray-300 py-3.5"
+            className="items-center rounded-2xl border border-line-strong py-3.5"
           >
             <Text className="text-base font-semibold text-ink">
               Edit selection
@@ -167,7 +167,7 @@ export default function PlanScreen() {
 
   // ---- Selection view ----
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-bg">
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
         <Text className="text-base text-ink">
           Pick a day and area, choose the pop-ups you want to visit, and we’ll
@@ -189,18 +189,18 @@ export default function PlanScreen() {
             style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
             className={`flex-row items-center gap-1.5 rounded-full border px-3.5 py-2 ${
               isToday
-                ? 'border-gray-300 bg-white'
-                : 'border-brand bg-brand-light/30'
+                ? 'border-line-strong bg-surface'
+                : 'border-purple bg-purple-light'
             }`}
           >
             <Ionicons
               name="calendar-outline"
               size={16}
-              color={isToday ? colors.muted : colors.brand.dark}
+              color={isToday ? colors.muted : colors.purple.DEFAULT}
             />
             <Text
               className={`text-sm font-semibold ${
-                isToday ? 'text-ink' : 'text-brand-dark'
+                isToday ? 'text-ink' : 'text-purple'
               }`}
             >
               {isToday ? 'Pick a date' : formatWeekdayDate(date)}
@@ -249,7 +249,7 @@ export default function PlanScreen() {
       </ScrollView>
 
       <View
-        className="border-t border-gray-100 bg-white px-4 pt-3"
+        className="border-t border-line bg-surface px-4 pt-3"
         style={{ paddingBottom: insets.bottom + 12 }}
       >
         <Pressable
@@ -257,7 +257,7 @@ export default function PlanScreen() {
           onPress={() => setRoute(buildRoute(selectedPopups))}
           style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
           className={`items-center rounded-2xl py-4 ${
-            selectedPopups.length < 2 ? 'bg-gray-300' : 'bg-brand'
+            selectedPopups.length < 2 ? 'bg-line-strong' : 'bg-brand'
           }`}
         >
           <Text className="text-base font-bold text-white">

@@ -26,7 +26,7 @@ export function DatePickerSheet({
         markedDates={{
           [selected]: {
             selected: true,
-            selectedColor: colors.brand.DEFAULT,
+            selectedColor: colors.purple.DEFAULT,
           },
         }}
         onDayPress={(day) => {
@@ -36,7 +36,7 @@ export function DatePickerSheet({
         theme={{
           todayTextColor: colors.brand.DEFAULT,
           arrowColor: colors.brand.DEFAULT,
-          selectedDayBackgroundColor: colors.brand.DEFAULT,
+          selectedDayBackgroundColor: colors.purple.DEFAULT,
           textDayFontWeight: '400',
           textMonthFontWeight: '500',
         }}

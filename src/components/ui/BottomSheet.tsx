@@ -28,8 +28,8 @@ export function BottomSheet({
     >
       <View className="flex-1 justify-end">
         <Pressable className="absolute inset-0 bg-black/40" onPress={onClose} />
-        <View className="rounded-t-3xl bg-white pb-9 pt-3">
-          <View className="mb-1 h-1 w-10 self-center rounded-full bg-gray-300" />
+        <View className="rounded-t-3xl bg-surface pb-9 pt-3">
+          <View className="mb-1 h-1 w-10 self-center rounded-full bg-line-strong" />
           <View className="flex-row items-center justify-between px-5 py-2">
             <Text className="text-lg font-bold text-ink">{title}</Text>
             <Pressable onPress={onClose} hitSlop={8}>

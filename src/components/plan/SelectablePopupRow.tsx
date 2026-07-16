@@ -20,8 +20,8 @@ export function SelectablePopupRow({
     <Pressable
       onPress={onToggle}
       style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
-      className={`mb-2.5 flex-row items-center gap-3 rounded-2xl border bg-white p-2.5 ${
-        selected ? 'border-brand' : 'border-gray-200'
+      className={`mb-2.5 flex-row items-center gap-3 rounded-2xl border bg-surface p-2.5 ${
+        selected ? 'border-purple' : 'border-line-strong'
       }`}
     >
       <PopupImage
@@ -40,7 +40,7 @@ export function SelectablePopupRow({
       <Ionicons
         name={selected ? 'checkmark-circle' : 'ellipse-outline'}
         size={24}
-        color={selected ? colors.brand.DEFAULT : colors.muted}
+        color={selected ? colors.purple.DEFAULT : colors.faint}
       />
     </Pressable>
   );

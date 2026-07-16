@@ -49,7 +49,9 @@ export function MultiFilterSheet<T extends string>({
               onPress={() => toggle(o.key)}
               style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
               className={`rounded-full border px-4 py-2.5 ${
-                selected ? 'border-brand bg-brand' : 'border-gray-300 bg-white'
+                selected
+                  ? 'border-purple bg-purple'
+                  : 'border-line-strong bg-surface'
               }`}
             >
               <Text

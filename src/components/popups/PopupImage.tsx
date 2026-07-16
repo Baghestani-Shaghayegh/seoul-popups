@@ -19,7 +19,7 @@ export function PopupImage({ uri, className, iconSize = 24 }: PopupImageProps) {
   const [failed, setFailed] = useState(false);
 
   return (
-    <View className={`overflow-hidden bg-gray-200 ${className ?? ''}`}>
+    <View className={`overflow-hidden bg-well ${className ?? ''}`}>
       {(!loaded || failed) && (
         <View className="absolute inset-0 items-center justify-center">
           <Ionicons name="image-outline" size={iconSize} color={colors.muted} />

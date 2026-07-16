@@ -7,6 +7,8 @@ module.exports = [
   ...expoConfig,
   eslintConfigPrettier,
   {
-    ignores: ['dist/*', 'node_modules/*', '.expo/*'],
+    // "app for sara" holds design handoff files (Figma plugin scripts, HTML
+    // prototypes) — not app code.
+    ignores: ['dist/*', 'node_modules/*', '.expo/*', 'app for sara/*'],
   },
 ];
