@@ -34,6 +34,10 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   return (
     <Tabs
+      // The bar floats above the home indicator already, so don't let the
+      // navigator pad its inside for the bottom inset — that pushes the
+      // icons off-center.
+      safeAreaInsets={{ bottom: 0 }}
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
@@ -47,12 +51,22 @@ export default function TabsLayout() {
           borderTopWidth: 0,
           borderWidth: 1,
           borderColor: colors.line.strong,
-          paddingTop: 4,
           shadowColor: '#462846',
           shadowOpacity: 0.22,
           shadowRadius: 24,
           shadowOffset: { width: 0, height: 14 },
           elevation: 10,
+        },
+        tabBarItemStyle: {
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        // The default icon slot is ~28px tall and top-anchored; size it to
+        // the 52×44 pill and nudge it to the bar's vertical center.
+        tabBarIconStyle: {
+          width: 52,
+          height: 44,
+          marginTop: 4,
         },
       }}
     >
