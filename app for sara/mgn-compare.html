@@ -1,0 +1,153 @@
+<style>
+:root{--bg:#FAF6F3;--surface:#fff;--well:#F3EEF4;--ink:#1A1220;--soft:#7C7488;--mute:#ABA2B4;--line:#EEE7EE;--line2:#E4DAE6;--purple:#6A4BD1;--pink:#EE5D8C;--pinkt:#FDE1EC;--lav:#ECE7FE;
+  --fd:ui-rounded,"SF Pro Rounded","Segoe UI",system-ui,sans-serif;--fb:"SF Pro Text","Segoe UI",system-ui,sans-serif;--sh:0 12px 28px -18px rgba(60,30,70,.4)}
+@media (prefers-color-scheme:dark){:root{--bg:#141018;--surface:#1E1826;--well:#271F30;--ink:#F3ECF1;--soft:#B4A9BD;--mute:#7E7388;--line:#2A2233;--line2:#352A40;--lav:#2E2748;--pinkt:#3A1F2C;--wrapbg:#0E0B12}}
+*{box-sizing:border-box}
+.wrap{--wrapbg:#E9E3E7;background:var(--wrapbg);min-height:100vh;padding:32px 20px 60px;font-family:var(--fb);color:var(--ink)}
+.hd{max-width:900px;margin:0 auto 22px}
+.hd .k{font-family:var(--fd);font-weight:700;font-size:12px;color:var(--pink);margin:0 0 6px}
+.hd h1{font-family:var(--fd);font-weight:800;letter-spacing:-.02em;font-size:24px;margin:0}
+.hd p{margin:8px 0 0;color:var(--soft);font-size:13.5px;max-width:600px;line-height:1.55}
+.cols{max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:28px;justify-items:center}
+.colw{display:flex;flex-direction:column;align-items:center;gap:12px}
+.lab{text-align:center}
+.lab .n{font-family:var(--fd);font-weight:800;font-size:16px}
+.lab .d{font-size:12px;color:var(--soft);margin-top:2px}
+.badge{display:inline-block;font-family:var(--fd);font-weight:700;font-size:10.5px;padding:3px 9px;border-radius:99px;margin-bottom:6px}
+.b-cur{background:var(--well);color:var(--soft)}
+.b-coh{background:var(--pinkt);color:var(--pink)}
+
+.device{width:344px;height:720px;background:var(--bg);border-radius:42px;position:relative;overflow:hidden;box-shadow:0 26px 54px -28px rgba(50,25,45,.5),0 0 0 9px #0a0710,0 0 0 10px rgba(0,0,0,.22)}
+.notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:100px;height:26px;background:#0a0710;border-radius:99px;z-index:40}
+.sb{position:absolute;top:0;left:0;right:0;height:46px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 6px;font-family:var(--fd);font-size:12px;font-weight:700;z-index:30}
+.sb svg{fill:currentColor}
+.scr{position:absolute;inset:0;padding-top:46px;overflow:hidden;padding-bottom:20px}
+
+/* shared bits */
+.hero{margin:12px 18px 0;border-radius:22px;padding:15px 16px;position:relative;overflow:hidden;background:var(--purple);color:#fff}
+.hero .eye{font-family:var(--fd);font-weight:700;font-size:10.5px;color:#D8CBFF}
+.hero h3{font-family:var(--fd);font-weight:800;font-size:21px;letter-spacing:-.02em;margin:4px 0 0}
+.hero .sub{font-size:11px;opacity:.82;margin-top:5px;max-width:60%;line-height:1.35}
+.hero .go{margin-top:11px;display:inline-flex;align-items:center;gap:6px;background:var(--pink);color:#fff;font-family:var(--fd);font-weight:800;font-size:12px;padding:9px 14px;border-radius:12px}
+.hero .go svg{width:13px;height:13px}
+.hero .eyes{position:absolute;right:20px;top:50%;transform:translateY(-50%);width:58px;height:88px}
+.sh{display:flex;align-items:baseline;justify-content:space-between;padding:18px 18px 9px}
+.sh h4{font-family:var(--fd);font-weight:800;font-size:16px}
+.sh a{font-family:var(--fd);font-weight:700;font-size:12px;color:var(--pink)}
+.nav{position:absolute;left:50%;transform:translateX(-50%);bottom:16px;z-index:35;display:flex;gap:2px;background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(14px);border:1px solid var(--line2);border-radius:99px;padding:6px 7px;box-shadow:var(--sh)}
+.nav .tb{width:46px;height:40px;border-radius:99px;display:grid;place-items:center;color:var(--mute)}
+.nav .tb svg{width:19px;height:19px}
+.nav .tb.on{background:var(--pink);color:#fff}
+
+/* ===== CURRENT (A) ===== */
+.cur .ahdr{display:flex;align-items:center;justify-content:space-between;padding:10px 18px 2px}
+.cur .who{display:flex;align-items:center;gap:10px}
+.cur .who .av{width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg,#F4A87C,#B86A4E)}
+.cur .who .hi{font-family:var(--fd);font-weight:800;font-size:16px}
+.cur .who .s{font-size:11px;color:var(--soft);margin-top:1px}
+.cur .bell{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--ink)}
+.cur .bell svg{width:17px;height:17px}
+.cur .loc{display:inline-flex;align-items:center;gap:6px;margin:10px 18px 0;padding:6px 12px 6px 8px;border-radius:99px;background:var(--surface);border:1px solid var(--line2);font-family:var(--fd);font-weight:700;font-size:12px}
+.cur .loc .pin{width:19px;height:19px;border-radius:50%;background:var(--pinkt);display:grid;place-items:center;color:var(--pink)}
+.cur .loc .pin svg{width:11px;height:11px}
+.cur .loc .cx{color:var(--mute)}
+.cur .days{display:flex;gap:7px;overflow:hidden;padding:2px 18px 0}
+.cur .day{width:42px;height:56px;border-radius:15px;border:1px solid var(--line2);background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;flex:none}
+.cur .day .dn{font-size:9.5px;color:var(--mute);font-weight:600}
+.cur .day .dd{font-family:var(--fd);font-weight:800;font-size:15px}
+.cur .day.on{background:var(--purple);border-color:var(--purple)}
+.cur .day.on .dn{color:rgba(255,255,255,.7)}.cur .day.on .dd{color:#fff}
+.cur .bigcard{margin:0 18px;border-radius:20px;overflow:hidden;background:var(--surface);border:1px solid var(--line2);box-shadow:var(--sh)}
+.cur .bigcard .ph{aspect-ratio:16/9;position:relative}
+.cur .bigcard .ph .chip{position:absolute;top:11px;left:11px;font-family:var(--fd);font-weight:700;font-size:10px;padding:4px 9px;border-radius:99px;background:var(--pink);color:#fff}
+.cur .bigcard .ph .save{position:absolute;top:9px;right:9px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.9);display:grid;place-items:center;color:var(--pink)}
+.cur .bigcard .ph .save svg{width:15px;height:15px}
+.cur .bigcard .bd{padding:11px 13px 13px}
+.cur .bigcard .bd .t{font-family:var(--fd);font-weight:800;font-size:15px}
+.cur .bigcard .bd .m{display:flex;gap:8px;margin-top:6px;font-size:11px;color:var(--soft)}
+.cur .bigcard .bd .m .km{margin-left:auto;color:var(--pink);font-weight:700;font-family:var(--fd)}
+
+/* ===== COHERENT (B) ===== */
+.coh .brand{display:flex;align-items:center;justify-content:space-between;padding:10px 18px 2px}
+.coh .brand .lg{display:flex;align-items:center;gap:8px}
+.coh .brand .wm{font-family:var(--fd);font-weight:800;font-size:15px}
+.coh .brand .wm b{color:var(--purple)}
+.coh .brand .av{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,#F4A87C,#B86A4E)}
+.coh .greet{padding:12px 18px 2px}
+.coh .greet h2{font-family:var(--fd);font-weight:800;font-size:22px;letter-spacing:-.02em}
+.coh .greet p{color:var(--soft);font-size:12.5px;margin-top:3px}
+.coh .greet .l{color:var(--pink);font-weight:700;font-family:var(--fd)}
+.coh .filter{padding:14px 18px 2px}
+.coh .seg{display:flex;background:var(--well);border-radius:13px;padding:4px}
+.coh .seg button{flex:1;border:0;background:transparent;font-family:var(--fd);font-weight:700;font-size:12px;color:var(--soft);padding:8px 0;border-radius:10px}
+.coh .seg button.on{background:var(--purple);color:#fff;box-shadow:var(--sh)}
+.coh .feat{margin:0 18px;border-radius:20px;overflow:hidden;box-shadow:var(--sh);position:relative}
+.coh .feat .img{aspect-ratio:16/10;position:relative;display:grid;align-content:end;padding:12px}
+.coh .feat .img .fade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(20,10,25,.6))}
+.coh .feat .chip{position:absolute;top:11px;left:11px;font-family:var(--fd);font-weight:700;font-size:10px;padding:4px 9px;border-radius:99px;background:var(--pink);color:#fff;z-index:2}
+.coh .feat .save{position:absolute;top:9px;right:9px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.9);display:grid;place-items:center;color:var(--pink);z-index:2}
+.coh .feat .save svg{width:15px;height:15px}
+.coh .feat .cap{position:relative;z-index:2;color:#fff}
+.coh .feat .cap .t{font-family:var(--fd);font-weight:800;font-size:17px}
+.coh .feat .cap .m{display:flex;gap:9px;margin-top:6px;font-size:11px;opacity:.95}
+.coh .feat .cap .m .km{margin-left:auto;font-weight:700;font-family:var(--fd)}
+.coh .list{padding:0 18px}
+.coh .li{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.coh .li:last-child{border-bottom:0}
+.coh .li .th{width:52px;height:52px;border-radius:14px;flex:none;position:relative;overflow:hidden}
+.coh .li .th .d{position:absolute;left:5px;bottom:5px;font-family:var(--fd);font-weight:800;font-size:8.5px;color:#fff;background:rgba(20,10,25,.55);padding:2px 5px;border-radius:99px}
+.coh .li .info{min-width:0;flex:1}
+.coh .li .info .n{font-family:var(--fd);font-weight:800;font-size:13.5px}
+.coh .li .info .v{font-size:11px;color:var(--soft);margin-top:2px}
+.coh .li .info .fr{display:flex;align-items:center;gap:6px;margin-top:5px}
+.coh .li .info .fr .fa{display:flex}
+.coh .li .info .fr .fa span{width:16px;height:16px;border-radius:50%;margin-left:-5px;border:2px solid var(--surface)}
+.coh .li .info .fr .fa span:first-child{margin-left:0}
+.coh .li .info .fr em{font-style:normal;font-family:var(--fd);font-weight:700;font-size:10px;color:var(--purple)}
+.coh .li .km{font-family:var(--fd);font-weight:700;font-size:10.5px;color:var(--mute)}
+</style>
+
+<div class="wrap">
+  <div class="hd">
+    <p class="k">mgn radar · side-by-side</p>
+    <h1>Current vs coherent proposal</h1>
+    <p>Same brand, two systems for the Home screen. Left is what you have now; right applies one consistent system (eyes as brand mark, a day filter, one Feature, then a list).</p>
+  </div>
+  <div class="cols" id="cols"></div>
+</div>
+
+<script>
+const SIG='<svg viewBox="0 0 20 12" width="16" height="10"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4" width="3" height="8" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><svg viewBox="0 0 24 12" width="21" height="10" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="1.5" width="19" height="9" rx="2.4"/><rect x="2.6" y="3" width="13" height="6" rx="1.2" fill="currentColor" stroke="none"/></svg>';
+const EYES='<svg class="eyes" viewBox="0 0 68 102"><path d="M2 26 Q34 4 66 26 Q34 48 2 26 Z" fill="#F3E9D6"/><circle cx="34" cy="26" r="11.5" fill="#EE5D8C"/><circle cx="34" cy="26" r="7.4" fill="#141018"/><path d="M2 76 Q34 54 66 76 Q34 98 2 76 Z" fill="#F3E9D6"/><circle cx="34" cy="76" r="11.5" fill="#EE5D8C"/><circle cx="34" cy="76" r="7.4" fill="#141018"/></svg>';
+const ar='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const NAV=`<div class="nav"><div class="tb on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1Z"/></svg></div><div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg></div><div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M10 8.5v7l6-3.5z" fill="currentColor" stroke="none"/></svg></div><div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg></div><div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.6-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.4-7 10-7 10Z"/></svg></div></div>`;
+const heart='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.6-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.4-7 10-7 10Z"/></svg>';
+const clock='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+const featGrad='linear-gradient(140deg,#7C5CD8,#B57BE0 45%,#F3A0C4)';
+
+const CUR=`<div class="device cur"><div class="notch"></div><div class="sb"><span>9:41</span><span style="display:flex;gap:5px;align-items:center">${SIG}</span></div><div class="scr">
+  <div class="ahdr"><div class="who"><div class="av"></div><div><div class="hi">Hi, Paulin</div><div class="s">Let's plan your day</div></div></div><div class="bell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></div></div>
+  <div class="loc"><span class="pin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22s7-6.4 7-12a7 7 0 1 0-14 0c0 5.6 7 12 7 12Z"/></svg></span>Seongsu-dong <span class="cx">· Seoul ▾</span></div>
+  <div class="hero"><div class="eye">6 picks near you today</div><h3>Plan my day</h3><div class="sub">We lined up your evening around what you love.</div><div class="go">Build my plan ${ar}</div>${EYES}</div>
+  <div class="sh"><h4>Pick a day</h4></div>
+  <div class="days">${[['SUN',6],['MON',7],['TUE',8],['WED',9],['THU',10]].map(([d,n])=>`<div class="day ${n===8?'on':''}"><span class="dn">${d}</span><span class="dd">${n}</span></div>`).join('')}</div>
+  <div class="sh"><h4>Feature</h4><a>See all</a></div>
+  <div class="bigcard"><div class="ph" style="background:${featGrad}"><span class="chip">K-pop</span><span class="save">${heart}</span></div><div class="bd"><div class="t">S2O Korea · Songkran Festival</div><div class="m"><span>Sat, Jul 12</span><span>18:00</span><span class="km">8.4 km</span></div></div></div>
+</div>${NAV}</div>`;
+
+const rows=[['Seongsu Vinyl Nights','Nightlife · Seongsu-dong','2d','0.4 km','linear-gradient(150deg,#B36AD8,#3A1550)',['linear-gradient(135deg,#F4A87C,#B8607F)','linear-gradient(135deg,#8B6BE6,#4A2E9E)'],'2 friends going'],['Olive Young Pop-up','Beauty · Seongsu-dong','1d','0.9 km','linear-gradient(150deg,#5EC8F5,#0E4C8A)',null,''],['Han River Night Market','Market · Ttukseom','9d','3.1 km','linear-gradient(150deg,#37C58E,#0E5C48)',null,'']];
+const COH=`<div class="device coh"><div class="notch"></div><div class="sb"><span>9:41</span><span style="display:flex;gap:5px;align-items:center">${SIG}</span></div><div class="scr">
+  <div class="brand"><div class="lg"><svg width="28" height="15" viewBox="0 0 44 22"><path d="M2 11 Q12 3 22 11 Q12 19 2 11 Z" fill="#E7DBC9"/><circle cx="12" cy="11" r="4.6" fill="#EE5D8C"/><circle cx="12" cy="11" r="2.7" fill="#141018"/><path d="M22 11 Q32 3 42 11 Q32 19 22 11 Z" fill="#E7DBC9"/><circle cx="32" cy="11" r="4.6" fill="#EE5D8C"/><circle cx="32" cy="11" r="2.7" fill="#141018"/></svg><span class="wm">mgn <b>radar</b></span></div><div class="av"></div></div>
+  <div class="greet"><h2>Good evening, Paulin</h2><p>6 spots open tonight in <span class="l">Seongsu ▾</span></p></div>
+  <div class="hero"><div class="eye">Ready when you are</div><h3>Plan my day</h3><div class="sub">A ready-made evening from what you love.</div><div class="go">Build my plan ${ar}</div>${EYES}</div>
+  <div class="filter"><div class="seg"><button class="on">Tonight</button><button>Tomorrow</button><button>Weekend</button></div></div>
+  <div class="sh"><h4>Top pick tonight</h4><a>See all</a></div>
+  <div class="feat"><div class="img" style="background:${featGrad}"><div class="fade"></div><span class="chip">K-pop · Live</span><span class="save">${heart}</span><div class="cap"><div class="t">S2O Korea · Songkran</div><div class="m"><span>Doors 18:00</span><span>Jamsil</span><span class="km">8.4 km</span></div></div></div></div>
+  <div class="sh"><h4>Happening near you</h4><a>Map</a></div>
+  <div class="list">${rows.map(r=>`<div class="li"><div class="th" style="background:${r[4]}"><span class="d">${r[2]}</span></div><div class="info"><div class="n">${r[0]}</div><div class="v">${r[1]}</div>${r[5]?`<div class="fr"><div class="fa">${r[5].map(c=>`<span style="background:${c}"></span>`).join('')}</div><em>${r[6]}</em></div>`:''}</div><span class="km">${r[3]}</span></div>`).join('')}</div>
+</div>${NAV}</div>`;
+
+document.getElementById('cols').innerHTML=`
+  <div class="colw"><span class="badge b-cur">CURRENT</span><div class="lab" style="margin-top:-4px"></div>${CUR}<div class="lab"><div class="n">What you have now</div><div class="d">Greeting header · day strip · Feature · rails</div></div></div>
+  <div class="colw"><span class="badge b-coh">PROPOSAL</span><div class="lab" style="margin-top:-4px"></div>${COH}<div class="lab"><div class="n">Coherent system</div><div class="d">Eyes brand mark · day filter · Feature · list</div></div></div>`;
+</script>

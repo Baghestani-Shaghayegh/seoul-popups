@@ -1,0 +1,83 @@
+<style>
+.wrap{--pg:#ECE7EA;--tx:#2B2532;font-family:"SF Pro Text","Segoe UI",system-ui,-apple-system,sans-serif;background:var(--pg);min-height:100vh;padding:34px 22px 60px;color:var(--tx)}
+@media (prefers-color-scheme:dark){.wrap{--pg:#141018;--tx:#F3ECF1}}
+:root[data-theme="dark"] .wrap{--pg:#141018;--tx:#F3ECF1}
+:root[data-theme="light"] .wrap{--pg:#ECE7EA;--tx:#2B2532}
+.head{max-width:860px;margin:0 auto 26px}
+.head .k{font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:700;font-size:12px;color:#EE5D8C;margin:0 0 6px}
+.head h1{font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:800;letter-spacing:-.02em;font-size:25px;margin:0}
+.head p{margin:8px 0 0;font-size:13.5px;opacity:.72;max-width:580px;line-height:1.55}
+.grid{max-width:860px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:26px 24px;justify-items:center}
+.col{display:flex;flex-direction:column;gap:11px;width:100%;max-width:372px}
+.stage{background:rgba(255,255,255,.5);border-radius:30px;padding:16px;display:flex;justify-content:center}
+@media (prefers-color-scheme:dark){.stage{background:rgba(255,255,255,.04)}}
+.tag .n{font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:800;font-size:15px;padding-left:4px}
+.tag .d{font-size:12px;opacity:.64;margin-top:1px;padding-left:4px}
+
+.c{width:334px;min-height:158px;border-radius:26px;padding:20px;position:relative;overflow:hidden;font-family:ui-rounded,"SF Pro Rounded",system-ui,sans-serif;box-sizing:border-box}
+.c *{box-sizing:border-box}
+.c .txt{position:relative;z-index:2;max-width:66%}
+.c .h2{font-weight:800;font-size:30px;letter-spacing:-.03em;line-height:.92}
+.c .sub{font-size:12px;margin-top:9px;opacity:.72;font-weight:600}
+.avs{display:flex;align-items:center;margin-top:14px}
+.avs .a{width:30px;height:30px;border-radius:50%;margin-left:-9px;border:2.5px solid var(--cardbg,#E4DBFB)}
+.avs .a:first-child{margin-left:0}
+.avs .more{width:30px;height:30px;border-radius:50%;margin-left:-9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;background:#6A4BD1;border:2.5px solid var(--cardbg,#E4DBFB);z-index:3}
+.art{position:absolute;right:-6px;top:50%;transform:translateY(-50%);width:150px;height:150px;z-index:1}
+.art svg{width:100%;height:100%;filter:drop-shadow(0 10px 14px rgba(80,30,80,.22))}
+
+.lav{--cardbg:#E4DBFB;background:linear-gradient(145deg,#EFEAFE,#E2D6FB);color:#1A1220}
+.lav .more{background:#6A4BD1}
+.dark{--cardbg:#241B33;background:#191024;color:#fff}
+.dark .sub{opacity:.7}.dark .more{background:#EE5D8C;border-color:#191024}.dark .avs .a{border-color:#191024}
+.pinkc{--cardbg:#F6DCEA;background:linear-gradient(145deg,#F6E1EE,#F3CFE2);color:#2A0E1C}
+.pinkc .more{background:#EE5D8C}
+</style>
+
+<div class="wrap">
+  <div class="head">
+    <p class="k">mgn radar · "Plan my day" — Daily-Challenge style</p>
+    <h1>Bold title + friends + playful shape</h1>
+    <p>Modeled on the "Daily Challenge" card you like: big bold title, a friends row, and a 3D-style graphic — kept in the app's purple/pink. Pick one (shape + card colour can be mixed). The 3D shapes here are CSS stand-ins; final can be a real 3D render.</p>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const av=(g)=>`<span class="a" style="background:${g}"></span>`;
+const avatars=`<div class="avs">${av('linear-gradient(135deg,#F4A87C,#B8607F)')}${av('linear-gradient(135deg,#8B6BE6,#4A2E9E)')}${av('linear-gradient(135deg,#5EC8F5,#2C6FE0)')}<span class="more">+4</span></div>`;
+const arrow='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+
+function flower(id,c1,c2,cc1,cc2){
+  const pet=[0,60,120,180,240,300].map(a=>`<ellipse cx="60" cy="30" rx="15" ry="27" fill="url(#pf${id})" transform="rotate(${a} 60 60)"/>`).join('');
+  return `<svg viewBox="0 0 120 120"><defs>
+    <radialGradient id="pf${id}" cx="34%" cy="26%" r="80%"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></radialGradient>
+    <radialGradient id="cf${id}" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="${cc1}"/><stop offset="1" stop-color="${cc2}"/></radialGradient>
+    </defs>${pet}<circle cx="60" cy="60" r="16" fill="url(#cf${id})"/></svg>`;
+}
+function shapes(id){
+  return `<svg viewBox="0 0 120 120"><defs>
+    <linearGradient id="s1${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C9B6F7"/><stop offset="1" stop-color="#6A4BD1"/></linearGradient>
+    <linearGradient id="s2${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB0D0"/><stop offset="1" stop-color="#EE5D8C"/></linearGradient>
+    <linearGradient id="s3${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FBD9A0"/><stop offset="1" stop-color="#E7973B"/></linearGradient>
+    <linearGradient id="s4${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B7A0F0"/><stop offset="1" stop-color="#4A2E9E"/></linearGradient></defs>
+    <circle cx="46" cy="46" r="24" fill="none" stroke="url(#s1${id})" stroke-width="14"/>
+    <rect x="60" y="30" width="40" height="40" rx="14" fill="url(#s2${id})"/>
+    <circle cx="82" cy="86" r="19" fill="url(#s3${id})"/>
+    <circle cx="42" cy="88" r="13" fill="url(#s4${id})"/></svg>`;
+}
+
+const cards=[
+  ["lav","A · Lavender + flower","Closest to the reference, purple/pink flower",flower(1,'#F49ACB','#B0468A','#FBD3E2','#EE5D8C')],
+  ["lav","B · Lavender + shapes","Playful 3D-toy shape cluster",shapes(2)],
+  ["dark","C · Dark + flower","Bold on near-black (like the dark phone)",flower(3,'#FF9EC4','#C43C6B','#F6C9DC','#EE5D8C')],
+  ["pinkc","D · Pink + warm flower","Soft pink card, warm flower accent",flower(4,'#FBD08A','#E7973B','#FFE7B8','#E07A2B')],
+];
+document.getElementById('grid').innerHTML=cards.map(([cls,n,d,art])=>`
+  <div class="col"><div class="stage">
+    <div class="c ${cls}">
+      <div class="txt"><div class="h2">Plan my<br>day</div><div class="sub">4 friends are out near you</div>${avatars}</div>
+      <div class="art">${art}</div>
+    </div>
+  </div><div class="tag"><div class="n">${n}</div><div class="d">${d}</div></div></div>`).join('');
+</script>

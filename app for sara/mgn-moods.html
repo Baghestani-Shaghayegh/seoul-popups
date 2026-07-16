@@ -1,0 +1,116 @@
+<style>
+.wrap{--pg:#ECE7EA;font-family:"SF Pro Text","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+  background:var(--pg);min-height:100vh;padding:34px 22px 60px;color:#2B2532}
+@media (prefers-color-scheme:dark){.wrap{--pg:#141018;color:#F3ECF1}}
+:root[data-theme="dark"] .wrap{--pg:#141018;color:#F3ECF1}
+:root[data-theme="light"] .wrap{--pg:#ECE7EA;color:#2B2532}
+.head{max-width:900px;margin:0 auto 26px}
+.head .k{font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:700;font-size:12px;color:#EE5D8C;margin:0 0 6px}
+.head h1{font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:800;letter-spacing:-.02em;font-size:25px;margin:0}
+.head p{margin:8px 0 0;font-size:13.5px;opacity:.72;max-width:560px;line-height:1.55}
+.grid{max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:30px 24px;justify-items:center}
+.col{display:flex;flex-direction:column;align-items:center;gap:12px}
+.tag{text-align:center}
+.tag .n{font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:800;font-size:16px}
+.tag .d{font-size:12px;opacity:.66;margin-top:2px}
+
+/* ---------- phone shell ---------- */
+.ph{width:300px;height:610px;border-radius:36px;overflow:hidden;position:relative;padding-top:32px;
+  background:var(--bg);color:var(--ink);box-shadow:0 24px 50px -26px rgba(50,25,45,.5),0 0 0 9px #0a0710,0 0 0 10px rgba(0,0,0,.25);
+  font-family:"SF Pro Text","Segoe UI",system-ui,sans-serif}
+.ph *{box-sizing:border-box}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:92px;height:23px;background:#0a0710;border-radius:99px;z-index:9}
+.sb{display:flex;justify-content:space-between;align-items:center;padding:2px 22px 0;font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:700;font-size:12px;color:var(--ink)}
+.sb .sig{display:flex;gap:4px;opacity:.9}
+.hd{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 4px}
+.who{display:flex;align-items:center;gap:10px}
+.av{width:38px;height:38px;border-radius:13px;background:linear-gradient(135deg,#F4A87C,#B86A4E)}
+.hi{font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:800;font-size:16px;line-height:1.05}
+.who .s{font-size:11px;opacity:.62;margin-top:1px}
+.bell{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--chipbg);color:var(--ink);border:1px solid var(--line)}
+.bell svg,.pin svg{width:17px;height:17px}
+.loc{display:inline-flex;align-items:center;gap:6px;margin:10px 18px 0;padding:6px 12px 6px 8px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:700;font-size:12px;white-space:nowrap}
+.pin{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--pinbg);color:var(--accent);flex:none}
+.pin svg{width:12px;height:12px}
+.loc .cx{opacity:.5}
+.hero{margin:12px 18px 0;border-radius:var(--hrad);padding:16px 16px;position:relative;overflow:hidden;background:var(--herobg);color:var(--heroink);border:var(--herobd)}
+.hero .eye{font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:700;font-size:10.5px;color:var(--heroeye)}
+.hero .h2{font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:800;letter-spacing:-.02em;font-size:22px;line-height:1;margin:5px 0 0}
+.hero .sub{margin-top:5px;font-size:11px;opacity:.82;max-width:64%;line-height:1.35}
+.hero .go{margin-top:12px;display:inline-flex;align-items:center;gap:6px;font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:800;font-size:12px;padding:9px 14px;border-radius:12px;background:var(--gobg);color:var(--goink)}
+.hero .go svg{width:14px;height:14px}
+.hero .heart{position:absolute;right:14px;bottom:12px;width:52px;height:48px}
+.sec{display:flex;align-items:baseline;justify-content:space-between;padding:16px 18px 8px}
+.sec .t{font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:800;font-size:15px}
+.sec .a{font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:700;font-size:11.5px;color:var(--accent)}
+.card{margin:0 18px;border-radius:var(--crad);overflow:hidden;background:var(--surface);border:1px solid var(--line)}
+.photo{position:relative;height:130px;background:var(--photo)}
+.photo .chip{position:absolute;top:10px;left:10px;font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:700;font-size:10px;padding:4px 9px;border-radius:99px;background:var(--accent);color:#fff}
+.photo .fav{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.9);display:grid;place-items:center;color:var(--accent);font-size:12px}
+.cbody{padding:10px 12px 12px}
+.ct{font-family:ui-rounded,"SF Pro Rounded",system-ui;font-weight:800;font-size:14px}
+.cm{font-size:10.5px;opacity:.6;margin-top:4px;display:flex;gap:6px}
+.cm .km{margin-left:auto;color:var(--accent);font-weight:700}
+.nav{position:absolute;left:50%;transform:translateX(-50%);bottom:14px;display:flex;gap:2px;padding:6px 7px;border-radius:99px;background:var(--navbg);border:1px solid var(--line);backdrop-filter:blur(12px)}
+.nav .tb{width:42px;height:38px;border-radius:99px;display:grid;place-items:center;color:var(--navmute)}
+.nav .tb.on{background:var(--accent);color:#fff}
+.nav .tb svg{width:19px;height:19px}
+
+/* ---------- THEME: soft & dreamy ---------- */
+.t-soft{--bg:#FAF6F3;--surface:#fff;--ink:#2B2532;--line:#EDE4E9;--accent:#EE5D8C;--chipbg:#fff;--pinbg:#FDE1EC;
+ --hrad:22px;--herobg:linear-gradient(145deg,#EFEAFE,#E4DBFB 60%,#F6DCEC);--heroink:#3A2C57;--heroeye:#6A4BD1;--herobd:none;
+ --gobg:#2B2532;--goink:#fff;--crad:22px;--photo:linear-gradient(140deg,#7C5CD8,#B57BE0 45%,#F3A0C4);--navbg:rgba(255,255,255,.9);--navmute:#ABA2B4}
+/* ---------- THEME: dark & moody ---------- */
+.t-dark{--bg:#0E0B14;--surface:#1A1420;--ink:#F3ECF1;--line:#2A2233;--accent:#FF5C82;--chipbg:#1F1828;--pinbg:#3A1F2C;
+ --hrad:22px;--herobg:linear-gradient(145deg,#3A1E6E,#6B2A9E 50%,#B23A78);--heroink:#fff;--heroeye:#E9B8FF;--herobd:none;
+ --gobg:#fff;--goink:#2A0E1C;--crad:22px;--photo:linear-gradient(140deg,#5B2AA6,#9B3FC4 45%,#FF6FA3);--navbg:rgba(26,20,32,.86);--navmute:#7C6E8B}
+.t-dark .hero{box-shadow:0 0 40px -6px rgba(178,58,120,.55),inset 0 0 0 1px rgba(255,255,255,.06)}
+.t-dark .photo{box-shadow:inset 0 -40px 40px -30px rgba(255,80,140,.5)}
+.t-dark .ph{box-shadow:0 24px 60px -26px rgba(120,30,90,.7),0 0 0 9px #060409,0 0 0 10px rgba(0,0,0,.4)}
+/* ---------- THEME: minimal & clean ---------- */
+.t-min{--bg:#FFFFFF;--surface:#fff;--ink:#14121A;--line:#EBEAEE;--accent:#EE5D8C;--chipbg:#fff;--pinbg:#FBEAF0;
+ --hrad:14px;--herobg:#fff;--heroink:#14121A;--heroeye:#EE5D8C;--herobd:1px solid #ECEAEF;
+ --gobg:#14121A;--goink:#fff;--crad:14px;--photo:linear-gradient(140deg,#DCD6F5,#EAD7EC 60%,#F3E3EC);--navbg:rgba(255,255,255,.95);--navmute:#B7B2BC}
+.t-min .hero .sub{opacity:.6}
+.t-min .card{box-shadow:none}
+.t-min .photo .chip{background:#14121A}
+.t-min .ph{box-shadow:0 24px 50px -30px rgba(20,18,26,.35),0 0 0 9px #0a0710,0 0 0 10px rgba(0,0,0,.2)}
+/* ---------- THEME: bold & colorful ---------- */
+.t-bold{--bg:#FFE6F0;--surface:#fff;--ink:#2A0A1C;--line:#F6C9DC;--accent:#FF1E6B;--chipbg:#fff;--pinbg:#FFD3E4;
+ --hrad:24px;--herobg:linear-gradient(140deg,#7A22E0,#C81FA0 55%,#FF2D6E);--heroink:#fff;--heroeye:#FFD6EC;--herobd:none;
+ --gobg:#fff;--goink:#C81FA0;--crad:24px;--photo:linear-gradient(140deg,#6A1BE0,#B31FC0 45%,#FF2D6E);--navbg:#fff;--navmute:#C98BA8}
+.t-bold .hero .h2{font-size:26px}
+.t-bold .hero{box-shadow:0 16px 30px -14px rgba(200,31,160,.6)}
+.t-bold .ph{box-shadow:0 24px 55px -26px rgba(200,31,120,.55),0 0 0 9px #0a0710,0 0 0 10px rgba(0,0,0,.25)}
+</style>
+
+<div class="wrap">
+  <div class="head">
+    <p class="k">mgn radar · mood exploration</p>
+    <h1>Pick a vibe</h1>
+    <p>The same Home screen in four different moods. Tell me which one (or mix — e.g. "dark hero, minimal cards") and I'll take the whole app that direction.</p>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const IC={bell:'<path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+pin:'<path d="M12 22s7-6.4 7-12a7 7 0 1 0-14 0c0 5.6 7 12 7 12Z" fill="currentColor" stroke="none"/><circle cx="12" cy="10" r="2.4" fill="#fff"/>',
+arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',home:'<path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1Z"/>',
+search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/>',reel:'<rect x="3" y="3" width="18" height="18" rx="5"/><path d="M10 8.5v7l6-3.5z" fill="currentColor" stroke="none"/>',
+map:'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/>',heart:'<path d="M12 20s-7-4.6-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.4-7 10-7 10Z"/>'};
+const sv=(p,sw)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw||2}" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const phone=t=>`<div class="ph t-${t}"><div class="notch"></div>
+  <div class="sb"><span>9:41</span><span class="sig"><svg viewBox="0 0 24 12" width="17" height="10" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4" width="3" height="8" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg></span></div>
+  <div class="hd"><div class="who"><div class="av"></div><div><div class="hi">Hi, Paulin</div><div class="s">Let's plan your day</div></div></div><div class="bell">${sv(IC.bell)}</div></div>
+  <div class="loc"><span class="pin">${sv(IC.pin)}</span>Seongsu-dong <span class="cx">· Seoul ▾</span></div>
+  <div class="hero"><div class="eye">6 picks near you today</div><div class="h2">Plan my day</div><div class="sub">We lined up your evening around what you love.</div><div class="go">Build my plan ${sv(IC.arrow,2.4)}</div>
+    <svg class="heart" viewBox="0 0 100 92"><path d="M50 84C20 62 5 47 5 28 5 14 16 5 29 5c9 0 16 5 21 13 5-8 12-13 21-13 13 0 24 9 24 23 0 19-15 34-45 56Z" fill="#FF9EC4"/><circle cx="39" cy="41" r="4.8" fill="#fff"/><circle cx="61" cy="41" r="4.8" fill="#fff"/><path d="M39 55c6 6 16 6 22 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>
+  <div class="sec"><span class="t">Feature</span><span class="a">See all</span></div>
+  <div class="card"><div class="photo"><span class="chip">K-pop</span><span class="fav">${sv(IC.heart)}</span></div>
+    <div class="cbody"><div class="ct">S2O Korea · Songkran</div><div class="cm"><span>Sat, Jul 12</span><span>· 18:00</span><span class="km">8.4 km</span></div></div></div>
+  <div class="nav"><div class="tb on">${sv(IC.home)}</div><div class="tb">${sv(IC.search)}</div><div class="tb">${sv(IC.reel)}</div><div class="tb">${sv(IC.map)}</div><div class="tb">${sv(IC.heart)}</div></div>
+</div>`;
+const moods=[["soft","Soft & dreamy","Pastel gradients, gentle — your current look"],["dark","Dark & moody","Near-black, glowing purple/pink — nightlife feel"],["min","Minimal & clean","White space, thin lines, restrained accent"],["bold","Bold & colorful","Saturated blocks, big type, high energy"]];
+document.getElementById('grid').innerHTML=moods.map(([t,n,d])=>`<div class="col"><div class="ph-wrap">${phone(t)}</div><div class="tag"><div class="n">${n}</div><div class="d">${d}</div></div></div>`).join('');
+</script>

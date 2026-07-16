@@ -1,0 +1,179 @@
+<style>
+:root{--bg:#FAF6F3;--surface:#fff;--well:#F3EEF4;--ink:#1A1220;--soft:#7C7488;--mute:#ABA2B4;--line:#EEE7EE;--line2:#E4DAE6;
+  --purple:#6A4BD1;--purple-d:#4A2E9E;--pink:#EE5D8C;--pink-t:#FDE1EC;--lav:#ECE7FE;
+  --fd:ui-rounded,"SF Pro Rounded","Hiragino Maru Gothic ProN","Segoe UI",system-ui,sans-serif;--fb:"SF Pro Text","Segoe UI",system-ui,sans-serif;
+  --sh:0 12px 28px -18px rgba(60,30,70,.4)}
+@media (prefers-color-scheme:dark){:root{--bg:#141018;--surface:#1E1826;--well:#271F30;--ink:#F3ECF1;--soft:#B4A9BD;--mute:#7E7388;--line:#2A2233;--line2:#352A40;--lav:#2E2748;--pink-t:#3A1F2C}}
+*{box-sizing:border-box}
+.stage{min-height:100vh;background:radial-gradient(800px 500px at 85% -10%,color-mix(in srgb,var(--lav) 60%,transparent),transparent 60%),var(--bg);display:flex;flex-direction:column;align-items:center;gap:20px;padding:34px 20px 60px;font-family:var(--fb);color:var(--ink)}
+.pitch{max-width:760px;width:100%}
+.pitch .k{font-family:var(--fd);font-weight:700;font-size:12px;color:var(--pink);margin:0 0 6px}
+.pitch h1{font-family:var(--fd);font-weight:800;letter-spacing:-.02em;font-size:24px;margin:0}
+.pitch p{margin:8px 0 0;color:var(--soft);font-size:13.5px;max-width:560px;line-height:1.55}
+
+.device{width:390px;max-width:100%;height:812px;background:var(--bg);border-radius:46px;position:relative;overflow:hidden;box-shadow:0 30px 60px -30px rgba(50,25,45,.5),0 0 0 10px #0a0710,0 0 0 11px rgba(0,0,0,.25)}
+.notch{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:112px;height:29px;background:#0a0710;border-radius:99px;z-index:40}
+.sb{position:absolute;top:0;left:0;right:0;height:52px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 7px;font-family:var(--fd);font-size:13px;font-weight:700;z-index:30}
+.screen{position:absolute;inset:0;padding-top:52px;overflow-y:auto;scrollbar-width:none;padding-bottom:110px}
+.screen::-webkit-scrollbar{display:none}
+
+/* brand row */
+.brand{display:flex;align-items:center;justify-content:space-between;padding:10px 20px 2px}
+.brand .lg{display:flex;align-items:center;gap:8px}
+.brand .lg .wm{font-family:var(--fd);font-weight:800;font-size:16px;letter-spacing:-.01em}
+.brand .lg .wm b{color:var(--purple)}
+.brand .av{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#F4A87C,#B86A4E)}
+/* greeting */
+.greet{padding:12px 20px 2px}
+.greet h2{font-family:var(--fd);font-weight:800;font-size:25px;letter-spacing:-.02em;line-height:1.05}
+.greet p{color:var(--soft);font-size:13px;margin-top:4px}
+.greet .loc{display:inline-flex;align-items:center;gap:5px;color:var(--pink);font-weight:700;font-family:var(--fd)}
+.greet .loc svg{width:13px;height:13px}
+
+/* hero */
+.hero{margin:16px 20px 0;border-radius:24px;padding:18px 18px;position:relative;overflow:hidden;background:var(--purple);color:#fff}
+.hero .eye{font-family:var(--fd);font-weight:700;font-size:11px;color:#D8CBFF}
+.hero h3{font-family:var(--fd);font-weight:800;font-size:23px;letter-spacing:-.02em;margin:5px 0 0}
+.hero .sub{font-size:11.5px;opacity:.82;margin-top:5px;max-width:62%;line-height:1.35}
+.hero .go{margin-top:13px;display:inline-flex;align-items:center;gap:6px;background:var(--pink);color:#fff;font-family:var(--fd);font-weight:800;font-size:12.5px;padding:10px 15px;border-radius:13px}
+.hero .go svg{width:14px;height:14px}
+.hero .eyes{position:absolute;right:22px;top:50%;transform:translateY(-50%);width:66px;height:100px}
+
+/* section head */
+.sh{display:flex;align-items:baseline;justify-content:space-between;padding:22px 20px 10px}
+.sh h4{font-family:var(--fd);font-weight:800;font-size:17px;letter-spacing:-.01em}
+.sh a{font-family:var(--fd);font-weight:700;font-size:12.5px;color:var(--pink)}
+
+/* day filter (functional-feeling) */
+.filter{display:flex;gap:8px;padding:16px 20px 2px}
+.seg{flex:1;display:flex;background:var(--well);border-radius:14px;padding:4px}
+.seg button{flex:1;border:0;background:transparent;font-family:var(--fd);font-weight:700;font-size:12.5px;color:var(--soft);padding:9px 0;border-radius:11px;cursor:pointer;transition:.16s}
+.seg button[aria-selected="true"]{background:var(--purple);color:#fff;box-shadow:var(--sh)}
+
+/* featured card */
+.feat{margin:0 20px;border-radius:22px;overflow:hidden;box-shadow:var(--sh);cursor:pointer;position:relative}
+.feat .img{aspect-ratio:16/10;position:relative;display:grid;align-content:end;padding:14px}
+.feat .img .fade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 38%,rgba(20,10,25,.62))}
+.feat .chip{position:absolute;top:13px;left:13px;font-family:var(--fd);font-weight:700;font-size:10.5px;padding:5px 10px;border-radius:99px;background:var(--pink);color:#fff;z-index:2}
+.feat .save{position:absolute;top:11px;right:11px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;color:var(--pink);z-index:2}
+.feat .save svg{width:17px;height:17px}
+.feat .cap{position:relative;z-index:2;color:#fff}
+.feat .cap .t{font-family:var(--fd);font-weight:800;font-size:19px;letter-spacing:-.01em;line-height:1.05}
+.feat .cap .m{display:flex;align-items:center;gap:10px;margin-top:7px;font-size:11.5px;opacity:.95;font-family:var(--fb)}
+.feat .cap .m span{display:inline-flex;align-items:center;gap:4px}
+.feat .cap .m svg{width:13px;height:13px}
+.feat .cap .m .km{margin-left:auto;font-family:var(--fd);font-weight:700}
+
+/* event list (distinct from rails) */
+.list{display:flex;flex-direction:column;gap:0;padding:0 20px}
+.li{display:flex;align-items:center;gap:13px;padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.li:last-child{border-bottom:0}
+.li .th{width:60px;height:60px;border-radius:16px;flex:none;position:relative;overflow:hidden}
+.li .th .d{position:absolute;left:6px;bottom:6px;font-family:var(--fd);font-weight:800;font-size:9px;color:#fff;background:rgba(20,10,25,.55);padding:2px 6px;border-radius:99px;backdrop-filter:blur(4px)}
+.li .info{min-width:0;flex:1}
+.li .info .n{font-family:var(--fd);font-weight:800;font-size:14.5px;letter-spacing:-.01em}
+.li .info .v{font-size:11.5px;color:var(--soft);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .info .friends{display:flex;align-items:center;gap:6px;margin-top:6px}
+.li .info .friends .fa{display:flex}
+.li .info .friends .fa span{width:18px;height:18px;border-radius:50%;margin-left:-6px;border:2px solid var(--surface)}
+.li .info .friends .fa span:first-child{margin-left:0}
+.li .info .friends em{font-style:normal;font-family:var(--fd);font-weight:700;font-size:10.5px;color:var(--purple)}
+.li .go{font-family:var(--fd);font-weight:800;font-size:11px;color:var(--pink);white-space:nowrap}
+.li .km{font-family:var(--fd);font-weight:700;font-size:11px;color:var(--mute);white-space:nowrap}
+
+/* nav */
+.nav{position:absolute;left:50%;transform:translateX(-50%);bottom:20px;z-index:35;display:flex;gap:3px;background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(16px);border:1px solid var(--line2);border-radius:99px;padding:7px 8px;box-shadow:var(--sh)}
+.nav .tb{width:52px;height:44px;border-radius:99px;display:grid;place-items:center;color:var(--mute)}
+.nav .tb svg{width:21px;height:21px}
+.nav .tb.on{background:var(--pink);color:#fff}
+</style>
+
+<div class="stage">
+  <div class="pitch">
+    <p class="k">mgn radar · coherent proposal</p>
+    <h1>One system, top to bottom</h1>
+    <p>A tighter Home: the eyes become the brand mark (top-left + hero), a day filter that reads as functional, one big Feature, then a clean event list — no more wall of look-alike rails.</p>
+  </div>
+
+  <div class="device">
+    <div class="notch"></div>
+    <div class="sb"><span>9:41</span><span style="display:flex;gap:6px;align-items:center">
+      <svg viewBox="0 0 20 12" width="17" height="10" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4" width="3" height="8" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+      <svg viewBox="0 0 24 12" width="23" height="10" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="1.5" width="19" height="9" rx="2.6"/><rect x="2.6" y="3" width="13" height="6" rx="1.2" fill="currentColor" stroke="none"/><rect x="21" y="4.5" width="2" height="3" rx="1" fill="currentColor" stroke="none"/></svg>
+    </span></div>
+    <div class="screen">
+
+      <div class="brand">
+        <div class="lg">
+          <svg width="30" height="16" viewBox="0 0 44 22" aria-hidden="true"><path d="M2 11 Q12 3 22 11 Q12 19 2 11 Z" fill="#E7DBC9"/><circle cx="12" cy="11" r="4.6" fill="#EE5D8C"/><circle cx="12" cy="11" r="2.7" fill="#141018"/><path d="M22 11 Q32 3 42 11 Q32 19 22 11 Z" fill="#E7DBC9"/><circle cx="32" cy="11" r="4.6" fill="#EE5D8C"/><circle cx="32" cy="11" r="2.7" fill="#141018"/></svg>
+          <span class="wm">mgn <b>radar</b></span>
+        </div>
+        <div class="av"></div>
+      </div>
+
+      <div class="greet">
+        <h2>Good evening, Paulin</h2>
+        <p>6 spots open tonight in <span class="loc"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22s7-6.4 7-12a7 7 0 1 0-14 0c0 5.6 7 12 7 12Z"/></svg>Seongsu ▾</span></p>
+      </div>
+
+      <div class="hero">
+        <div class="eye">Ready when you are</div>
+        <h3>Plan my day</h3>
+        <div class="sub">A ready-made evening from what you love.</div>
+        <div class="go">Build my plan <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+        <svg class="eyes" viewBox="0 0 68 102" aria-hidden="true"><path d="M2 26 Q34 4 66 26 Q34 48 2 26 Z" fill="#F3E9D6"/><circle cx="34" cy="26" r="11.5" fill="#EE5D8C"/><circle cx="34" cy="26" r="7.4" fill="#141018"/><path d="M2 76 Q34 54 66 76 Q34 98 2 76 Z" fill="#F3E9D6"/><circle cx="34" cy="76" r="11.5" fill="#EE5D8C"/><circle cx="34" cy="76" r="7.4" fill="#141018"/></svg>
+      </div>
+
+      <div class="filter">
+        <div class="seg" role="tablist">
+          <button role="tab" aria-selected="true">Tonight</button>
+          <button role="tab" aria-selected="false">Tomorrow</button>
+          <button role="tab" aria-selected="false">Weekend</button>
+        </div>
+      </div>
+
+      <div class="sh"><h4>Top pick tonight</h4><a>See all</a></div>
+      <div class="feat">
+        <div class="img" style="background:linear-gradient(140deg,#7C5CD8,#B57BE0 45%,#F3A0C4)">
+          <div class="fade"></div>
+          <span class="chip">K-pop · Live</span>
+          <div class="save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.6-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.4-7 10-7 10Z"/></svg></div>
+          <div class="cap">
+            <div class="t">S2O Korea · Songkran</div>
+            <div class="m"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Doors 18:00</span><span>Jamsil</span><span class="km">8.4 km</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sh"><h4>Happening near you</h4><a>Map</a></div>
+      <div class="list" id="list"></div>
+
+    </div>
+
+    <div class="nav">
+      <div class="tb on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1Z"/></svg></div>
+      <div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg></div>
+      <div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M10 8.5v7l6-3.5z" fill="currentColor" stroke="none"/></svg></div>
+      <div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg></div>
+      <div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.6-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.4-7 10-7 10Z"/></svg></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const g1='linear-gradient(150deg,#B36AD8,#3A1550)',g2='linear-gradient(150deg,#5EC8F5,#0E4C8A)',g3='linear-gradient(150deg,#F59E1B,#7A2E12)',g4='linear-gradient(150deg,#37C58E,#0E5C48)';
+const av=c=>`<span style="background:${c}"></span>`;
+const rows=[
+  {n:'Seongsu Vinyl Nights',v:'Nightlife · Seongsu-dong',d:'2d',km:'0.4 km',g:g1,friends:['linear-gradient(135deg,#F4A87C,#B8607F)','linear-gradient(135deg,#8B6BE6,#4A2E9E)'],cnt:'2 friends going'},
+  {n:'Olive Young Pop-up',v:'Beauty · Seongsu-dong',d:'1d',km:'0.9 km',g:g2},
+  {n:'Han River Night Market',v:'Market · Ttukseom',d:'9d',km:'3.1 km',g:g4},
+];
+document.getElementById('list').innerHTML=rows.map(r=>`
+  <div class="li">
+    <div class="th" style="background:${r.g}"><span class="d">${r.d}</span></div>
+    <div class="info"><div class="n">${r.n}</div><div class="v">${r.v}</div>
+      ${r.friends?`<div class="friends"><div class="fa">${r.friends.map(av).join('')}</div><em>${r.cnt}</em></div>`:''}</div>
+    <span class="km">${r.km}</span>
+  </div>`).join('');
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-selected','false'));b.setAttribute('aria-selected','true');});
+</script>
