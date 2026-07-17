@@ -32,9 +32,10 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
 **To do — going live:**
 
 - [ ] **Supabase wired** — `popups` table + **RLS read-only policies from day
-      one** (SECURITY.md §2); schema/policies committed as SQL in `supabase/`
-- [ ] **Content pipeline** — seed ~15 real popups via dashboard; document the
-      entry workflow. Nothing works without content.
+      one** (SECURITY.md §2). Schema + policies are drafted in `supabase/` —
+      needs a project + keys to apply (see supabase/README.md)
+- [ ] **Content pipeline** — seed ~15 real popups via dashboard. Sourcing +
+      entry workflow documented in CONTENT.md. Nothing works without content.
 - [ ] **Swap hooks to live data** — `usePopups` / `usePopup` only; add
       loading/error/empty states to screens
 - [x] **Directions button** — detail screen deep-links Apple / Google Maps
