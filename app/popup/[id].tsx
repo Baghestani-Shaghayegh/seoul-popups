@@ -36,7 +36,7 @@ export default function PopupDetailScreen() {
   const openDirections = () => {
     const dest = `${popup.latitude},${popup.longitude}`;
     const url = Platform.select({
-      ios: `http://maps.apple.com/?daddr=${dest}&q=${encodeURIComponent(popup.name)}`,
+      ios: `https://maps.apple.com/?daddr=${dest}&q=${encodeURIComponent(popup.name)}`,
       default: `https://www.google.com/maps/dir/?api=1&destination=${dest}`,
     });
     Linking.openURL(url);
