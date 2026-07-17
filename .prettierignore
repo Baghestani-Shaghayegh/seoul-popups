@@ -5,3 +5,5 @@ web-build/
 package-lock.json
 android/
 ios/
+# Design handoff artifacts, kept as-is (not app code)
+app for sara/

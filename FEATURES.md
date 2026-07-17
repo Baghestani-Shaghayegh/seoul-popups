@@ -26,6 +26,8 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
 - [x] **Detail screen** — photo, dates, hours, description _(mock)_
 - [x] **Subway directions** ⭐ — line, exit, walk time _(mock)_
 - [x] **Home** — curated landing: search, areas, ending-soon rail, featured _(mock)_
+- [x] **mgn radar redesign** — pink/purple design system across Home, Discover,
+      Detail; floating pill tab bar; Reel + Map styled shells _(2026-07-16)_
 
 **To do — going live:**
 
@@ -35,8 +37,9 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       entry workflow. Nothing works without content.
 - [ ] **Swap hooks to live data** — `usePopups` / `usePopup` only; add
       loading/error/empty states to screens
-- [ ] **Address → open in external maps** — deep-link Naver / Kakao / Google
-      (URL-scheme allowlist per SECURITY.md §4)
+- [x] **Directions button** — detail screen deep-links Apple / Google Maps
+- [ ] **Naver / Kakao Maps directions** — the apps with real walking
+      directions in Korea (URL-scheme allowlist per SECURITY.md §4)
 - [ ] **External links** — Instagram / website on detail screen (same allowlist)
 - [ ] **Map screen** — pins + clustering + tap→detail + "near me"
       _(needs a dev build or map workaround — Expo Go constraint)_
@@ -49,8 +52,8 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
 - [ ] **Plan my day (v2)** — real walking times/polylines via a routing API
       (server-side key, SECURITY.md §1); show route on the Map screen; share
       itinerary
-- [ ] **Save / favorites** ⭐ — local-only first (AsyncStorage, no login);
-      fills the Saved tab
+- [x] **Save / favorites** ⭐ — done local-first: `useFavorites` context +
+      AsyncStorage, save buttons on cards/detail, real Saved tab (no login)
 - [ ] **Accounts / auth** — Apple + Google + email; **guest mode stays
       first-class**; token storage via expo-secure-store (SECURITY.md §5);
       syncs saves
@@ -63,6 +66,9 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
 - [ ] **Reserve (native)** — time slots, manage/cancel, reminders (needs RLS
       user-owned tables)
 - [ ] **Curated collections** — editorial ("This weekend in Seoul")
+- [ ] **Reel feed (live)** — real @mgn.radar clips in the Reel tab (styled
+      placeholder shipped); the Instagram token must stay server-side
+      (Edge Function proxy — SECURITY.md §1)
 - [ ] **Visited / been-there** — mark + history
 - [ ] **Share** — popups and itineraries (growth lever)
 

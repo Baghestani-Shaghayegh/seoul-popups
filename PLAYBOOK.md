@@ -13,7 +13,7 @@ app/   → routes only (Expo Router: file = route). Screens compose components
          and call hooks. No business logic, no direct data access.
 src/   → everything shared:
   components/   dumb, reusable UI (props in, callbacks out; no data fetching)
-  hooks/        data + derived state (usePopups, usePopup, useHomeSections)
+  hooks/        data + derived state (usePopups, useHomeSections, useFavorites)
   lib/          pure logic (dates, status, routing math, supabase client)
   data/         mock seed data (dies when Supabase is wired)
   types/        domain types (Popup, Neighborhood, Category)
