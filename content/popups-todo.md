@@ -27,6 +27,7 @@ placeholders — that's expected, it's exactly what the draft gate (CONTENT.md
 | Demon Slayer: Infinity Castle Arc | Hongdae | ⚠️ reused AK Plaza Hongdae pin | ⚠️ Hongik Univ. 2 | ⚠️ 2 | ✓ split hrs | ⚠️ placeholder |
 | Park Ttuki Salt Bread × YoAJung | Seongsu | ⚠️ est. from 왕십리로14길 19-7 | ✓ Seongsu 3 | ✓ 7 | ✓ 09–16 | ⚠️ placeholder |
 | Tashiro, You Rascal! × Toonique Cafe | Hongdae | ⚠️ est. from 동교동 147-34 | ✓ Hongik Univ. 3 | ✓ 3 | ⚠️ est 11–21 | ⚠️ placeholder |
+| Gintama — Korea's First Official Pop-up | Hongdae | ⚠️ reused AK Plaza Hongdae pin | ⚠️ Hongik Univ. 2 | ⚠️ 2 | ✓ 10–19 | ⚠️ placeholder |
 
 To publish one: confirm its pin + swap the photo (steps below), then in the
 Supabase Table Editor set `published = true` and `last_verified_at` to today.
@@ -47,3 +48,16 @@ Supabase Table Editor set `published = true` and `last_verified_at` to today.
 - **Studio Assistant × Aniplus Cafe** — Hongdae, Food, Jun 25–Aug 9 (venue ambiguous)
 - **Cellfusion C "Heat Control Center"** — Seongsu, Beauty — **dropped**, ended
   Jul 13 (no meaningful run left as of 2026-07-21).
+
+## Gangnam scan (2026-07-21) — nothing publishable
+
+Gangnam is quiet for popups in late July; no *July* aggregator roundup exists
+(only a stale June one). Candidates all failed the bar:
+
+- **정서불안 김햄찌 "오늘도 출근햄니다"** — Shinsegae Gangnam Central 1F, Jul 9–**22**
+  (ends immediately; also technically Seocho / Express Bus Terminal).
+- **Metaglass** — Shinsegae Gangnam B1, **ended** Jul 9.
+- **Character Licensing Fair 2026** — COEX, Jul 16–19: a trade fair, not a popup.
+
+Re-scan Gangnam in early August — new launches usually land then. Gangnam
+stays at 1 published for now.
