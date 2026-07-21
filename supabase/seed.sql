@@ -1,52 +1,62 @@
--- Seed — placeholder catalogue so the app runs against live Supabase before
--- real content is sourced. These 9 entries mirror the former mock data
--- (src/data/mockPopups.ts): recognizable brands, plausible details, but stock
--- Unsplash images and invented dates. Replace with CONTENT.md-sourced real
--- popups (real photos in the popup-images bucket) as they are researched.
+-- Seed — first REAL catalogue (researched 2026-07-21). Five popups actually
+-- running in Seongsu / Hongdae / Gangnam this month, sourced per CONTENT.md.
 --
--- Safe to re-run against a fresh DB. Ids are DB-generated UUIDs (not fixed), so
--- running this twice inserts duplicates — truncate first if reseeding:
+-- ⚠️ NOT fully verified — see content/popups-todo.md. Two classes of field are
+-- best-effort and need a human pass before this is "clean":
+--   • image_url  — interim Unsplash stock. Replace with official announcement
+--                  photos uploaded to the popup-images bucket (CONTENT.md §4).
+--   • latitude/longitude + subway_walk_minutes — geocoded from the venue
+--                  address / estimated. Confirm the pin + walk time in Naver or
+--                  Kakao Map (exits marked ✓ in the TODO are source-confirmed).
+-- Dates, hours, venue and subway station are from the sources in source_url.
+--
+-- Re-running inserts duplicates (UUID ids). To reseed: truncate first.
 --   truncate table public.popups;
+
+truncate table public.popups;
 
 insert into public.popups
   (name, tagline, description, neighborhood, category, image_url,
    start_date, end_date, hours,
    subway_line, subway_station, subway_exit, subway_walk_minutes,
-   latitude, longitude, reservable)
+   latitude, longitude, reservable, source_url)
 values
-  ('Tamburins Flagship', 'Sculptural perfume & hand cream pop-up',
-   'A moody, gallery-like space showcasing Tamburins'' latest fragrance line, with installations you can actually touch and sample.',
-   'Seongsu', 'Beauty', 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&q=80',
-   '2026-06-01', '2026-07-15', '11:00 – 20:00', 'Line 2', 'Seongsu', '3', 6, 37.5447, 127.0557, true),
-  ('Gentle Monster x Jentle Garden', 'Surreal eyewear experience with robotics',
-   'Part retail, part art exhibition. Giant kinetic sculptures and the newest eyewear drops in an immersive garden set.',
-   'Hongdae', 'Fashion', 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&q=80',
-   '2026-06-10', '2026-08-01', '12:00 – 21:00', 'Line 2', 'Hongik Univ.', '9', 8, 37.5561, 126.9244, false),
-  ('Nike Style Seoul', 'Limited sneaker drops & customization bar',
-   'Reserve a slot at the customization bar, grab member-exclusive releases, and join daily styling sessions.',
-   'Gangnam', 'Fashion', 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80',
-   '2026-05-20', '2026-06-30', '10:30 – 22:00', 'Line 9', 'Sinnonhyeon', '6', 4, 37.5045, 127.025, true),
-  ('Matin Kim Concept Store', 'K-fashion it-brand seasonal showcase',
-   'The hyped Korean label takes over a two-floor space with the full fall collection and a members-only café upstairs.',
-   'Seongsu', 'Fashion', 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80',
-   '2026-06-15', '2026-09-01', '11:00 – 21:00', 'Line 2', 'Seongsu', '4', 3, 37.5443, 127.056, false),
-  ('Olive Young Beauty Lab', 'Try-before-you-buy K-beauty playground',
-   'Hands-on testing stations, AI skin analysis, and a curated wall of trending K-beauty products with English staff.',
-   'Hongdae', 'Beauty', 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&q=80',
-   '2026-06-05', '2026-07-20', '10:00 – 22:00', 'Line 2', 'Hongik Univ.', '8', 5, 37.5558, 126.924, true),
-  ('Nudake Dessert Lab', 'Avant-garde cakes & art-piece pastries',
-   'Gentle Monster''s dessert house serves sculptural cakes and a limited matcha croissant you can only get here.',
-   'Seongsu', 'Food', 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&q=80',
-   '2026-06-01', '2026-07-31', '11:00 – 21:00', 'Line 2', 'Seongsu', '2', 7, 37.5449, 127.0558, false),
-  ('Kakao Friends Summer House', 'Character goods & photo zones galore',
-   'A playful pop-up packed with Ryan and friends — exclusive summer merch, giant plushies, and Instagram-ready sets.',
-   'Hongdae', 'Lifestyle', 'https://images.unsplash.com/photo-1558877385-8c1b8e6e6d3a?w=800&q=80',
-   '2026-06-12', '2026-08-15', '11:00 – 20:00', 'Line 2', 'Hongik Univ.', '1', 6, 37.5565, 126.9235, false),
-  ('Light & Space Art Pop-up', 'Immersive digital art coming this summer',
-   'A walk-through light installation by a Seoul media-art collective. Timed-entry tickets, opening early July.',
-   'Gangnam', 'Art', 'https://images.unsplash.com/photo-1545989253-02cc26577f88?w=800&q=80',
-   '2026-07-05', '2026-08-10', '10:00 – 20:00', 'Line 9', 'Sinnonhyeon', '5', 5, 37.5048, 127.0245, true),
-  ('Jellycat Café Seoul', 'Plush-toy themed café (now closed)',
-   'A whimsical café where the menu came to life as plush characters. This run has wrapped up — check back for the next one.',
-   'Seongsu', 'Lifestyle', 'https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=800&q=80',
-   '2026-05-01', '2026-06-15', '11:00 – 20:00', 'Line 2', 'Seongsu', '1', 5, 37.5451, 127.0562, false);
+  ($$Toy Story × PEACEMINUSONE — The First Fan$$,
+   $$G-Dragon's label meets Pixar's Toy Story$$,
+   $$Disney and G-Dragon's fashion label PEACEMINUSONE turn Woody and Buzz into a two-floor fashion story. The ground level recreates a childhood bedroom with life-size character silhouettes; upstairs holds 70+ exclusive figures, apparel and accessories you can buy. Photo booths and a "write your childhood dream" zone make the queue worth it.$$,
+   'Seongsu', 'Fashion', 'https://images.unsplash.com/photo-1558877385-8c1b8e6e6d3a?w=800&q=80',
+   '2026-07-01', '2026-08-30', '11:00 – 20:00',
+   'Line 2', 'Seongsu', '3', 5, 37.5437, 127.0561, false,
+   'https://www.koreaherald.com/article/10783859'),
+
+  ($$WIND BREAKER 5th Anniversary Exhibition$$,
+   $$Five years of the hit webtoon, walk-through$$,
+   $$The popular action webtoon WIND BREAKER marks its fifth anniversary with a gallery-style show inside AK Plaza at Hongik Univ. Station. Expect original art, life-size character setups and anniversary-only merch. It reads visually, so non-Korean fans can enjoy it too.$$,
+   'Hongdae', 'Art', 'https://images.unsplash.com/photo-1545989253-02cc26577f88?w=800&q=80',
+   '2026-07-09', '2026-08-23', 'Mon–Fri 11:00–22:00 · Sat–Sun 10:30–22:00',
+   'Line 2', 'Hongik Univ.', '2', 2, 37.5568, 126.9243, false,
+   'https://dayforyou.com/getDetail?scheduleSeq=26122'),
+
+  ($$Demon Slayer: Full Focus Exhibition$$,
+   $$A 500-pyeong immersive Demon Slayer world$$,
+   $$The global anime hit gets a huge walk-through exhibition at S-Factory in Seongsu. Key scenes — the Demon Slayer Corps HQ, the Mount Natagumo battle, the Mugen Train — are rebuilt as sets you step inside, alongside original-art and photo zones. Timed tickets via Fever.$$,
+   'Seongsu', 'Art', 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&q=80',
+   '2026-06-27', '2026-09-27', '11:00 – 20:00',
+   'Line 2', 'Seongsu', '3', 5, 37.5417, 127.0566, false,
+   'https://popga.co.kr/popup/7102'),
+
+  ($$T1 — Counting the Stars$$,
+   $$Step inside T1's championship history$$,
+   $$Esports giant T1 (Faker's team) turns its trophy cabinet into a story-driven experience at T-Factory Seongsu. You're cast as a new astronomer in a royal secret bureau, tracing the team's title runs past championship trophies and players' match-worn jerseys. A must for League of Legends fans.$$,
+   'Seongsu', 'Lifestyle', 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80',
+   '2026-07-02', '2026-09-13', '11:00 – 20:00',
+   'Line 2', 'Seongsu', '4', 6, 37.5443, 127.0559, false,
+   'https://popga.co.kr/popup/7499'),
+
+  ($$A Shop for Killers — MurderHelp Gangnam$$,
+   $$Enter the world of the Disney+ thriller$$,
+   $$An immersive popup for the Disney+ series A Shop for Killers, staged as the show's "MurderHelp" storefront steps from Gangnam Station. Walk through set recreations and interactive rooms from the series. Adults only (19+); timed reservations recommended.$$,
+   'Gangnam', 'Art', 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&q=80',
+   '2026-07-10', '2026-08-08', 'Weekdays 16:00–21:00 · Weekends 12:00–21:00',
+   'Line 2', 'Gangnam', '11', 2, 37.4995, 127.0276, false,
+   'https://popply.co.kr/popup/5431');

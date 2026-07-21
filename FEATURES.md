@@ -35,9 +35,10 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       on project `xkykpcjbnlihreikqonu`. Applied via the Supabase MCP; RLS
       proven from outside (anon read 200, anon write 401). Advisor clean after
       hardening the `rls_auto_enable` function (`supabase/002-*.sql`).
-- [ ] **Content pipeline** — ⚠️ seeded with **9 placeholder** popups
-      (`supabase/seed.sql`, ex-mock data + stock images) so the app is live.
-      Still to do: source ~15 **real** popups with real photos per CONTENT.md.
+- [ ] **Content pipeline** — **5 real** current popups seeded _(2026-07-21,
+      `supabase/seed.sql`)_ across Seongsu/Hongdae/Gangnam. Still to do: finalize
+      pins/walk-times/official photos (`content/popups-todo.md`) and grow toward
+      ~15. Needs the `popup-images` bucket for real photos.
 - [x] **Swap hooks to live data** _(2026-07-21)_ — `usePopups` / `usePopup`
       now query Supabase (shared single-fetch cache, snake→camel mapping,
       graceful mock fallback when `.env` is absent). **Next:** render the
