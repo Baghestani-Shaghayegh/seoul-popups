@@ -1,0 +1,11 @@
+-- 002 — Harden the pre-existing `rls_auto_enable()` event-trigger function.
+--
+-- The project ships with an event-trigger function that auto-enables RLS on any
+-- new table in `public` (a belt-and-suspenders for SECURITY.md §2). The Supabase
+-- security advisor flagged it as callable through the REST API by the `anon` and
+-- `authenticated` roles because it is SECURITY DEFINER with a default EXECUTE
+-- grant to PUBLIC. It is only ever meant to fire as a DDL event trigger.
+--
+-- Revoking EXECUTE from the API roles closes the advisor warning. Event triggers
+-- fire independently of these grants, so the auto-enable behaviour is unaffected.
+revoke execute on function public.rls_auto_enable() from public, anon, authenticated;
