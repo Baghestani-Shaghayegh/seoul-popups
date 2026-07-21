@@ -1,9 +1,9 @@
 # Popup content — verification TODO
 
-The first real catalogue (`supabase/seed.sql`, seeded 2026-07-21) is live but
-**not fully verified**. Dates, hours, venue and subway station come from the
-listed sources; the fields below are best-effort and need a human pass with map
-tools + official photos, per [CONTENT.md](../CONTENT.md) §3–§4.
+The first real catalogue (`supabase/seed.sql`, seeded 2026-07-21) is **live and
+published**. Dates, hours, venue and subway station come from the listed
+sources; the fields below are best-effort and need a human pass with map tools
++ official photos, per [CONTENT.md](../CONTENT.md) §3–§4.
 
 Legend: ✓ = source-confirmed · ⚠️ = estimated, verify
 
@@ -14,6 +14,22 @@ Legend: ✓ = source-confirmed · ⚠️ = estimated, verify
 | Demon Slayer: Full Focus | ⚠️ S-Factory D, Yeonmujang15-gil 11 | ✓ Seongsu 3 | ✓ 5 | ⚠️ est 11–20 | ⚠️ placeholder |
 | T1 — Counting the Stars | ⚠️ T-Factory Seongsu | ⚠️ Seongsu 4 | ⚠️ 6 | ⚠️ est 11–20 | ⚠️ placeholder |
 | A Shop for Killers (MurderHelp) | ⚠️ Gangnam-daero 420 | ✓ Gangnam 11 | ✓ 2 | ✓ split hrs | ⚠️ placeholder |
+
+## Drafted 2026-07-21 (in Supabase, `published = false` — not yet in the app)
+
+Sourced from a Popga scan. All three passed `npm run validate:popup`; none are
+publishable yet because coords are estimated and images are Unsplash
+placeholders — that's expected, it's exactly what the draft gate (CONTENT.md
+§3.5) is for.
+
+| Popup | Neighborhood | Coords | Subway exit | Walk min | Hours | Image |
+|---|---|---|---|---|---|---|
+| Demon Slayer: Infinity Castle Arc | Hongdae | ⚠️ reused AK Plaza Hongdae pin | ⚠️ Hongik Univ. 2 | ⚠️ 2 | ✓ split hrs | ⚠️ placeholder |
+| Park Ttuki Salt Bread × YoAJung | Seongsu | ⚠️ est. from 왕십리로14길 19-7 | ✓ Seongsu 3 | ✓ 7 | ✓ 09–16 | ⚠️ placeholder |
+| Tashiro, You Rascal! × Toonique Cafe | Hongdae | ⚠️ est. from 동교동 147-34 | ✓ Hongik Univ. 3 | ✓ 3 | ⚠️ est 11–21 | ⚠️ placeholder |
+
+To publish one: confirm its pin + swap the photo (steps below), then in the
+Supabase Table Editor set `published = true` and `last_verified_at` to today.
 
 ## To finalize each row (Supabase → Table Editor → `popups`)
 
@@ -29,6 +45,5 @@ Legend: ✓ = source-confirmed · ⚠️ = estimated, verify
 
 - **Waterside Night** — Hongdae, Food, Jul 2–Aug 16 (no venue address yet)
 - **Studio Assistant × Aniplus Cafe** — Hongdae, Food, Jun 25–Aug 9 (venue ambiguous)
-- **Tashiro × Toonique Cafe** — Hongdae, Food, Jul 15–Aug 9 (no venue yet)
 - **Cellfusion C "Heat Control Center"** — Seongsu, Beauty — **dropped**, ended
   Jul 13 (no meaningful run left as of 2026-07-21).
