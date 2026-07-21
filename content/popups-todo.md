@@ -39,8 +39,9 @@ Supabase Table Editor set `published = true` and `last_verified_at` to today.
 2. **Walk time** — Naver/Kakao walking directions from the station exit → round
    up into `subway_walk_minutes`.
 3. **Photo** — grab the brand's official announcement image, upload to the
-   `popup-images` Storage bucket (public read), put that URL in `image_url`.
-   The bucket does not exist yet — create it first (supabase/README.md §1.3).
+   `popup-images` Storage bucket (public read; created via migration `004`),
+   put that URL in `image_url`. Uploads are dashboard-only (drag-and-drop);
+   the bucket accepts image files up to 5 MB.
 
 ## Researched but NOT seeded (need venue/confirmation before they can go in)
 

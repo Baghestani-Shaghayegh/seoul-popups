@@ -10,10 +10,12 @@ day-to-day content entry is in [CONTENT.md](../CONTENT.md).
    is closest to users).
 2. **SQL Editor → New query** → paste all of [`schema.sql`](schema.sql) →
    Run. This creates the `popups` table with row-level security already on.
-3. **Storage → New bucket** → name it `popup-images`, toggle **Public
-   bucket** ON. Upload photos here (dashboard drag-and-drop) and use each
-   file's public URL as `image_url`. Public means public-READ; uploads still
-   require the dashboard.
+3. **Storage bucket** → run [`004-popup-images-bucket.sql`](004-popup-images-bucket.sql)
+   in the SQL Editor (same as the other migrations). It creates the
+   `popup-images` bucket: public-READ, image MIME types only, 5 MB/file, and
+   **no** upload policy — so writes go only through the dashboard drag-and-drop
+   / service role (SECURITY.md §1). Upload photos there and use each file's
+   public URL as `image_url`.
 4. **Project Settings → API**: copy the Project URL and the `anon` `public`
    key into `.env` (copy `.env.example` → `.env`). These two values are safe
    to ship in the app.
@@ -64,7 +66,7 @@ row before publishing with `npm run validate:popup <file.json>`.
 
 ## 4. Schema changes later
 
-Add a numbered migration file per change (`004-add-<thing>.sql`, …) instead
+Add a numbered migration file per change (`005-add-<thing>.sql`, …) instead
 of editing `schema.sql`, so the history of what ran against production stays
 readable. Apply new files the same way (SQL Editor), and re-run the §2 tests
 whenever a policy changes.
