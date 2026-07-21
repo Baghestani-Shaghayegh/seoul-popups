@@ -43,9 +43,28 @@ curl -X POST "https://<PROJECT_REF>.supabase.co/rest/v1/popups" \
 
 If the write succeeds, stop and fix the policies before entering real data.
 
-## 3. Schema changes later
+Note: after migration `003`, the read test returns only **published** rows
+(the app never sees drafts). A brand-new project with no published rows
+returns `[]` — still HTTP 200, still correct.
 
-Add a numbered migration file per change (`002-add-<thing>.sql`, …) instead
+## 3. Review gate + freshness (migration 003)
+
+`003-trust-and-freshness.sql` makes the catalogue trustworthy and self-cleaning:
+
+- **`published`** — rows are drafts (`false`) until a human publishes them. RLS
+  exposes only `published = true` to the app / anon key, so unreviewed data can
+  never leak into production. The dashboard (service role) sees everything.
+- **`last_verified_at`, `source_name`, `updated_at`** — provenance + freshness.
+  `updated_at` auto-touches on every change (trigger).
+- **`popups_needs_review`** — a maintenance view (dashboard-only) listing rows
+  that are `ended`, `ending_soon`, or `stale`. See CONTENT.md §3.6.
+
+The full add → validate → publish loop is CONTENT.md §3.5. Validate a drafted
+row before publishing with `npm run validate:popup <file.json>`.
+
+## 4. Schema changes later
+
+Add a numbered migration file per change (`004-add-<thing>.sql`, …) instead
 of editing `schema.sql`, so the history of what ran against production stays
 readable. Apply new files the same way (SQL Editor), and re-run the §2 tests
 whenever a policy changes.

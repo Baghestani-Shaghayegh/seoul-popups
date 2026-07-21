@@ -46,7 +46,8 @@
     "web": "expo start --web",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "validate:popup": "node scripts/validate-popup.mjs"
   },
   "private": true
 }

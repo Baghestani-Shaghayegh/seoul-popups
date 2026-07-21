@@ -84,6 +84,49 @@ Field tips:
 - **Dates drive everything.** Status ("Open now", "Ending soon", "Ended") is
   derived from `start_date`/`end_date` — a wrong date is a wrong app.
 
+## 3.5 The pipeline — draft → validate → publish
+
+Every popup goes through the same gate, so the app only ever shows data a human
+checked. The database enforces this: rows are **drafts** (`published = false`)
+by default and are **invisible to the app and the anon key** until published
+(`supabase/003-trust-and-freshness.sql`, RLS `using (published = true)`).
+
+1. **Draft** — spot a popup (see §1), then hand the source (an Instagram post,
+   an article, or a Popply/popga link) to Claude and ask for a row following the
+   §3 form. Claude writes the English description in our voice, maps the fields,
+   and fills subway/coords. Save it as JSON (camelCase `Popup` shape).
+2. **Validate** — run the gate:
+   ```sh
+   npm run validate:popup path/to/popup.json
+   ```
+   It checks enums, https links, date sanity, Seoul coordinate bounds, required
+   fields, and flags Unsplash placeholder images. **✗ errors block publish**;
+   ⚠ warnings are judgment calls. Exit code is non-zero if anything failed.
+3. **Insert as draft** — add the row via the Table Editor (or SQL) with
+   `published = false`. It is now in the DB but not in the app.
+4. **Verify the two human-only fields** — confirm the **map pin** (Naver/Kakao)
+   and swap the **photo** for an official one in the `popup-images` bucket (§4).
+5. **Publish** — set `published = true` and `last_verified_at = today`. It goes
+   live on the next app load.
+
+This is the trustworthy loop: **you decide what's worth showing, Claude does the
+structuring, the validator + review gate keep bad data out.**
+
+## 3.6 Keeping it up to date (freshness)
+
+Dates drive status, so the app self-cleans: ended popups drop out of default
+views automatically. The weekly maintenance job is just re-checking what's still
+listed. To see what needs attention, query the maintenance view (dashboard /
+service role only — it's not exposed to the app):
+
+```sql
+select * from public.popups_needs_review order by review_reason, end_date;
+```
+
+`review_reason` flags rows that are `ended`, `ending_soon` (≤7 days), or `stale`
+(not re-verified in 14+ days). Update `end_date` for extensions/early closures
+and bump `last_verified_at` whenever you re-confirm a row against its source.
+
 ## 4. Photos
 
 - Use the brand's official announcement photos (credit by linking
