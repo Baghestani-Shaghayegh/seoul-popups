@@ -25,9 +25,17 @@ placeholders — that's expected, it's exactly what the draft gate (CONTENT.md
 | Popup | Neighborhood | Coords | Subway exit | Walk min | Hours | Image |
 |---|---|---|---|---|---|---|
 | Demon Slayer: Infinity Castle Arc | Hongdae | ⚠️ reused AK Plaza Hongdae pin | ⚠️ Hongik Univ. 2 | ⚠️ 2 | ✓ split hrs | ⚠️ placeholder |
-| Park Ttuki Salt Bread × YoAJung | Seongsu | ⚠️ est. from 왕십리로14길 19-7 | ✓ Seongsu 3 | ✓ 7 | ✓ 09–16 | ⚠️ placeholder |
-| Tashiro, You Rascal! × Toonique Cafe | Hongdae | ⚠️ est. from 동교동 147-34 | ✓ Hongik Univ. 3 | ✓ 3 | ⚠️ est 11–21 | ⚠️ placeholder |
+| Park Ttuki Salt Bread × YoAJung | Seongsu | ⚠️ est. from 왕십리로14길 19-7 | ✓ Seongsu 3 | ✓ 7 | ✓ 09–16 | 🔶 interim (Popga) |
+| Tashiro, You Rascal! × Toonique Cafe | Hongdae | ⚠️ est. from 동교동 147-34 | ✓ Hongik Univ. 3 | ✓ 3 | ⚠️ est 11–21 | 🔶 interim (Popga) |
 | Gintama — Korea's First Official Pop-up | Hongdae | ⚠️ reused AK Plaza Hongdae pin | ⚠️ Hongik Univ. 2 | ⚠️ 2 | ✓ 10–19 | ⚠️ placeholder |
+
+🔶 **interim (Popga)** = `image_url` currently hotlinks a 480px Popga CDN
+thumbnail (`cdn.popga.co.kr/spot/…`). Good enough to preview the draft, but
+**not publish-ready**: it's low-res, hotlinked (can break), and not the brand's
+own photo. Before publishing, download an official announcement image, upload to
+the `popup-images` bucket, and replace `image_url` with the bucket URL (§4).
+Demon Slayer + Gintama still on Unsplash placeholders — no reliable Popga
+single-popup image matched the current run.
 
 To publish one: confirm its pin + swap the photo (steps below), then in the
 Supabase Table Editor set `published = true` and `last_verified_at` to today.
