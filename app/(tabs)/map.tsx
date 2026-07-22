@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   ScrollView,
   Text,
@@ -10,11 +11,16 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { PopupMapView } from '@/components/map/PopupMapView';
+import {
+  PopupMapView,
+  type PopupMapHandle,
+} from '@/components/map/PopupMapView';
 import { PopupImage } from '@/components/popups/PopupImage';
 import { colors } from '@/constants/theme';
 import { usePopups } from '@/hooks/usePopups';
+import { useUserLocation } from '@/hooks/useUserLocation';
 import { endingLabel, isActiveToday } from '@/lib/popupStatus';
+import { haversineMeters } from '@/lib/route';
 
 // Nearby card geometry, so tapping a pin can scroll its card into view.
 const CARD_WIDTH = 224; // w-56
@@ -29,16 +35,41 @@ export default function MapScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { popups, loading, error, reload } = usePopups({});
-  const nearby = popups.filter(isActiveToday);
+  const { coords, permission, locating, locate } = useUserLocation();
+
+  // Once we know where the user is, "nearby" becomes literal — sort by
+  // straight-line distance. Until then, keep the fetch order (soonest to end).
+  const nearby = useMemo(() => {
+    const active = popups.filter(isActiveToday);
+    if (!coords) return active;
+    return [...active].sort(
+      (a, b) => haversineMeters(coords, a) - haversineMeters(coords, b),
+    );
+  }, [popups, coords]);
 
   const headerLabel = loading
     ? 'Finding pop-ups…'
     : error
       ? 'Couldn’t load pop-ups'
-      : `${nearby.length} pop-ups nearby`;
+      : coords
+        ? `${nearby.length} pop-ups near you`
+        : `${nearby.length} pop-ups nearby`;
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const railRef = useRef<ScrollView>(null);
+  const mapRef = useRef<PopupMapHandle>(null);
+
+  const onLocate = async () => {
+    const c = await locate();
+    if (c) {
+      mapRef.current?.centerOn(c);
+    } else {
+      Alert.alert(
+        'Location unavailable',
+        'Enable location access in Settings to see pop-ups near you.',
+      );
+    }
+  };
 
   // When a pin is selected, bring its card to the front of the rail.
   useEffect(() => {
@@ -54,10 +85,34 @@ export default function MapScreen() {
   return (
     <View className="flex-1 bg-bg">
       <PopupMapView
+        ref={mapRef}
         popups={nearby}
         selectedId={selectedId}
         onSelect={setSelectedId}
+        showUser={permission === 'granted'}
       />
+
+      {/* Locate me */}
+      <Pressable
+        onPress={onLocate}
+        style={({ pressed }) => ({
+          opacity: pressed ? 0.9 : 1,
+          top: insets.top + 68,
+        })}
+        accessibilityRole="button"
+        accessibilityLabel="Find pop-ups near me"
+        className="absolute right-4 h-12 w-12 items-center justify-center rounded-2xl border border-line-strong bg-surface shadow-sm"
+      >
+        {locating ? (
+          <ActivityIndicator size="small" color={colors.brand.DEFAULT} />
+        ) : (
+          <Ionicons
+            name="locate"
+            size={20}
+            color={permission === 'granted' ? colors.brand.DEFAULT : colors.ink}
+          />
+        )}
+      </Pressable>
 
       {/* Search this area */}
       <View

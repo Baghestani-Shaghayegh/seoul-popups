@@ -26,7 +26,16 @@
       "bundler": "metro",
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router", "expo-font"],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Seoul Popups to use your location to show pop-ups near you."
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     }

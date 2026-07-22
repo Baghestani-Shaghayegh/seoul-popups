@@ -67,10 +67,12 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       `react-native-maps` (Apple Maps iOS / Google Android), branded
       category pins, tap-to-select synced with the nearby rail, auto-fits to
       the popups. Native only — web resolves `PopupMapView.web.tsx` (styled
-      placeholder) so Expo Go/web don't crash. **Still to do:** verify on a
-      dev build, set `GOOGLE_MAPS_ANDROID_KEY` for Android, marker clustering
-      (fine at ~5–15 pins for now), and real **"near me"** (needs
-      expo-location permission flow).
+      placeholder) so Expo Go/web don't crash. **"Near me"** (2026-07-22):
+      `useUserLocation` (expo-location) + a locate button that centers the map,
+      shows the user dot, and re-sorts the rail by real distance; never prompts
+      on mount. **Still to do:** verify on a dev build, set
+      `GOOGLE_MAPS_ANDROID_KEY` for Android, and marker clustering (fine at
+      ~5–15 pins for now).
 
 ## 🔵 Phase 1 — Differentiators (light personalization)
 

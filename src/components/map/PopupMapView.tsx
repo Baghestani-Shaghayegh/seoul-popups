@@ -1,5 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import MapView, {
   Marker,
@@ -9,6 +16,7 @@ import MapView, {
 } from 'react-native-maps';
 
 import { colors } from '@/constants/theme';
+import type { UserCoords } from '@/hooks/useUserLocation';
 import type { Category, Popup } from '@/types/popup';
 
 /** Category → pin glyph. A small differentiator: pins read at a glance. */
@@ -113,6 +121,13 @@ export interface PopupMapViewProps {
   popups: Popup[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  /** Show the device's blue location dot (only once permission is granted). */
+  showUser?: boolean;
+}
+
+/** Imperative handle so the screen can recenter the map on "near me". */
+export interface PopupMapHandle {
+  centerOn: (coords: UserCoords) => void;
 }
 
 /**
@@ -120,59 +135,72 @@ export interface PopupMapViewProps {
  * Apple Maps (English labels, no key); Android uses Google (key via
  * app.config.js). Native only — the web build resolves PopupMapView.web.tsx.
  */
-export function PopupMapView({
-  popups,
-  selectedId,
-  onSelect,
-}: PopupMapViewProps) {
-  const mapRef = useRef<MapView>(null);
-  const didAutoFit = useRef(false);
+export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
+  function PopupMapView({ popups, selectedId, onSelect, showUser }, ref) {
+    const mapRef = useRef<MapView>(null);
+    const didAutoFit = useRef(false);
 
-  const initialRegion = useMemo(() => regionForPopups(popups), [popups]);
+    const initialRegion = useMemo(() => regionForPopups(popups), [popups]);
 
-  // Frame all popups once they've loaded (they may arrive after first render).
-  useEffect(() => {
-    if (didAutoFit.current || popups.length === 0) return;
-    didAutoFit.current = true;
-    mapRef.current?.animateToRegion(regionForPopups(popups), 350);
-  }, [popups]);
-
-  // Center on the selected popup (e.g. when picked from the list below).
-  useEffect(() => {
-    if (!selectedId) return;
-    const p = popups.find((x) => x.id === selectedId);
-    if (!p) return;
-    mapRef.current?.animateToRegion(
-      {
-        latitude: p.latitude,
-        longitude: p.longitude,
-        latitudeDelta: 0.012,
-        longitudeDelta: 0.012,
-      },
-      350,
+    useImperativeHandle(
+      ref,
+      () => ({
+        centerOn(coords) {
+          mapRef.current?.animateToRegion(
+            { ...coords, latitudeDelta: 0.02, longitudeDelta: 0.02 },
+            350,
+          );
+        },
+      }),
+      [],
     );
-  }, [selectedId, popups]);
 
-  return (
-    <MapView
-      ref={mapRef}
-      style={StyleSheet.absoluteFill}
-      // Google on Android; Apple on iOS (better Korea labels in English, no key)
-      provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
-      initialRegion={initialRegion}
-      showsUserLocation={false}
-      showsMyLocationButton={false}
-      // room for the search bar (top) and the nearby sheet (bottom)
-      mapPadding={{ top: 80, right: 0, bottom: 220, left: 0 }}
-    >
-      {popups.map((p) => (
-        <PopupPin
-          key={p.id}
-          popup={p}
-          selected={p.id === selectedId}
-          onPress={onSelect}
-        />
-      ))}
-    </MapView>
-  );
-}
+    // Frame all popups once they've loaded (they may arrive after first render).
+    useEffect(() => {
+      if (didAutoFit.current || popups.length === 0) return;
+      didAutoFit.current = true;
+      mapRef.current?.animateToRegion(regionForPopups(popups), 350);
+    }, [popups]);
+
+    // Center on the selected popup (e.g. when picked from the list below).
+    useEffect(() => {
+      if (!selectedId) return;
+      const p = popups.find((x) => x.id === selectedId);
+      if (!p) return;
+      mapRef.current?.animateToRegion(
+        {
+          latitude: p.latitude,
+          longitude: p.longitude,
+          latitudeDelta: 0.012,
+          longitudeDelta: 0.012,
+        },
+        350,
+      );
+    }, [selectedId, popups]);
+
+    return (
+      <MapView
+        ref={mapRef}
+        style={StyleSheet.absoluteFill}
+        // Google on Android; Apple on iOS (English Korea labels, no key)
+        provider={
+          Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT
+        }
+        initialRegion={initialRegion}
+        showsUserLocation={showUser}
+        showsMyLocationButton={false}
+        // room for the search bar (top) and the nearby sheet (bottom)
+        mapPadding={{ top: 80, right: 0, bottom: 220, left: 0 }}
+      >
+        {popups.map((p) => (
+          <PopupPin
+            key={p.id}
+            popup={p}
+            selected={p.id === selectedId}
+            onPress={onSelect}
+          />
+        ))}
+      </MapView>
+    );
+  },
+);
