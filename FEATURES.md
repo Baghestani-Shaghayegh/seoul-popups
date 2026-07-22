@@ -35,14 +35,24 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       on project `xkykpcjbnlihreikqonu`. Applied via the Supabase MCP; RLS
       proven from outside (anon read 200, anon write 401). Advisor clean after
       hardening the `rls_auto_enable` function (`supabase/002-*.sql`).
-- [ ] **Content pipeline** — **5 real** current popups seeded _(2026-07-21,
-      `supabase/seed.sql`)_ across Seongsu/Hongdae/Gangnam. Still to do: finalize
-      pins/walk-times/official photos (`content/popups-todo.md`) and grow toward
-      ~15. Needs the `popup-images` bucket for real photos.
+- [x] **Draft → publish review gate** _(2026-07-21)_ — `supabase/003-*.sql`
+      adds `published` (RLS exposes only published rows to the app/anon key),
+      `source_name` / `last_verified_at` / auto-`updated_at`, and the
+      `popups_needs_review` freshness view. `npm run validate:popup` gates a
+      drafted row before publish. Loop documented in CONTENT.md §3.5–3.6.
+- [x] **`popup-images` storage bucket** _(2026-07-21)_ — `supabase/004-*.sql`:
+      public-read, image MIME only, 5 MB/file, no upload policy (dashboard /
+      service-role writes only). Anon upload proven blocked (403 RLS).
+- [ ] **Content pipeline** — **5 published** + **4 drafts** as of 2026-07-21
+      (`supabase/seed.sql` + Popga source-scan). Still to do: confirm
+      pins/walk-times + swap in official photos to publish the 4 drafts, and
+      grow toward ~15 (`content/popups-todo.md`). Gangnam still thin (1 live) —
+      re-scan early August.
 - [x] **Swap hooks to live data** _(2026-07-21)_ — `usePopups` / `usePopup`
       now query Supabase (shared single-fetch cache, snake→camel mapping,
-      graceful mock fallback when `.env` is absent). **Next:** render the
-      `loading` / `error` / empty states the hooks now expose on each screen.
+      graceful mock fallback when `.env` is absent).
+- [ ] **Loading / error / empty states** — the hooks expose them; screens don't
+      render them yet.
 - [x] **Directions button** — detail screen deep-links Apple / Google Maps
 - [ ] **Naver / Kakao Maps directions** — the apps with real walking
       directions in Korea (URL-scheme allowlist per SECURITY.md §4)
@@ -104,5 +114,10 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
 
 ## Recommended next step
 
-**Wire Supabase** (table + RLS + seed content + swap the hooks). It unblocks
-every remaining Phase 0 item and turns the whole built UI live at once.
+Supabase is wired and the UI runs on live data. The remaining Phase 0 gate is
+the **Map screen** (pins + clustering + tap→detail + "near me") — the last core
+piece of the discover→navigate loop, and it forces the dev build that push
+(Phase 1) will also need, so sequence those native features together (key
+decision #5). Lighter alternative if not ready for a dev build: **finish the
+content pass** (publish the 4 drafts with real photos, grow toward ~15) and
+**render the loading/error/empty states** so the built UI feels complete.
