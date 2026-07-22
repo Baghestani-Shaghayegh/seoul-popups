@@ -54,8 +54,11 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
 - [ ] **Loading / error / empty states** — the hooks expose them; screens don't
       render them yet.
 - [x] **Directions button** — detail screen deep-links Apple / Google Maps
-- [ ] **Naver / Kakao Maps directions** — the apps with real walking
-      directions in Korea (URL-scheme allowlist per SECURITY.md §4)
+- [x] **Naver / Kakao Maps directions** _(2026-07-22)_ — detail-screen
+      "Directions" opens a picker: Naver / Kakao (walking deep links via
+      `nmap:` / `kakaomap:`), then Apple/Google as the always-works fallback.
+      `src/lib/directions.ts` validates the scheme before every openURL and
+      falls back app→web (SECURITY.md §4).
 - [ ] **External links** — Instagram / website on detail screen (same allowlist)
 - [~] **Map screen** — _built 2026-07-22, needs a dev build to run._
       `react-native-maps` (Apple Maps iOS / Google Android), branded

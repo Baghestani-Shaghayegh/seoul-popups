@@ -1,16 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import {
-  Linking,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { DirectionsSheet } from '@/components/popups/DirectionsSheet';
 import { PopupImage } from '@/components/popups/PopupImage';
 import { SaveButton } from '@/components/popups/SaveButton';
 import { colors } from '@/constants/theme';
@@ -24,6 +19,7 @@ export default function PopupDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { popup } = usePopup(id);
+  const [directionsOpen, setDirectionsOpen] = useState(false);
 
   if (!popup) {
     return (
@@ -32,15 +28,6 @@ export default function PopupDetailScreen() {
       </View>
     );
   }
-
-  const openDirections = () => {
-    const dest = `${popup.latitude},${popup.longitude}`;
-    const url = Platform.select({
-      ios: `https://maps.apple.com/?daddr=${dest}&q=${encodeURIComponent(popup.name)}`,
-      default: `https://www.google.com/maps/dir/?api=1&destination=${dest}`,
-    });
-    Linking.openURL(url);
-  };
 
   return (
     <View className="flex-1 bg-bg">
@@ -161,7 +148,7 @@ export default function PopupDetailScreen() {
         style={{ paddingBottom: insets.bottom + 12 }}
       >
         <Pressable
-          onPress={openDirections}
+          onPress={() => setDirectionsOpen(true)}
           style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
           className="flex-row items-center gap-2 rounded-2xl border border-line-strong bg-surface px-5 py-4"
         >
@@ -184,6 +171,16 @@ export default function PopupDetailScreen() {
           </Text>
         </Pressable>
       </View>
+
+      <DirectionsSheet
+        visible={directionsOpen}
+        onClose={() => setDirectionsOpen(false)}
+        target={{
+          latitude: popup.latitude,
+          longitude: popup.longitude,
+          name: popup.name,
+        }}
+      />
     </View>
   );
 }
