@@ -53,6 +53,8 @@ Until keys are set, the app runs on mock data (`src/data/mockPopups.ts`).
 - **[SECURITY.md](SECURITY.md)** — threat model + security checklists
 - **[CONTENT.md](CONTENT.md)** — where popup data comes from + the entry
   workflow (with `supabase/` for the schema + policies)
+- **[BUILD.md](BUILD.md)** — EAS development builds (needed for the Map screen /
+  native modules that Expo Go can't load)
 
 ## Project structure
 
