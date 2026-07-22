@@ -23,7 +23,7 @@ insert into public.popups
    start_date, end_date, hours,
    subway_line, subway_station, subway_exit, subway_walk_minutes,
    latitude, longitude, reservable, source_url,
-   source_name, published, last_verified_at)
+   source_name, published, last_verified_at, website_url)
 values
   ($$Toy Story × PEACEMINUSONE — The First Fan$$,
    $$G-Dragon's label meets Pixar's Toy Story$$,
@@ -32,7 +32,7 @@ values
    '2026-07-01', '2026-08-30', '11:00 – 20:00',
    'Line 2', 'Seongsu', '3', 5, 37.5437, 127.0561, false,
    'https://www.koreaherald.com/article/10783859',
-   'The Korea Herald', true, '2026-07-21'),
+   'The Korea Herald', true, '2026-07-21', null),
 
   ($$WIND BREAKER 5th Anniversary Exhibition$$,
    $$Five years of the hit webtoon, walk-through$$,
@@ -41,7 +41,8 @@ values
    '2026-07-09', '2026-08-23', 'Mon–Fri 11:00–22:00 · Sat–Sun 10:30–22:00',
    'Line 2', 'Hongik Univ.', '2', 2, 37.5568, 126.9243, false,
    'https://dayforyou.com/getDetail?scheduleSeq=26122',
-   'dayforyou', true, '2026-07-21'),
+   'dayforyou', true, '2026-07-21',
+   'https://dayforyou.com/getDetail?scheduleSeq=26122'),
 
   ($$Demon Slayer: Full Focus Exhibition$$,
    $$A 500-pyeong immersive Demon Slayer world$$,
@@ -50,7 +51,7 @@ values
    '2026-06-27', '2026-09-27', '11:00 – 20:00',
    'Line 2', 'Seongsu', '3', 5, 37.5417, 127.0566, false,
    'https://popga.co.kr/popup/7102',
-   'Popga', true, '2026-07-21'),
+   'Popga', true, '2026-07-21', 'https://popga.co.kr/popup/7102'),
 
   ($$T1 — Counting the Stars$$,
    $$Step inside T1's championship history$$,
@@ -59,7 +60,7 @@ values
    '2026-07-02', '2026-09-13', '11:00 – 20:00',
    'Line 2', 'Seongsu', '4', 6, 37.5443, 127.0559, false,
    'https://popga.co.kr/popup/7499',
-   'Popga', true, '2026-07-21'),
+   'Popga', true, '2026-07-21', 'https://popga.co.kr/popup/7499'),
 
   ($$A Shop for Killers — MurderHelp Gangnam$$,
    $$Enter the world of the Disney+ thriller$$,
@@ -68,4 +69,4 @@ values
    '2026-07-10', '2026-08-08', 'Weekdays 16:00–21:00 · Weekends 12:00–21:00',
    'Line 2', 'Gangnam', '11', 2, 37.4995, 127.0276, false,
    'https://popply.co.kr/popup/5431',
-   'Popply', true, '2026-07-21');
+   'Popply', true, '2026-07-21', 'https://popply.co.kr/popup/5431');

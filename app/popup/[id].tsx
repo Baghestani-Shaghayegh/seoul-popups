@@ -12,6 +12,7 @@ import { ErrorState, LoadingState } from '@/components/ui/StateViews';
 import { colors } from '@/constants/theme';
 import { usePopup } from '@/hooks/usePopups';
 import { formatDateRange } from '@/lib/format';
+import { openExternalUrl } from '@/lib/links';
 import { endingLabel } from '@/lib/popupStatus';
 
 /** Popup detail screen. Data comes from usePopup (mock → Supabase swap point). */
@@ -136,6 +137,26 @@ export default function PopupDetailScreen() {
             {popup.description}
           </Text>
 
+          {/* Outbound links (https only) */}
+          {(popup.instagramUrl || popup.websiteUrl) && (
+            <View className="mt-4 flex-row gap-2.5">
+              {popup.instagramUrl && (
+                <LinkChip
+                  icon="logo-instagram"
+                  label="Instagram"
+                  onPress={() => openExternalUrl(popup.instagramUrl)}
+                />
+              )}
+              {popup.websiteUrl && (
+                <LinkChip
+                  icon="globe-outline"
+                  label="Website"
+                  onPress={() => openExternalUrl(popup.websiteUrl)}
+                />
+              )}
+            </View>
+          )}
+
           {/* Subway directions — the differentiator */}
           <Text className="mb-2 mt-6 text-base font-extrabold text-ink">
             Getting there
@@ -194,6 +215,27 @@ export default function PopupDetailScreen() {
         }}
       />
     </View>
+  );
+}
+
+function LinkChip({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+      className="flex-row items-center gap-1.5 rounded-full border border-line-strong bg-surface px-3.5 py-2"
+    >
+      <Ionicons name={icon} size={15} color={colors.ink} />
+      <Text className="text-[13px] font-bold text-ink">{label}</Text>
+    </Pressable>
   );
 }
 

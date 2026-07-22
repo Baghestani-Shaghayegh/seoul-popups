@@ -62,7 +62,12 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       `nmap:` / `kakaomap:`), then Apple/Google as the always-works fallback.
       `src/lib/directions.ts` validates the scheme before every openURL and
       falls back app→web (SECURITY.md §4).
-- [ ] **External links** — Instagram / website on detail screen (same allowlist)
+- [x] **External links** _(2026-07-22)_ — Instagram / Website chips on the
+      detail screen when the popup has those URLs; opened via
+      `src/lib/links.ts` (https-only, SECURITY.md §4). `instagramUrl` /
+      `websiteUrl` now flow through the `Popup` type + hook. Seeded rows set
+      `website_url` to their source popup page (Toy Story's news source left
+      null); official brand IG/site links come with the content pass.
 - [~] **Map screen** — _built 2026-07-22, needs a dev build to run._
       `react-native-maps` (Apple Maps iOS / Google Android), branded
       category pins, tap-to-select synced with the nearby rail, auto-fits to

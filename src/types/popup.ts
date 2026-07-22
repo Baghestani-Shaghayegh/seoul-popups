@@ -55,4 +55,8 @@ export interface Popup {
 
   /** Whether in-app reservation is available. */
   reservable: boolean;
+
+  /** Optional outbound links shown on the detail screen (https only). */
+  instagramUrl?: string;
+  websiteUrl?: string;
 }

@@ -46,7 +46,7 @@ const POPUP_COLUMNS =
   'id,name,tagline,description,neighborhood,category,image_url,' +
   'start_date,end_date,hours,' +
   'subway_line,subway_station,subway_exit,subway_walk_minutes,' +
-  'latitude,longitude,reservable';
+  'latitude,longitude,reservable,instagram_url,website_url';
 
 /** A raw `popups` row as PostgREST returns it (snake_case). */
 interface PopupRow {
@@ -67,6 +67,8 @@ interface PopupRow {
   latitude: number;
   longitude: number;
   reservable: boolean;
+  instagram_url: string | null;
+  website_url: string | null;
 }
 
 /** Map a DB row (snake_case) to the camelCase domain `Popup` the UI consumes. */
@@ -91,6 +93,8 @@ function rowToPopup(row: PopupRow): Popup {
     latitude: row.latitude,
     longitude: row.longitude,
     reservable: row.reservable,
+    instagramUrl: row.instagram_url ?? undefined,
+    websiteUrl: row.website_url ?? undefined,
   };
 }
 
