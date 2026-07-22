@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DirectionsSheet } from '@/components/popups/DirectionsSheet';
 import { PopupImage } from '@/components/popups/PopupImage';
 import { SaveButton } from '@/components/popups/SaveButton';
+import { ErrorState, LoadingState } from '@/components/ui/StateViews';
 import { colors } from '@/constants/theme';
 import { usePopup } from '@/hooks/usePopups';
 import { formatDateRange } from '@/lib/format';
@@ -18,13 +19,24 @@ export default function PopupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { popup } = usePopup(id);
+  const { popup, loading, error, reload } = usePopup(id);
   const [directionsOpen, setDirectionsOpen] = useState(false);
 
+  // Distinguish "still loading" from "genuinely not found" so we don't flash
+  // "not found" before the shared catalogue fetch resolves.
   if (!popup) {
     return (
-      <View className="flex-1 items-center justify-center bg-bg">
-        <Text className="text-muted">Pop-up not found.</Text>
+      <View
+        className="flex-1 justify-center bg-bg"
+        style={{ paddingTop: insets.top }}
+      >
+        {loading ? (
+          <LoadingState label="Loading pop-up…" />
+        ) : error ? (
+          <ErrorState onRetry={reload} />
+        ) : (
+          <Text className="text-center text-muted">Pop-up not found.</Text>
+        )}
       </View>
     );
   }

@@ -11,6 +11,11 @@ import {
 } from '@/components/popups/FilterSheet';
 import { MultiFilterSheet } from '@/components/popups/MultiFilterSheet';
 import { RailCard } from '@/components/popups/RailCard';
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from '@/components/ui/StateViews';
 import { usePopups } from '@/hooks/usePopups';
 import { colors } from '@/constants/theme';
 import { DATE_PRESETS, presetToRange, type DatePreset } from '@/lib/dateRanges';
@@ -77,7 +82,7 @@ export default function DiscoverScreen() {
   const [openSheet, setOpenSheet] = useState<SheetName | null>(null);
 
   const dateRange = useMemo(() => presetToRange(datePreset), [datePreset]);
-  const { popups } = usePopups({
+  const { popups, loading, error, reload } = usePopups({
     neighborhoods,
     categories,
     statuses,
@@ -130,8 +135,13 @@ export default function DiscoverScreen() {
       <View className="px-4 pb-2 pt-2">
         <Text className="text-3xl font-extrabold text-ink">Discover</Text>
         <Text className="mt-0.5 text-sm text-muted">
-          {sorted.length} {sorted.length === 1 ? 'pop-up' : 'pop-ups'} happening
-          near you
+          {loading
+            ? 'Finding pop-ups…'
+            : error
+              ? 'Couldn’t load pop-ups'
+              : `${sorted.length} ${
+                  sorted.length === 1 ? 'pop-up' : 'pop-ups'
+                } happening near you`}
         </Text>
       </View>
 
@@ -221,26 +231,22 @@ export default function DiscoverScreen() {
           </View>
         )}
         ListEmptyComponent={
-          <View className="items-center px-8 py-20">
-            <Ionicons name="search" size={36} color={colors.muted} />
-            <Text className="mt-3 text-base font-semibold text-ink">
-              No pop-ups found
-            </Text>
-            <Text className="mt-1 text-center text-sm text-muted">
-              Try a different location, category, or search term.
-            </Text>
-            {filtersActive && (
-              <Pressable
-                onPress={clearFilters}
-                style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
-                className="mt-4 rounded-full bg-brand px-5 py-2.5"
-              >
-                <Text className="text-sm font-bold text-white">
-                  Clear filters
-                </Text>
-              </Pressable>
-            )}
-          </View>
+          loading ? (
+            <LoadingState />
+          ) : error ? (
+            <ErrorState onRetry={reload} />
+          ) : (
+            <EmptyState
+              icon="search"
+              title="No pop-ups found"
+              subtitle="Try a different location, category, or search term."
+              action={
+                filtersActive
+                  ? { label: 'Clear filters', onPress: clearFilters }
+                  : undefined
+              }
+            />
+          )
         }
       />
 

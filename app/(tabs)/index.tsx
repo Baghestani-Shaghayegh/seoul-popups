@@ -9,6 +9,7 @@ import { PlanMyDayCard } from '@/components/home/PlanMyDayCard';
 import { SectionHeader } from '@/components/home/SectionHeader';
 import { FeatureCard } from '@/components/popups/FeatureCard';
 import { RailCard } from '@/components/popups/RailCard';
+import { ErrorState, LoadingState } from '@/components/ui/StateViews';
 import { colors } from '@/constants/theme';
 import { useHomeSections } from '@/hooks/useHomeSections';
 import { formatWeekdayDate, todayIso } from '@/lib/format';
@@ -17,7 +18,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [selectedDay, setSelectedDay] = useState(todayIso());
-  const { liveCount, featured, dayPicks, endingSoon } =
+  const { liveCount, featured, dayPicks, endingSoon, loading, error, reload } =
     useHomeSections(selectedDay);
 
   const openPopup = (id: string) =>
@@ -72,69 +73,85 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
-      {/* Plan my day hero */}
-      <View className="mt-3.5">
-        <PlanMyDayCard
-          eyebrow={`${liveCount} picks near you today`}
-          onPress={() => router.push('/plan')}
-        />
-      </View>
+      {loading ? (
+        <LoadingState />
+      ) : error ? (
+        <ErrorState onRetry={reload} />
+      ) : (
+        <>
+          {/* Plan my day hero */}
+          <View className="mt-3.5">
+            <PlanMyDayCard
+              eyebrow={`${liveCount} picks near you today`}
+              onPress={() => router.push('/plan')}
+            />
+          </View>
 
-      {/* Feature */}
-      {featured && (
-        <View className="mt-5">
-          <SectionHeader title="Feature" onSeeAll={openDiscover} />
-          <FeatureCard
-            popup={featured}
-            onPress={() => openPopup(featured.id)}
-          />
-        </View>
-      )}
+          {/* Feature */}
+          {featured && (
+            <View className="mt-5">
+              <SectionHeader title="Feature" onSeeAll={openDiscover} />
+              <FeatureCard
+                popup={featured}
+                onPress={() => openPopup(featured.id)}
+              />
+            </View>
+          )}
 
-      {/* Pick a day */}
-      <View className="mt-5">
-        <SectionHeader title="Pick a day" />
-        <DayStrip selectedIso={selectedDay} onSelect={setSelectedDay} />
-      </View>
+          {/* Pick a day */}
+          <View className="mt-5">
+            <SectionHeader title="Pick a day" />
+            <DayStrip selectedIso={selectedDay} onSelect={setSelectedDay} />
+          </View>
 
-      {/* Pop-ups on the selected day */}
-      <View className="mt-4">
-        <SectionHeader title={dayPicksTitle} onSeeAll={openDiscover} />
-        {dayPicks.length > 0 ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerClassName="gap-3.5 px-4"
-          >
-            {dayPicks.map((p) => (
-              <RailCard key={p.id} popup={p} onPress={() => openPopup(p.id)} />
-            ))}
-          </ScrollView>
-        ) : (
-          <Text className="px-4 text-sm text-muted">
-            Nothing on that day yet — try another one.
-          </Text>
-        )}
-      </View>
+          {/* Pop-ups on the selected day */}
+          <View className="mt-4">
+            <SectionHeader title={dayPicksTitle} onSeeAll={openDiscover} />
+            {dayPicks.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerClassName="gap-3.5 px-4"
+              >
+                {dayPicks.map((p) => (
+                  <RailCard
+                    key={p.id}
+                    popup={p}
+                    onPress={() => openPopup(p.id)}
+                  />
+                ))}
+              </ScrollView>
+            ) : (
+              <Text className="px-4 text-sm text-muted">
+                Nothing on that day yet — try another one.
+              </Text>
+            )}
+          </View>
 
-      {/* Ending soon */}
-      {endingSoon.length > 0 && (
-        <View className="mt-5">
-          <SectionHeader
-            title="Ending soon"
-            actionLabel="Saved"
-            onSeeAll={() => router.push('/saved')}
-          />
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerClassName="gap-3.5 px-4"
-          >
-            {endingSoon.map((p) => (
-              <RailCard key={p.id} popup={p} onPress={() => openPopup(p.id)} />
-            ))}
-          </ScrollView>
-        </View>
+          {/* Ending soon */}
+          {endingSoon.length > 0 && (
+            <View className="mt-5">
+              <SectionHeader
+                title="Ending soon"
+                actionLabel="Saved"
+                onSeeAll={() => router.push('/saved')}
+              />
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerClassName="gap-3.5 px-4"
+              >
+                {endingSoon.map((p) => (
+                  <RailCard
+                    key={p.id}
+                    popup={p}
+                    onPress={() => openPopup(p.id)}
+                  />
+                ))}
+              </ScrollView>
+            </View>
+          )}
+        </>
       )}
     </ScrollView>
   );

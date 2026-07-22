@@ -51,8 +51,11 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
 - [x] **Swap hooks to live data** _(2026-07-21)_ — `usePopups` / `usePopup`
       now query Supabase (shared single-fetch cache, snake→camel mapping,
       graceful mock fallback when `.env` is absent).
-- [ ] **Loading / error / empty states** — the hooks expose them; screens don't
-      render them yet.
+- [x] **Loading / error / empty states** _(2026-07-22)_ — shared
+      `LoadingState` / `ErrorState` / `EmptyState` (`src/components/ui/`)
+      wired into Home, Discover, Map, and detail; `usePopups`/`usePopup` now
+      expose a `reload` so the error state has a working "Try again". Detail no
+      longer flashes "not found" while the catalogue is still loading.
 - [x] **Directions button** — detail screen deep-links Apple / Google Maps
 - [x] **Naver / Kakao Maps directions** _(2026-07-22)_ — detail-screen
       "Directions" opens a picker: Naver / Kakao (walking deep links via

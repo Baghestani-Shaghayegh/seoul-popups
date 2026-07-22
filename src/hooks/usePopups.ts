@@ -1,13 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MOCK_POPUPS } from '@/data/mockPopups';
 import type { DateRange } from '@/lib/dateRanges';
 import { matchesStatus, type PopupStatus } from '@/lib/popupStatus';
 import { getSupabase, isSupabaseConfigured } from '@/lib/supabase';
-import type {
-  Category,
-  Neighborhood,
-  Popup,
-} from '@/types/popup';
+import type { Category, Neighborhood, Popup } from '@/types/popup';
 
 export interface PopupFilters {
   /** empty/undefined = all neighborhoods */
@@ -22,16 +18,23 @@ export interface PopupFilters {
   query?: string;
 }
 
-interface UsePopupsResult {
+/** Internal loaded-data state, before a `reload` handle is attached. */
+interface PopupsState {
   popups: Popup[];
   loading: boolean;
   error: string | null;
+}
+
+interface UsePopupsResult extends PopupsState {
+  /** Re-fetch the catalogue (e.g. from an error state's "Try again"). */
+  reload: () => void;
 }
 
 interface UsePopupResult {
   popup: Popup | null;
   loading: boolean;
   error: string | null;
+  reload: () => void;
 }
 
 /**
@@ -130,11 +133,20 @@ function fetchAllPopups(): Promise<Popup[]> {
  * runs in development.
  */
 function useAllPopups(): UsePopupsResult {
-  const [state, setState] = useState<UsePopupsResult>(() =>
+  const [state, setState] = useState<PopupsState>(() =>
     cache
       ? { popups: cache, loading: false, error: null }
       : { popups: [], loading: isSupabaseConfigured, error: null },
   );
+  // Bumping this re-runs the effect; `reload` also drops the module cache so
+  // the retry actually hits the network instead of returning stale data.
+  const [reloadNonce, setReloadNonce] = useState(0);
+
+  const reload = useCallback(() => {
+    cache = null;
+    inflight = null;
+    setReloadNonce((n) => n + 1);
+  }, []);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -164,9 +176,9 @@ function useAllPopups(): UsePopupsResult {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadNonce]);
 
-  return state;
+  return { ...state, reload };
 }
 
 function matchesQuery(popup: Popup, q: string): boolean {
@@ -187,7 +199,7 @@ function overlapsRange(popup: Popup, range: DateRange): boolean {
  * client-side so the screens' filter behaviour is unchanged from the mock era.
  */
 export function usePopups(filters: PopupFilters): UsePopupsResult {
-  const { popups: all, loading, error } = useAllPopups();
+  const { popups: all, loading, error, reload } = useAllPopups();
 
   const query = filters.query?.trim().toLowerCase() ?? '';
   const neighborhoods = filters.neighborhoods ?? [];
@@ -223,7 +235,7 @@ export function usePopups(filters: PopupFilters): UsePopupsResult {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [all, neighborhoodsKey, categoriesKey, statusesKey, rangeKey, query]);
 
-  return { popups, loading, error };
+  return { popups, loading, error, reload };
 }
 
 /**
@@ -231,10 +243,10 @@ export function usePopups(filters: PopupFilters): UsePopupsResult {
  * catalogue as usePopups so opening a detail screen reuses the cached fetch.
  */
 export function usePopup(id: string | undefined): UsePopupResult {
-  const { popups, loading, error } = useAllPopups();
+  const { popups, loading, error, reload } = useAllPopups();
   const popup = useMemo(
     () => popups.find((p) => p.id === id) ?? null,
     [popups, id],
   );
-  return { popup, loading, error };
+  return { popup, loading, error, reload };
 }

@@ -12,6 +12,10 @@ export interface HomeSections {
   /** Pop-ups running on the day picked in the day strip. */
   dayPicks: Popup[];
   endingSoon: Popup[];
+  /** Passed through from usePopups so Home can show loading/error/retry. */
+  loading: boolean;
+  error: string | null;
+  reload: () => void;
 }
 
 /**
@@ -22,9 +26,9 @@ export interface HomeSections {
 export function useHomeSections(
   selectedDateIso: string = todayIso(),
 ): HomeSections {
-  const { popups } = usePopups({});
+  const { popups, loading, error, reload } = usePopups({});
 
-  return useMemo(() => {
+  const sections = useMemo(() => {
     const live = popups.filter(isActiveToday);
 
     const dayPicks = popups
@@ -42,4 +46,6 @@ export function useHomeSections(
       endingSoon,
     };
   }, [popups, selectedDateIso]);
+
+  return { ...sections, loading, error, reload };
 }
