@@ -101,7 +101,13 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       (`signInWithOAuth`), buttons live on `/auth`. Works once the providers are
       enabled + `seoulpopups://auth/callback` is allow-listed — see
       `supabase/AUTH.md`. Auth feature is now functionally complete.
-- [ ] **Push notifications** — saved popup ending soon, new popups in an area
+- [~] **Push notifications** _(built 2026-07-22; needs a device + schedule)_ —
+      "saved popup ending soon". `usePushAlerts` registers an Expo token
+      (`push_tokens` table, migration 007) from the Saved tab; the deployed
+      `notify-ending-soon` Edge Function pushes to owners of soon-ending saved
+      popups via `ending_soon_push_targets`. **Remaining (yours):** schedule the
+      function (cron) + test on a real device — see the function's README.
+      "New popups in an area" is a later variant.
 
 ## 🟡 Phase 2 — Reservations & engagement
 

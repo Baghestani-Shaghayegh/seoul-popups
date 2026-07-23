@@ -9,6 +9,7 @@ import { colors } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 import { useFavorites } from '@/hooks/useFavorites';
 import { usePopups } from '@/hooks/usePopups';
+import { usePushAlerts } from '@/hooks/usePushAlerts';
 import { useVisited } from '@/hooks/useVisited';
 import { formatShortDate } from '@/lib/format';
 import { daysUntilEnd, endingLabel, isEndingSoon } from '@/lib/popupStatus';
@@ -21,7 +22,19 @@ export default function SavedScreen() {
   const { favoriteIds, toggleFavorite } = useFavorites();
   const { visitedIds, toggleVisited } = useVisited();
   const { user, signOut } = useAuth();
+  const { status: pushStatus, enable: enablePush } = usePushAlerts();
   const { popups } = usePopups({});
+
+  const pushLabel =
+    pushStatus === 'enabled'
+      ? 'Ending-soon alerts are on'
+      : pushStatus === 'working'
+        ? 'Turning on…'
+        : pushStatus === 'denied'
+          ? 'Notifications are blocked — enable them in Settings'
+          : pushStatus === 'unsupported'
+            ? 'Alerts need the mobile app'
+            : 'Turn on ending-soon alerts';
 
   const openPopup = (id: string) =>
     router.push({ pathname: '/popup/[id]', params: { id } });
@@ -69,6 +82,38 @@ export default function SavedScreen() {
             <Text className="text-sm font-bold text-brand">Sign out</Text>
           </Pressable>
         </View>
+      ) : null}
+
+      {/* Ending-soon push alerts (signed-in only) */}
+      {user ? (
+        <Pressable
+          onPress={enablePush}
+          disabled={pushStatus === 'enabled' || pushStatus === 'working'}
+          style={({ pressed }) => ({ opacity: pressed ? 0.92 : 1 })}
+          className="mx-4 mb-1 mt-1 flex-row items-center gap-2.5 rounded-2xl border border-line-strong bg-surface p-3"
+        >
+          <Ionicons
+            name={
+              pushStatus === 'enabled'
+                ? 'notifications'
+                : 'notifications-outline'
+            }
+            size={19}
+            color={
+              pushStatus === 'enabled' ? colors.brand.DEFAULT : colors.muted
+            }
+          />
+          <Text
+            className={`flex-1 text-sm font-bold ${
+              pushStatus === 'enabled' ? 'text-brand' : 'text-ink'
+            }`}
+          >
+            {pushLabel}
+          </Text>
+          {pushStatus !== 'enabled' && pushStatus !== 'working' ? (
+            <Ionicons name="chevron-forward" size={16} color={colors.faint} />
+          ) : null}
+        </Pressable>
       ) : (
         <Pressable
           onPress={() => router.push('/auth')}
