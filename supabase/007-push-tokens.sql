@@ -24,6 +24,7 @@ create or replace function public.ending_soon_push_targets(within_days int defau
 returns table (token text, popup_name text, end_date date)
 language sql
 stable
+set search_path = ''
 as $$
   select pt.token, p.name, p.end_date
   from public.user_favorites uf
