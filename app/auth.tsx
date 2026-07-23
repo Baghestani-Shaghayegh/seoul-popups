@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -22,7 +21,7 @@ type Mode = 'signin' | 'signup';
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithOAuth } = useAuth();
 
   const [mode, setMode] = useState<Mode>('signin');
   const [email, setEmail] = useState('');
@@ -56,11 +55,16 @@ export default function AuthScreen() {
     }
   };
 
-  const oauthSoon = (provider: string) =>
-    Alert.alert(
-      `${provider} sign-in`,
-      `Coming soon — enable the ${provider} provider in your Supabase project to turn this on.`,
-    );
+  const oauth = async (provider: 'apple' | 'google') => {
+    setError(null);
+    setMessage(null);
+    setSubmitting(true);
+    const { error: e, cancelled } = await signInWithOAuth(provider);
+    setSubmitting(false);
+    if (cancelled) return;
+    if (e) return setError(e);
+    router.back();
+  };
 
   return (
     <KeyboardAvoidingView
@@ -150,12 +154,12 @@ export default function AuthScreen() {
           <OAuthButton
             icon="logo-apple"
             label="Continue with Apple"
-            onPress={() => oauthSoon('Apple')}
+            onPress={() => oauth('apple')}
           />
           <OAuthButton
             icon="logo-google"
             label="Continue with Google"
-            onPress={() => oauthSoon('Google')}
+            onPress={() => oauth('google')}
           />
         </View>
 

@@ -1,7 +1,14 @@
-import type { Session, User } from '@supabase/supabase-js';
+import type { Provider, Session, User } from '@supabase/supabase-js';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 import { getSupabase, isSupabaseConfigured } from '@/lib/supabase';
+
+// Dismisses the auth popup if the app is reopened mid-flow (web/native no-op).
+WebBrowser.maybeCompleteAuthSession();
+
+type OAuthProvider = Extract<Provider, 'apple' | 'google'>;
 
 interface AuthValue {
   session: Session | null;
@@ -16,6 +23,9 @@ interface AuthValue {
     email: string,
     password: string,
   ) => Promise<{ error: string | null; needsConfirmation: boolean }>;
+  signInWithOAuth: (
+    provider: OAuthProvider,
+  ) => Promise<{ error: string | null; cancelled: boolean }>;
   signOut: () => Promise<void>;
 }
 
@@ -80,6 +90,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           error: error?.message ?? null,
           needsConfirmation: !error && !data.session,
         };
+      },
+      signInWithOAuth: async (provider) => {
+        if (!isSupabaseConfigured)
+          return { error: NOT_CONFIGURED, cancelled: false };
+        const supabase = getSupabase();
+        const redirectTo = Linking.createURL('auth/callback');
+        // skipBrowserRedirect: we drive the browser ourselves so we can catch
+        // the redirect back and exchange the PKCE code for a session in-app.
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: { redirectTo, skipBrowserRedirect: true },
+        });
+        if (error) return { error: error.message, cancelled: false };
+        if (!data?.url)
+          return { error: 'Could not start sign-in.', cancelled: false };
+
+        const result = await WebBrowser.openAuthSessionAsync(
+          data.url,
+          redirectTo,
+        );
+        if (result.type !== 'success') return { error: null, cancelled: true };
+        const code = Linking.parse(result.url).queryParams?.code;
+        if (typeof code !== 'string')
+          return { error: 'Sign-in was interrupted.', cancelled: false };
+        const { error: exchangeError } =
+          await supabase.auth.exchangeCodeForSession(code);
+        return { error: exchangeError?.message ?? null, cancelled: false };
       },
       signOut: async () => {
         if (isSupabaseConfigured) await getSupabase().auth.signOut();

@@ -34,6 +34,8 @@ export function getSupabase(): SupabaseClient {
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
+      // PKCE so the native OAuth redirect returns a code we exchange in-app.
+      flowType: 'pkce',
     },
   });
   return client;

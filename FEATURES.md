@@ -96,8 +96,11 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       first-class** — nothing is gated. **Save-sync done** _(2026-07-22)_:
       `user_favorites` / `user_visited` tables (migration 006, own-rows RLS);
       `useSyncedIdSet` powers favorites + visited — local for guests, synced to
-      Supabase when signed in, merging guest ids up on sign-in. **Remaining:**
-      wire Apple/Google OAuth (buttons scaffolded, need providers + redirect).
+      Supabase when signed in, merging guest ids up on sign-in. **Apple/Google
+      OAuth wired** _(2026-07-22)_: PKCE + `expo-web-browser` in-app flow
+      (`signInWithOAuth`), buttons live on `/auth`. Works once the providers are
+      enabled + `seoulpopups://auth/callback` is allow-listed — see
+      `supabase/AUTH.md`. Auth feature is now functionally complete.
 - [ ] **Push notifications** — saved popup ending soon, new popups in an area
 
 ## 🟡 Phase 2 — Reservations & engagement
