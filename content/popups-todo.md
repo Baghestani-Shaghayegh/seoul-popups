@@ -5,15 +5,21 @@ published**. Dates, hours, venue and subway station come from the listed
 sources; the fields below are best-effort and need a human pass with map tools
 + official photos, per [CONTENT.md](../CONTENT.md) §3–§4.
 
-Legend: ✓ = source-confirmed · ⚠️ = estimated, verify
+Legend: ✓ = source-confirmed · ⚠️ = estimated, verify · 🔶 interim = real but hotlinked
 
 | Popup | Coords | Subway exit | Walk min | Hours | Image |
 |---|---|---|---|---|---|
-| Toy Story × PEACEMINUSONE | ⚠️ from "Yeonmujang-gil 27" | ⚠️ Seongsu 3 | ⚠️ 5 | ✓ 11–20 | ⚠️ placeholder |
-| WIND BREAKER 5th | ⚠️ AK Plaza Hongdae | ⚠️ Hongik Univ. 2 | ⚠️ 2 | ✓ split hrs | ⚠️ placeholder |
-| Demon Slayer: Full Focus | ⚠️ S-Factory D, Yeonmujang15-gil 11 | ✓ Seongsu 3 | ✓ 5 | ⚠️ est 11–20 | ⚠️ placeholder |
-| T1 — Counting the Stars | ⚠️ T-Factory Seongsu | ⚠️ Seongsu 4 | ⚠️ 6 | ⚠️ est 11–20 | ⚠️ placeholder |
-| A Shop for Killers (MurderHelp) | ⚠️ Gangnam-daero 420 | ✓ Gangnam 11 | ✓ 2 | ✓ split hrs | ⚠️ placeholder |
+| Toy Story × PEACEMINUSONE | ⚠️ 연무장길 27 (confirmed addr) | ⚠️ Seongsu 3 | ⚠️ 5 | ✓ 11–20 | 🔶 interim (heypop) |
+| WIND BREAKER 5th | ⚠️ AK Plaza Hongdae 3F, 양화로 188 | ⚠️ Hongik Univ. 2 | ⚠️ 2 | ✓ split hrs | ⚠️ **STOCK — needs photo** |
+| Demon Slayer: Full Focus | ⚠️ S-Factory D, Yeonmujang15-gil 11 | ✓ Seongsu 3 | ✓ 5 | ⚠️ est 11–20 | 🔶 interim (Popga) |
+| T1 — Counting the Stars | ⚠️ T-Factory, 연무장1길 7-1 (confirmed addr) | ⚠️ Seongsu 4 | ⚠️ 6 | ✓ 11–20 | 🔶 interim (Popga) |
+| A Shop for Killers (MurderHelp) | ⚠️ Gangnam-daero 420 | ✓ Gangnam 11 | ✓ 2 | ✓ split hrs | ⚠️ **STOCK — needs photo** |
+
+**Photo pass 2026-07-22:** Toy Story, Demon Slayer, T1 swapped from Unsplash
+stock to real interim images (Popga CDN / heypop). **WIND BREAKER + A Shop for
+Killers still show STOCK** — no clean hotlinkable image found; these two are the
+priority for an official upload to the `popup-images` bucket. Verified street
+addresses added above for the eventual Naver/Kakao pin fine-tune.
 
 ## Drafted 2026-07-21 (in Supabase, `published = false` — not yet in the app)
 
