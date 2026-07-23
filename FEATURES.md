@@ -93,9 +93,11 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       `AuthProvider`/`useAuth` (session persisted + restored on launch). An
       `/auth` modal does email/password sign-in & sign-up; the Saved tab shows a
       sign-in banner (guest) or account + sign out. **Guest mode stays
-      first-class** — nothing is gated. **Remaining:** wire Apple/Google OAuth
-      (buttons scaffolded, need providers enabled + redirect flow) and migrate
-      favorites/visited from AsyncStorage to per-user tables for real sync.
+      first-class** — nothing is gated. **Save-sync done** _(2026-07-22)_:
+      `user_favorites` / `user_visited` tables (migration 006, own-rows RLS);
+      `useSyncedIdSet` powers favorites + visited — local for guests, synced to
+      Supabase when signed in, merging guest ids up on sign-in. **Remaining:**
+      wire Apple/Google OAuth (buttons scaffolded, need providers + redirect).
 - [ ] **Push notifications** — saved popup ending soon, new popups in an area
 
 ## 🟡 Phase 2 — Reservations & engagement

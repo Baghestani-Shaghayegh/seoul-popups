@@ -1,14 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { createContext, useContext, useMemo } from 'react';
 
-const STORAGE_KEY = 'favorites:v1';
+import { useSyncedIdSet } from '@/hooks/useSyncedIdSet';
 
 interface FavoritesValue {
   favoriteIds: string[];
@@ -19,43 +11,15 @@ interface FavoritesValue {
 const FavoritesContext = createContext<FavoritesValue | null>(null);
 
 /**
- * Locally persisted favorites (phase 1). When accounts land, swap the
- * AsyncStorage read/write for a Supabase table keyed by user — the hook API
- * stays the same so screens won't need to change.
+ * Favorites: local for guests, synced to `user_favorites` when signed in
+ * (merged on sign-in). Backed by the shared useSyncedIdSet.
  */
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
-  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
-      if (!raw) return;
-      try {
-        const ids = JSON.parse(raw);
-        if (Array.isArray(ids))
-          setFavoriteIds(ids.filter((x) => typeof x === 'string'));
-      } catch {
-        // Corrupt payload — start fresh rather than crash.
-      }
-    });
-  }, []);
-
-  const toggleFavorite = useCallback((id: string) => {
-    setFavoriteIds((prev) => {
-      const next = prev.includes(id)
-        ? prev.filter((x) => x !== id)
-        : [...prev, id];
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  }, []);
+  const { ids, has, toggle } = useSyncedIdSet('favorites:v1', 'user_favorites');
 
   const value = useMemo<FavoritesValue>(
-    () => ({
-      favoriteIds,
-      isFavorite: (id) => favoriteIds.includes(id),
-      toggleFavorite,
-    }),
-    [favoriteIds, toggleFavorite],
+    () => ({ favoriteIds: ids, isFavorite: has, toggleFavorite: toggle }),
+    [ids, has, toggle],
   );
 
   return (
