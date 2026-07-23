@@ -46,6 +46,28 @@ single-popup image matched the current run.
 To publish one: confirm its pin + swap the photo (steps below), then in the
 Supabase Table Editor set `published = true` and `last_verified_at` to today.
 
+## 📸 Photo upload shot-list (prepped 2026-07-22)
+
+**6 of 9 popups now show real (interim, hotlinked) images.** Only these **3
+still need an official photo** uploaded to the `popup-images` bucket:
+
+**Upload workflow (once per image):**
+1. Supabase dashboard → **Storage → `popup-images`** → drag the image in
+   (≤5 MB; jpg / png / webp).
+2. Click the file → **Copy URL** (public).
+3. Paste the URLs back to Claude → it sets `image_url` (and publishes the draft).
+
+| Popup | State | Where to grab the official image |
+|---|---|---|
+| **WIND BREAKER 5th Anniversary** | LIVE (stock) | Official exhibition poster — search IG "윈드브레이커 5주년 전시", or the [aniway listing](https://aniway.kr/popups/13901bcc-0121-480a-a1cc-9b4654657444) / [dayforyou](https://dayforyou.com/getDetail?scheduleSeq=26122) |
+| **A Shop for Killers — MurderHelp** | LIVE (stock) | Disney+ Korea (**@disneypluskorea**) — S2 launched 2026-07-22; or the [popply page](https://popply.co.kr/popup/5431) |
+| **Demon Slayer: Infinity Castle Arc** | DRAFT (stock) | Official popup IG **@kmt_popup_kr**, or [Popga July Hongdae roundup](https://popga.co.kr/content/magazine/352) |
+
+**Interim images (fine to ship, optionally upgrade later):** Toy Story, Demon
+Slayer Full Focus, T1 (live) and Park Ttuki, Tashiro, Gintama (draft) all use
+real hotlinked aggregator images (Popga CDN / heypop). They render, but for
+durability + quality you can replace them with official uploads over time.
+
 ## To finalize each row (Supabase → Table Editor → `popups`)
 
 1. **Pin** — find the venue in Naver/Kakao Map, copy exact lat/lng into
