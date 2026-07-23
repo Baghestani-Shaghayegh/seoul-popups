@@ -114,3 +114,31 @@ where name = $$Gintama — Korea's First Official Pop-up$$;
 
 -- Seed rows go live immediately (see header note).
 update public.popups set published = true;
+
+-- Curated collections (migration 005). popup_ids resolve by name so they track
+-- the ids the inserts above just generated. Safe to re-run (truncate first).
+truncate table public.collections;
+insert into public.collections (title, subtitle, emoji, popup_ids, position, published)
+values
+  ($$This Weekend in Seoul$$, $$Our picks across Seongsu, Hongdae & Gangnam$$, $$🗓️$$,
+   array[
+     (select id from public.popups where name = $$Toy Story × PEACEMINUSONE — The First Fan$$),
+     (select id from public.popups where name = $$A Shop for Killers — MurderHelp Gangnam$$),
+     (select id from public.popups where name = $$WIND BREAKER 5th Anniversary Exhibition$$),
+     (select id from public.popups where name = $$T1 — Counting the Stars$$)
+   ]::uuid[], 0, true),
+  ($$Anime Fan Trail$$, $$Every anime & webtoon popup on right now$$, $$🎌$$,
+   array[
+     (select id from public.popups where name = $$Demon Slayer: Full Focus Exhibition$$),
+     (select id from public.popups where name = $$Demon Slayer: Infinity Castle Arc Pop-up$$),
+     (select id from public.popups where name = $$Gintama — Korea's First Official Pop-up$$),
+     (select id from public.popups where name = $$WIND BREAKER 5th Anniversary Exhibition$$),
+     (select id from public.popups where name = $$Tashiro, You Rascal! × Toonique Cafe$$)
+   ]::uuid[], 1, true),
+  ($$Seongsu Crawl$$, $$Do all of Seongsu in one afternoon$$, $$🚶$$,
+   array[
+     (select id from public.popups where name = $$Toy Story × PEACEMINUSONE — The First Fan$$),
+     (select id from public.popups where name = $$Demon Slayer: Full Focus Exhibition$$),
+     (select id from public.popups where name = $$T1 — Counting the Stars$$),
+     (select id from public.popups where name = $$Park Ttuki Salt Bread × YoAJung$$)
+   ]::uuid[], 2, true);

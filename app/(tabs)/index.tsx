@@ -11,6 +11,7 @@ import { FeatureCard } from '@/components/popups/FeatureCard';
 import { RailCard } from '@/components/popups/RailCard';
 import { ErrorState, LoadingState } from '@/components/ui/StateViews';
 import { colors } from '@/constants/theme';
+import { useCollections, type Collection } from '@/hooks/useCollections';
 import { useHomeSections } from '@/hooks/useHomeSections';
 import { formatWeekdayDate, todayIso } from '@/lib/format';
 
@@ -20,6 +21,7 @@ export default function HomeScreen() {
   const [selectedDay, setSelectedDay] = useState(todayIso());
   const { liveCount, featured, dayPicks, endingSoon, loading, error, reload } =
     useHomeSections(selectedDay);
+  const { collections } = useCollections();
 
   const openPopup = (id: string) =>
     router.push({ pathname: '/popup/[id]', params: { id } });
@@ -98,6 +100,31 @@ export default function HomeScreen() {
             </View>
           )}
 
+          {/* Collections */}
+          {collections.length > 0 && (
+            <View className="mt-5">
+              <SectionHeader title="Collections" />
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerClassName="gap-3.5 px-4"
+              >
+                {collections.map((c) => (
+                  <CollectionCard
+                    key={c.id}
+                    collection={c}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/collection/[id]',
+                        params: { id: c.id },
+                      })
+                    }
+                  />
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
           {/* Pick a day */}
           <View className="mt-5">
             <SectionHeader title="Pick a day" />
@@ -154,5 +181,38 @@ export default function HomeScreen() {
         </>
       )}
     </ScrollView>
+  );
+}
+
+function CollectionCard({
+  collection,
+  onPress,
+}: {
+  collection: Collection;
+  onPress: () => void;
+}) {
+  const count = collection.popupIds.length;
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({ opacity: pressed ? 0.92 : 1 })}
+      className="w-60 rounded-3xl bg-purple-light p-4"
+    >
+      <Text className="text-3xl">{collection.emoji ?? '✨'}</Text>
+      <Text
+        className="mt-2 text-base font-extrabold text-ink"
+        numberOfLines={1}
+      >
+        {collection.title}
+      </Text>
+      {collection.subtitle ? (
+        <Text className="mt-0.5 text-xs text-muted" numberOfLines={2}>
+          {collection.subtitle}
+        </Text>
+      ) : null}
+      <Text className="mt-2 text-[11px] font-bold text-purple">
+        {count} {count === 1 ? 'spot' : 'spots'} →
+      </Text>
+    </Pressable>
   );
 }

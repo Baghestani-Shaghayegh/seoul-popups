@@ -23,6 +23,10 @@ export default function RootLayout() {
                 options={{ presentation: 'card' }}
               />
               <Stack.Screen
+                name="collection/[id]"
+                options={{ presentation: 'card' }}
+              />
+              <Stack.Screen
                 name="plan"
                 options={{
                   headerShown: true,

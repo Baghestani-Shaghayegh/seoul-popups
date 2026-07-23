@@ -104,7 +104,11 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       with its Naver-reservation page).
 - [ ] **Reserve (native)** — time slots, manage/cancel, reminders (needs RLS
       user-owned tables)
-- [ ] **Curated collections** — editorial ("This weekend in Seoul")
+- [x] **Curated collections** _(2026-07-22)_ — editorial groupings
+      (`collections` table, migration 005, public-read RLS; `popup_ids` array,
+      no join table). A Collections rail on Home → a collection detail screen
+      resolving its popups in curated order. Seeded: This Weekend in Seoul,
+      Anime Fan Trail, Seongsu Crawl.
 - [~] **Reel feed (live)** _(built 2026-07-22; needs the Meta token)_ — the
       Reel tab is now a live vertical feed from @mgn.radar via the
       `instagram-reels` Supabase Edge Function (token server-side, SECURITY.md
