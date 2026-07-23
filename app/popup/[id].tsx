@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DirectionsSheet } from '@/components/popups/DirectionsSheet';
@@ -50,6 +50,23 @@ export default function PopupDetailScreen() {
   const canReserve = popup.reservable && !!bookingUrl;
   const visited = isVisited(popup.id);
 
+  // Share a self-contained blurb — including the subway directions, our
+  // differentiator — so it's useful even without a public web page yet.
+  const onShare = async () => {
+    const lines = [
+      `${popup.name} — ${popup.neighborhood}, Seoul`,
+      `${formatDateRange(popup.startDate, popup.endDate)} · ${popup.hours}`,
+      `🚇 ${popup.subway.station} Station, Exit ${popup.subway.exit} · ${popup.subway.walkMinutes} min walk`,
+      popup.websiteUrl ?? popup.instagramUrl,
+      'Found on Seoul Popups',
+    ].filter(Boolean);
+    try {
+      await Share.share({ message: lines.join('\n'), title: popup.name });
+    } catch {
+      // user dismissed the sheet, or share isn't available (e.g. web)
+    }
+  };
+
   return (
     <View className="flex-1 bg-bg">
       <ScrollView
@@ -94,7 +111,19 @@ export default function PopupDetailScreen() {
             >
               <Ionicons name="chevron-back" size={22} color={colors.ink} />
             </Pressable>
-            <SaveButton popupId={popup.id} size={44} />
+            <View className="flex-row items-center gap-2">
+              <Pressable
+                onPress={onShare}
+                hitSlop={6}
+                accessibilityRole="button"
+                accessibilityLabel="Share"
+                style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+                className="h-11 w-11 items-center justify-center rounded-2xl bg-white/95 shadow-sm"
+              >
+                <Ionicons name="share-outline" size={20} color={colors.ink} />
+              </Pressable>
+              <SaveButton popupId={popup.id} size={44} />
+            </View>
           </View>
 
           {/* Overlaid tags + title */}

@@ -116,7 +116,10 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       (AsyncStorage, mirrors `useFavorites`); a "Mark as visited / Been here"
       toggle on the detail screen and a "Been there" history section on the
       Saved tab. Swaps to a per-user table when accounts land.
-- [ ] **Share** — popups and itineraries (growth lever)
+- [~] **Share** _(popups done 2026-07-22)_ — share button on the detail header
+      opens the native share sheet with a self-contained blurb (name, dates,
+      hours, subway directions, link). Itinerary sharing still to do (with Plan
+      my day v2). No public web URL yet, so shares are text + the popup's link.
 
 ## ⚪ Phase 3 — Growth & scale
 
