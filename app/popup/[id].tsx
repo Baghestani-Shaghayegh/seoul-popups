@@ -11,6 +11,7 @@ import { SaveButton } from '@/components/popups/SaveButton';
 import { ErrorState, LoadingState } from '@/components/ui/StateViews';
 import { colors } from '@/constants/theme';
 import { usePopup } from '@/hooks/usePopups';
+import { useVisited } from '@/hooks/useVisited';
 import { formatDateRange } from '@/lib/format';
 import { openExternalUrl } from '@/lib/links';
 import { endingLabel } from '@/lib/popupStatus';
@@ -21,6 +22,7 @@ export default function PopupDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { popup, loading, error, reload } = usePopup(id);
+  const { isVisited, toggleVisited } = useVisited();
   const [directionsOpen, setDirectionsOpen] = useState(false);
 
   // Distinguish "still loading" from "genuinely not found" so we don't flash
@@ -46,6 +48,7 @@ export default function PopupDetailScreen() {
   // website. Active only when the popup takes reservations AND we have a link.
   const bookingUrl = popup.reservationUrl ?? popup.websiteUrl;
   const canReserve = popup.reservable && !!bookingUrl;
+  const visited = isVisited(popup.id);
 
   return (
     <View className="flex-1 bg-bg">
@@ -132,6 +135,30 @@ export default function PopupDetailScreen() {
               value={`${popup.subway.station} · ${popup.subway.walkMinutes} min`}
             />
           </ScrollView>
+
+          {/* Been there toggle */}
+          <Pressable
+            onPress={() => toggleVisited(popup.id)}
+            style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+            className={`mt-4 flex-row items-center gap-2 self-start rounded-full border px-4 py-2.5 ${
+              visited
+                ? 'border-transparent bg-purple-light'
+                : 'border-line-strong bg-surface'
+            }`}
+          >
+            <Ionicons
+              name={visited ? 'checkmark-circle' : 'checkmark-circle-outline'}
+              size={17}
+              color={visited ? colors.purple.DEFAULT : colors.muted}
+            />
+            <Text
+              className={`text-[13px] font-bold ${
+                visited ? 'text-purple' : 'text-ink'
+              }`}
+            >
+              {visited ? 'Been here' : 'Mark as visited'}
+            </Text>
+          </Pressable>
 
           {/* About */}
           <Text className="mt-6 text-base font-extrabold text-ink">

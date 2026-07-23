@@ -112,7 +112,10 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       loading/error/empty + a "coming soon" state until the token is set.
       **Remaining (yours):** the Meta setup + `INSTAGRAM_ACCESS_TOKEN` secret —
       see `supabase/functions/instagram-reels/README.md`.
-- [ ] **Visited / been-there** — mark + history
+- [x] **Visited / been-there** _(2026-07-22)_ — `useVisited` context
+      (AsyncStorage, mirrors `useFavorites`); a "Mark as visited / Been here"
+      toggle on the detail screen and a "Been there" history section on the
+      Saved tab. Swaps to a per-user table when accounts land.
 - [ ] **Share** — popups and itineraries (growth lever)
 
 ## ⚪ Phase 3 — Growth & scale
