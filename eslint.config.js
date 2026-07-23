@@ -9,6 +9,14 @@ module.exports = [
   {
     // "app for sara" holds design handoff files (Figma plugin scripts, HTML
     // prototypes) — not app code.
-    ignores: ['dist/*', 'node_modules/*', '.expo/*', 'app for sara/*'],
+    // supabase/functions run on Deno, not the RN/Expo runtime — different
+    // globals (Deno) and remote (jsr:) imports, so exclude from app linting.
+    ignores: [
+      'dist/*',
+      'node_modules/*',
+      '.expo/*',
+      'app for sara/*',
+      'supabase/functions/*',
+    ],
   },
 ];

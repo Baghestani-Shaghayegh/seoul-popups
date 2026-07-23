@@ -105,9 +105,13 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
 - [ ] **Reserve (native)** — time slots, manage/cancel, reminders (needs RLS
       user-owned tables)
 - [ ] **Curated collections** — editorial ("This weekend in Seoul")
-- [ ] **Reel feed (live)** — real @mgn.radar clips in the Reel tab (styled
-      placeholder shipped); the Instagram token must stay server-side
-      (Edge Function proxy — SECURITY.md §1)
+- [~] **Reel feed (live)** _(built 2026-07-22; needs the Meta token)_ — the
+      Reel tab is now a live vertical feed from @mgn.radar via the
+      `instagram-reels` Supabase Edge Function (token server-side, SECURITY.md
+      §1); tap → opens the reel in Instagram. `useReels` handles
+      loading/error/empty + a "coming soon" state until the token is set.
+      **Remaining (yours):** the Meta setup + `INSTAGRAM_ACCESS_TOKEN` secret —
+      see `supabase/functions/instagram-reels/README.md`.
 - [ ] **Visited / been-there** — mark + history
 - [ ] **Share** — popups and itineraries (growth lever)
 
