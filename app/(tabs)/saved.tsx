@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PopupImage } from '@/components/popups/PopupImage';
 import { colors } from '@/constants/theme';
+import { useAuth } from '@/hooks/useAuth';
 import { useFavorites } from '@/hooks/useFavorites';
 import { usePopups } from '@/hooks/usePopups';
 import { useVisited } from '@/hooks/useVisited';
@@ -19,6 +20,7 @@ export default function SavedScreen() {
   const router = useRouter();
   const { favoriteIds, toggleFavorite } = useFavorites();
   const { visitedIds, toggleVisited } = useVisited();
+  const { user, signOut } = useAuth();
   const { popups } = usePopups({});
 
   const openPopup = (id: string) =>
@@ -49,6 +51,47 @@ export default function SavedScreen() {
           {endingCount > 0 && ` · ${endingCount} ending this week`}
         </Text>
       </View>
+
+      {/* Account banner */}
+      {user ? (
+        <View className="mx-4 mb-1 flex-row items-center justify-between rounded-2xl border border-line-strong bg-surface p-3">
+          <View className="min-w-0 flex-1 flex-row items-center gap-2.5">
+            <View className="h-9 w-9 items-center justify-center rounded-full bg-brand-light">
+              <Text className="text-base font-extrabold text-brand-dark">
+                {(user.email ?? '?')[0]!.toUpperCase()}
+              </Text>
+            </View>
+            <Text className="min-w-0 flex-1 text-sm text-ink" numberOfLines={1}>
+              {user.email}
+            </Text>
+          </View>
+          <Pressable onPress={signOut} hitSlop={8}>
+            <Text className="text-sm font-bold text-brand">Sign out</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <Pressable
+          onPress={() => router.push('/auth')}
+          style={({ pressed }) => ({ opacity: pressed ? 0.92 : 1 })}
+          className="mx-4 mb-1 flex-row items-center justify-between rounded-2xl bg-purple-light p-3.5"
+        >
+          <View className="flex-row items-center gap-2.5">
+            <Ionicons
+              name="person-circle-outline"
+              size={22}
+              color={colors.purple.DEFAULT}
+            />
+            <Text className="text-sm font-bold text-ink">
+              Sign in to sync your saves
+            </Text>
+          </View>
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color={colors.purple.DEFAULT}
+          />
+        </Pressable>
+      )}
 
       <FlatList
         data={saved}

@@ -89,9 +89,13 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       itinerary
 - [x] **Save / favorites** ⭐ — done local-first: `useFavorites` context +
       AsyncStorage, save buttons on cards/detail, real Saved tab (no login)
-- [ ] **Accounts / auth** — Apple + Google + email; **guest mode stays
-      first-class**; token storage via expo-secure-store (SECURITY.md §5);
-      syncs saves
+- [~] **Accounts / auth** _(email done 2026-07-22)_ — Supabase Auth via
+      `AuthProvider`/`useAuth` (session persisted + restored on launch). An
+      `/auth` modal does email/password sign-in & sign-up; the Saved tab shows a
+      sign-in banner (guest) or account + sign out. **Guest mode stays
+      first-class** — nothing is gated. **Remaining:** wire Apple/Google OAuth
+      (buttons scaffolded, need providers enabled + redirect flow) and migrate
+      favorites/visited from AsyncStorage to per-user tables for real sync.
 - [ ] **Push notifications** — saved popup ending soon, new popups in an area
 
 ## 🟡 Phase 2 — Reservations & engagement
