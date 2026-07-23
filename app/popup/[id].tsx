@@ -42,6 +42,11 @@ export default function PopupDetailScreen() {
     );
   }
 
+  // Reserve opens an explicit booking link, falling back to the popup's own
+  // website. Active only when the popup takes reservations AND we have a link.
+  const bookingUrl = popup.reservationUrl ?? popup.websiteUrl;
+  const canReserve = popup.reservable && !!bookingUrl;
+
   return (
     <View className="flex-1 bg-bg">
       <ScrollView
@@ -189,18 +194,26 @@ export default function PopupDetailScreen() {
           <Text className="text-sm font-extrabold text-ink">Directions</Text>
         </Pressable>
         <Pressable
-          disabled={!popup.reservable}
+          disabled={!canReserve}
+          onPress={canReserve ? () => openExternalUrl(bookingUrl) : undefined}
           style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
-          className={`flex-1 items-center justify-center rounded-2xl py-4 ${
-            popup.reservable ? 'bg-brand' : 'bg-line-strong'
+          className={`flex-1 flex-row items-center justify-center gap-2 rounded-2xl py-4 ${
+            canReserve ? 'bg-brand' : 'bg-line-strong'
           }`}
         >
+          {canReserve && (
+            <Ionicons name="open-outline" size={16} color="#fff" />
+          )}
           <Text
             className={`text-base font-bold ${
-              popup.reservable ? 'text-white' : 'text-muted'
+              canReserve ? 'text-white' : 'text-muted'
             }`}
           >
-            {popup.reservable ? 'Reserve a spot' : 'No reservation needed'}
+            {canReserve
+              ? 'Reserve a spot'
+              : popup.reservable
+                ? 'Booking opens soon'
+                : 'No reservation needed'}
           </Text>
         </Pressable>
       </View>

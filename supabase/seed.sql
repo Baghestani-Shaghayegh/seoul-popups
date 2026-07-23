@@ -108,5 +108,9 @@ values
    'https://popga.co.kr/popup/7756', 'Popga', '2026-07-22',
    null, null);
 
+-- Gintama takes Naver pre-reservation — link its booking page for Reserve.
+update public.popups set reservation_url = 'https://www.popply.co.kr/popup/3040'
+where name = $$Gintama — Korea's First Official Pop-up$$;
+
 -- Seed rows go live immediately (see header note).
 update public.popups set published = true;

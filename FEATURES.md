@@ -68,16 +68,16 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       `websiteUrl` now flow through the `Popup` type + hook. Seeded rows set
       `website_url` to their source popup page (Toy Story's news source left
       null); official brand IG/site links come with the content pass.
-- [~] **Map screen** — _built 2026-07-22, needs a dev build to run._
+- [x] **Map screen** _(built + verified on an iOS dev build 2026-07-22)_ —
       `react-native-maps` (Apple Maps iOS / Google Android), branded
       category pins, tap-to-select synced with the nearby rail, auto-fits to
       the popups. Native only — web resolves `PopupMapView.web.tsx` (styled
-      placeholder) so Expo Go/web don't crash. **"Near me"** (2026-07-22):
+      placeholder) so Expo Go/web don't crash. **"Near me"**:
       `useUserLocation` (expo-location) + a locate button that centers the map,
       shows the user dot, and re-sorts the rail by real distance; never prompts
-      on mount. **Still to do:** verify on a dev build, set
-      `GOOGLE_MAPS_ANDROID_KEY` for Android, and marker clustering (fine at
-      ~5–15 pins for now).
+      on mount. Pins/near-me confirmed working in the iOS Simulator.
+      **Still to do:** set `GOOGLE_MAPS_ANDROID_KEY` for the Android map, and
+      marker clustering (fine at ~5–15 pins for now).
 
 ## 🔵 Phase 1 — Differentiators (light personalization)
 
@@ -96,8 +96,12 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
 
 ## 🟡 Phase 2 — Reservations & engagement
 
-- [ ] **Reserve (external link)** ⭐ — detail-screen button → brand/Naver
-      booking (ships fast; the button exists, currently dead)
+- [x] **Reserve (external link)** ⭐ _(2026-07-22)_ — the detail-screen Reserve
+      button now opens the popup's `reservationUrl` (falls back to `websiteUrl`)
+      via the https-only `openExternalUrl`. Active only when reservable AND a
+      link exists; otherwise "Booking opens soon" / "No reservation needed".
+      `reservation_url` flows through the `Popup` type + hook (Gintama seeded
+      with its Naver-reservation page).
 - [ ] **Reserve (native)** — time slots, manage/cancel, reminders (needs RLS
       user-owned tables)
 - [ ] **Curated collections** — editorial ("This weekend in Seoul")

@@ -59,4 +59,6 @@ export interface Popup {
   /** Optional outbound links shown on the detail screen (https only). */
   instagramUrl?: string;
   websiteUrl?: string;
+  /** External booking link opened by the Reserve button. */
+  reservationUrl?: string;
 }
