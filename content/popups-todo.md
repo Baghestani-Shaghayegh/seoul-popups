@@ -10,16 +10,16 @@ Legend: ✓ = source-confirmed · ⚠️ = estimated, verify · 🔶 interim = r
 | Popup | Coords | Subway exit | Walk min | Hours | Image |
 |---|---|---|---|---|---|
 | Toy Story × PEACEMINUSONE | ⚠️ 연무장길 27 (confirmed addr) | ⚠️ Seongsu 3 | ⚠️ 5 | ✓ 11–20 | 🔶 interim (heypop) |
-| WIND BREAKER 5th | ⚠️ AK Plaza Hongdae 3F, 양화로 188 | ⚠️ Hongik Univ. 2 | ⚠️ 2 | ✓ split hrs | ⚠️ **STOCK — needs photo** |
+| WIND BREAKER 5th | ⚠️ AK Plaza Hongdae 3F, 양화로 188 | ⚠️ Hongik Univ. 2 | ⚠️ 2 | ✓ split hrs | 🔶 interim (popply) |
 | Demon Slayer: Full Focus | ⚠️ S-Factory D, Yeonmujang15-gil 11 | ✓ Seongsu 3 | ✓ 5 | ⚠️ est 11–20 | 🔶 interim (Popga) |
 | T1 — Counting the Stars | ⚠️ T-Factory, 연무장1길 7-1 (confirmed addr) | ⚠️ Seongsu 4 | ⚠️ 6 | ✓ 11–20 | 🔶 interim (Popga) |
-| A Shop for Killers (MurderHelp) | ⚠️ Gangnam-daero 420 | ✓ Gangnam 11 | ✓ 2 | ✓ split hrs | ⚠️ **STOCK — needs photo** |
+| A Shop for Killers (MurderHelp) | ⚠️ Gangnam-daero 420 | ✓ Gangnam 11 | ✓ 2 | ✓ split hrs | 🔶 interim (popply) |
 
-**Photo pass 2026-07-22:** Toy Story, Demon Slayer, T1 swapped from Unsplash
-stock to real interim images (Popga CDN / heypop). **WIND BREAKER + A Shop for
-Killers still show STOCK** — no clean hotlinkable image found; these two are the
-priority for an official upload to the `popup-images` bucket. Verified street
-addresses added above for the eventual Naver/Kakao pin fine-tune.
+**Photo pass 2026-07-22:** **all 9 popups now show real images — zero Unsplash
+stock left.** Sources are hotlinked aggregator images (popply CloudFront 800×600,
+Popga CDN, heypop) set directly on `image_url` — no bucket upload needed. These
+render fine; for long-term durability + brand-official quality you can still
+upload official photos to the `popup-images` bucket and swap the URLs over time.
 
 ## Drafted 2026-07-21 (in Supabase, `published = false` — not yet in the app)
 
@@ -30,10 +30,13 @@ placeholders — that's expected, it's exactly what the draft gate (CONTENT.md
 
 | Popup | Neighborhood | Coords | Subway exit | Walk min | Hours | Image |
 |---|---|---|---|---|---|---|
-| Demon Slayer: Infinity Castle Arc | Hongdae | ⚠️ reused AK Plaza Hongdae pin | ⚠️ Hongik Univ. 2 | ⚠️ 2 | ✓ split hrs | ⚠️ placeholder |
+| Demon Slayer: Infinity Castle Arc | Hongdae | ⚠️ reused AK Plaza Hongdae pin | ⚠️ Hongik Univ. 2 | ⚠️ 2 | ✓ split hrs | 🔶 interim (popply) |
 | Park Ttuki Salt Bread × YoAJung | Seongsu | ⚠️ est. from 왕십리로14길 19-7 | ✓ Seongsu 3 | ✓ 7 | ✓ 09–16 | 🔶 interim (Popga) |
 | Tashiro, You Rascal! × Toonique Cafe | Hongdae | ⚠️ est. from 동교동 147-34 | ✓ Hongik Univ. 3 | ✓ 3 | ⚠️ est 11–21 | 🔶 interim (Popga) |
-| Gintama — Korea's First Official Pop-up | Hongdae | ⚠️ reused AK Plaza Hongdae pin | ⚠️ Hongik Univ. 2 | ⚠️ 2 | ✓ 10–19 | ⚠️ placeholder |
+| Gintama — Korea's First Official Pop-up | Hongdae | ⚠️ reused AK Plaza Hongdae pin | ⚠️ Hongik Univ. 2 | ⚠️ 2 | ✓ 10–19 | 🔶 interim (Popga) |
+
+**All 4 drafts now have real images** → the only thing between them and going
+live is a publish flip (their pins are estimated, same bar as the live 5).
 
 🔶 **interim (Popga)** = `image_url` currently hotlinks a 480px Popga CDN
 thumbnail (`cdn.popga.co.kr/spot/…`). Good enough to preview the draft, but
