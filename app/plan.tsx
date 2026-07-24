@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   Pressable,
   ScrollView,
   Share,
@@ -19,6 +20,7 @@ import {
 import { Chip } from '@/components/ui/Chip';
 import { DatePickerSheet } from '@/components/plan/DatePickerSheet';
 import { SelectablePopupRow } from '@/components/plan/SelectablePopupRow';
+import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { usePopups } from '@/hooks/usePopups';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { useWalkingRoute } from '@/hooks/useWalkingRoute';
@@ -26,10 +28,6 @@ import { buildRoute, totalWalkMinutes, type RouteStop } from '@/lib/route';
 import { formatWeekdayDate, todayIso } from '@/lib/format';
 import { colors } from '@/constants/theme';
 import { NEIGHBORHOODS, type Neighborhood } from '@/types/popup';
-
-// Nearby-rail card geometry (Map mode), so tapping a pin can scroll to its card.
-const STOP_CARD_WIDTH = 224; // w-56
-const STOP_CARD_GAP = 12; // gap-3
 
 export default function PlanScreen() {
   const insets = useSafeAreaInsets();
@@ -40,10 +38,11 @@ export default function PlanScreen() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [route, setRoute] = useState<RouteStop[] | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [focusedId, setFocusedId] = useState<string | null>(null);
-  const railRef = useRef<ScrollView>(null);
+  // Height of the map area, measured on layout — drives the draggable sheet.
+  const [mapAreaH, setMapAreaH] = useState(0);
   const mapRef = useRef<PopupMapHandle>(null);
+  const sheet = useBottomSheet(mapAreaH);
   const { permission, locating, locate } = useUserLocation();
 
   const isToday = date === todayIso();
@@ -82,13 +81,11 @@ export default function PlanScreen() {
 
   const planRoute = () => {
     setRoute(buildRoute(selectedPopups));
-    setViewMode('list');
     setFocusedId(null);
   };
 
   const editSelection = () => {
     setRoute(null);
-    setViewMode('list');
     setFocusedId(null);
   };
 
@@ -108,17 +105,6 @@ export default function PlanScreen() {
       );
     }
   };
-
-  // When a pin is tapped in full-map mode, bring its card to the front of the rail.
-  useEffect(() => {
-    if (!focusedId || viewMode !== 'map') return;
-    const index = enhanced.stops.findIndex((s) => s.popup.id === focusedId);
-    if (index < 0) return;
-    railRef.current?.scrollTo({
-      x: index * (STOP_CARD_WIDTH + STOP_CARD_GAP),
-      animated: true,
-    });
-  }, [focusedId, viewMode, enhanced.stops]);
 
   const shareItinerary = async () => {
     if (!route) return;
@@ -160,43 +146,43 @@ export default function PlanScreen() {
     const mapRouteCoords = liveCoords ?? fallbackCoords;
     const routeDashed = !enhanced.live;
 
-    // One map instance for both modes. It stays mounted at the same position
-    // in the tree — only its height and the surrounding overlays change.
-    // (A separate full-screen return would unmount this MapView and mount a
-    // new one; remounting a react-native-maps view mid-session crashes on
-    // native, so we never do it — 'map' just grows the same map to fill the
-    // screen and swaps the itinerary for a bottom rail.)
-    const fullMap = viewMode === 'map';
     return (
-      <View className="flex-1 bg-bg">
-        {/* Persistent map — same tree slot in both modes. */}
-        <View
-          className={fullMap ? '' : 'mx-4 mt-4 overflow-hidden rounded-3xl'}
-          style={fullMap ? { flex: 1 } : { height: 240 }}
-        >
-          <PopupMapView
-            ref={mapRef}
-            popups={enhanced.stops.map((s) => s.popup)}
-            selectedId={focusedId}
-            onSelect={setFocusedId}
-            showUser={permission === 'granted'}
-            routeCoords={mapRouteCoords}
-            routeDashed={routeDashed}
-            stopOrder={stopOrder}
-          />
+      <View
+        className="flex-1 bg-bg"
+        onLayout={(e) => setMapAreaH(e.nativeEvent.layout.height)}
+      >
+        {/* Full-screen map behind the sheet. Draws the route line + numbered
+            pins; tapping a pin focuses it (centers + highlights its row). */}
+        <PopupMapView
+          ref={mapRef}
+          popups={enhanced.stops.map((s) => s.popup)}
+          selectedId={focusedId}
+          onSelect={setFocusedId}
+          showUser={permission === 'granted'}
+          routeCoords={mapRouteCoords}
+          routeDashed={routeDashed}
+          stopOrder={stopOrder}
+        />
 
-          {/* Expand / collapse (+ locate when full-screen) */}
-          <View
-            className="absolute right-3 flex-row items-center gap-2"
-            style={{ top: fullMap ? insets.top + 8 : 12 }}
-          >
-            {fullMap && (
+        {mapAreaH > 0 && (
+          <>
+            {/* Locate button — bottom-right, riding just above the sheet so it
+                stays reachable at every snap point. */}
+            <Animated.View
+              pointerEvents="box-none"
+              style={{
+                position: 'absolute',
+                right: 16,
+                top: sheet.expandedTop - 60,
+                transform: [{ translateY: sheet.y }],
+              }}
+            >
               <Pressable
                 onPress={onLocate}
-                style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
                 accessibilityRole="button"
                 accessibilityLabel="Show my location"
-                className="h-11 w-11 items-center justify-center rounded-2xl border border-line-strong bg-surface shadow-sm"
+                style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+                className="h-12 w-12 items-center justify-center rounded-2xl border border-line-strong bg-surface shadow-sm"
               >
                 {locating ? (
                   <ActivityIndicator
@@ -206,7 +192,7 @@ export default function PlanScreen() {
                 ) : (
                   <Ionicons
                     name="locate"
-                    size={19}
+                    size={20}
                     color={
                       permission === 'granted'
                         ? colors.brand.DEFAULT
@@ -215,220 +201,164 @@ export default function PlanScreen() {
                   />
                 )}
               </Pressable>
-            )}
-            <Pressable
-              onPress={() => setViewMode(fullMap ? 'list' : 'map')}
-              style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
-              accessibilityRole="button"
-              accessibilityLabel={fullMap ? 'Back to list' : 'Show full map'}
-              className="flex-row items-center gap-1.5 rounded-2xl border border-line-strong bg-surface px-3 py-2.5 shadow-sm"
-            >
-              <Ionicons
-                name={fullMap ? 'list' : 'expand'}
-                size={15}
-                color={colors.ink}
-              />
-              <Text className="text-xs font-bold text-ink">
-                {fullMap ? 'List' : 'Full map'}
-              </Text>
-            </Pressable>
-          </View>
-        </View>
+            </Animated.View>
 
-        {fullMap ? (
-          // ---- Full-map mode: itinerary collapses into a bottom rail ----
-          <View
-            className="absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-line-strong bg-surface pt-2.5"
-            style={{ paddingBottom: insets.bottom + 12 }}
-          >
-            <View className="mb-3 h-[5px] w-10 self-center rounded-full bg-line-strong" />
-            <Text className="mb-2 px-4 text-xs font-bold text-muted">
-              {enhanced.loading
-                ? 'Fetching live walking directions…'
-                : enhanced.live
-                  ? 'Live walking times · tap a pin or card'
-                  : 'Estimated walking times · tap a pin or card'}
-            </Text>
-            <ScrollView
-              ref={railRef}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerClassName="gap-3 px-4 pb-1"
+            {/* Draggable itinerary sheet — slide down to watch the map, up to
+                read the full plan. */}
+            <Animated.View
+              className="rounded-t-3xl bg-surface"
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                top: sheet.expandedTop,
+                height: sheet.sheetHeight,
+                transform: [{ translateY: sheet.y }],
+                shadowColor: '#462846',
+                shadowOpacity: 0.12,
+                shadowRadius: 12,
+                shadowOffset: { width: 0, height: -3 },
+                elevation: 16,
+              }}
             >
-              {enhanced.stops.map((stop, i) => {
-                const selected = stop.popup.id === focusedId;
-                return (
+              {/* Peek (always visible): drag handle + summary. */}
+              <View
+                {...sheet.panHandlers}
+                onLayout={(e) =>
+                  sheet.setPeekHeight(e.nativeEvent.layout.height)
+                }
+              >
+                <View className="my-2.5 h-[5px] w-10 self-center rounded-full bg-line-strong" />
+                <View className="mx-4 mb-3 flex-row items-center justify-between rounded-2xl bg-purple p-4">
+                  <View className="flex-1">
+                    <Text className="text-xs font-semibold uppercase tracking-wide text-[#D8CBFF]">
+                      Your day in {neighborhood} · {formatWeekdayDate(date)}
+                    </Text>
+                    <Text className="mt-1 text-xl font-extrabold text-white">
+                      {route.length} stops · ~{totalWalk} min walking
+                    </Text>
+                  </View>
                   <Pressable
-                    key={stop.popup.id}
-                    onPress={() => {
-                      setFocusedId(stop.popup.id);
-                      router.push({
-                        pathname: '/popup/[id]',
-                        params: { id: stop.popup.id },
-                      });
-                    }}
-                    style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
-                    className={`w-56 flex-row items-center gap-3 rounded-2xl p-2.5 ${
-                      selected ? 'bg-purple-light' : 'bg-well'
-                    }`}
+                    onPress={shareItinerary}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Share itinerary"
+                    style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+                    className="h-10 w-10 items-center justify-center rounded-2xl bg-white/15"
                   >
-                    <View className="h-7 w-7 items-center justify-center rounded-full bg-purple">
-                      <Text className="text-xs font-bold text-white">
-                        {i + 1}
-                      </Text>
-                    </View>
-                    <View className="min-w-0 flex-1">
-                      <Text
-                        className="text-[13px] font-extrabold leading-4 text-ink"
-                        numberOfLines={1}
-                      >
-                        {stop.popup.name}
-                      </Text>
-                      <Text
-                        className="mt-0.5 text-[11px] text-muted"
-                        numberOfLines={1}
-                      >
-                        {i === 0
-                          ? 'Start here'
-                          : `~${stop.walkFromPrevMin} min walk`}
-                      </Text>
-                    </View>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={16}
-                      color={colors.muted}
-                    />
+                    <Ionicons name="share-outline" size={19} color="#fff" />
                   </Pressable>
-                );
-              })}
-            </ScrollView>
-          </View>
-        ) : (
-          // ---- List mode: full itinerary scrolls below the map ----
-          <>
-            <ScrollView
-              className="flex-1"
-              contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-            >
-              <View className="mb-4 flex-row items-center justify-between rounded-2xl bg-purple p-4">
-                <View className="flex-1">
-                  <Text className="text-xs font-semibold uppercase tracking-wide text-[#D8CBFF]">
-                    Your day in {neighborhood} · {formatWeekdayDate(date)}
-                  </Text>
-                  <Text className="mt-1 text-xl font-extrabold text-white">
-                    {route.length} stops · ~{totalWalk} min walking
+                </View>
+              </View>
+
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{
+                  paddingHorizontal: 16,
+                  paddingBottom: insets.bottom + 24,
+                }}
+              >
+                {/* Getting there */}
+                <View className="mb-4 flex-row items-center gap-2 rounded-2xl bg-well p-4">
+                  <Ionicons
+                    name="train"
+                    size={20}
+                    color={colors.brand.DEFAULT}
+                  />
+                  <Text className="flex-1 text-sm text-ink">
+                    Start at {first.subway.station} Station ({first.subway.line}
+                    ), Exit {first.subway.exit}
                   </Text>
                 </View>
-                <Pressable
-                  onPress={shareItinerary}
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel="Share itinerary"
-                  style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
-                  className="h-10 w-10 items-center justify-center rounded-2xl bg-white/15"
-                >
-                  <Ionicons name="share-outline" size={19} color="#fff" />
-                </Pressable>
-              </View>
 
-              {/* Getting there */}
-              <View className="mb-4 flex-row items-center gap-2 rounded-2xl bg-surface p-4">
-                <Ionicons name="train" size={20} color={colors.brand.DEFAULT} />
-                <Text className="flex-1 text-sm text-ink">
-                  Start at {first.subway.station} Station ({first.subway.line}),
-                  Exit {first.subway.exit}
-                </Text>
-              </View>
-
-              {/* Timeline of stops */}
-              {enhanced.stops.map((stop, i) => {
-                const isLast = i === enhanced.stops.length - 1;
-                return (
-                  <View key={stop.popup.id} className="flex-row">
-                    {/* Rail: number + connecting line */}
-                    <View className="mr-3 items-center" style={{ width: 28 }}>
-                      <View className="h-7 w-7 items-center justify-center rounded-full bg-purple">
-                        <Text className="text-sm font-bold text-white">
-                          {i + 1}
-                        </Text>
-                      </View>
-                      {!isLast && (
-                        <View className="my-1 w-0.5 flex-1 bg-purple-light" />
-                      )}
-                    </View>
-
-                    {/* Content */}
-                    <View className="flex-1 pb-4">
-                      <Pressable
-                        onPress={() =>
-                          router.push({
-                            pathname: '/popup/[id]',
-                            params: { id: stop.popup.id },
-                          })
-                        }
-                        style={({ pressed }) => ({
-                          opacity: pressed ? 0.9 : 1,
-                        })}
-                        className="flex-row items-center gap-3 rounded-2xl bg-surface p-3"
-                      >
-                        <View className="flex-1">
-                          <Text
-                            className="text-sm font-bold text-ink"
-                            numberOfLines={1}
-                          >
-                            {stop.popup.name}
-                          </Text>
-                          <Text className="text-xs text-muted">
-                            {stop.popup.category} · {stop.popup.hours}
+                {/* Timeline of stops */}
+                {enhanced.stops.map((stop, i) => {
+                  const isLast = i === enhanced.stops.length - 1;
+                  const focused = stop.popup.id === focusedId;
+                  return (
+                    <View key={stop.popup.id} className="flex-row">
+                      {/* Rail: number + connecting line */}
+                      <View className="mr-3 items-center" style={{ width: 28 }}>
+                        <View className="h-7 w-7 items-center justify-center rounded-full bg-purple">
+                          <Text className="text-sm font-bold text-white">
+                            {i + 1}
                           </Text>
                         </View>
-                        <Ionicons
-                          name="chevron-forward"
-                          size={18}
-                          color={colors.muted}
-                        />
-                      </Pressable>
+                        {!isLast && (
+                          <View className="my-1 w-0.5 flex-1 bg-purple-light" />
+                        )}
+                      </View>
 
-                      {!isLast && (
-                        <View className="mt-2 flex-row items-center gap-1.5">
+                      {/* Content */}
+                      <View className="flex-1 pb-4">
+                        <Pressable
+                          onPress={() =>
+                            router.push({
+                              pathname: '/popup/[id]',
+                              params: { id: stop.popup.id },
+                            })
+                          }
+                          style={({ pressed }) => ({
+                            opacity: pressed ? 0.9 : 1,
+                          })}
+                          className={`flex-row items-center gap-3 rounded-2xl p-3 ${
+                            focused ? 'bg-purple-light' : 'bg-well'
+                          }`}
+                        >
+                          <View className="flex-1">
+                            <Text
+                              className="text-sm font-bold text-ink"
+                              numberOfLines={1}
+                            >
+                              {stop.popup.name}
+                            </Text>
+                            <Text className="text-xs text-muted">
+                              {stop.popup.category} · {stop.popup.hours}
+                            </Text>
+                          </View>
                           <Ionicons
-                            name="walk"
-                            size={15}
+                            name="chevron-forward"
+                            size={18}
                             color={colors.muted}
                           />
-                          <Text className="text-xs text-muted">
-                            ~{enhanced.stops[i + 1].walkFromPrevMin} min walk
-                          </Text>
-                        </View>
-                      )}
+                        </Pressable>
+
+                        {!isLast && (
+                          <View className="mt-2 flex-row items-center gap-1.5">
+                            <Ionicons
+                              name="walk"
+                              size={15}
+                              color={colors.muted}
+                            />
+                            <Text className="text-xs text-muted">
+                              ~{enhanced.stops[i + 1].walkFromPrevMin} min walk
+                            </Text>
+                          </View>
+                        )}
+                      </View>
                     </View>
-                  </View>
-                );
-              })}
+                  );
+                })}
 
-              <Text className="mt-2 text-center text-xs text-muted">
-                {enhanced.loading
-                  ? 'Fetching live walking directions…'
-                  : enhanced.live
-                    ? 'Live walking times from Google Directions.'
-                    : 'Estimated walking times (straight-line).'}
-              </Text>
-            </ScrollView>
-
-            <View
-              className="border-t border-line bg-surface px-4 pt-3"
-              style={{ paddingBottom: insets.bottom + 12 }}
-            >
-              <Pressable
-                onPress={editSelection}
-                style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
-                className="items-center rounded-2xl border border-line-strong py-3.5"
-              >
-                <Text className="text-base font-semibold text-ink">
-                  Edit selection
+                <Text className="mb-4 mt-1 text-center text-xs text-muted">
+                  {enhanced.loading
+                    ? 'Fetching live walking directions…'
+                    : enhanced.live
+                      ? 'Live walking times from Google Directions.'
+                      : 'Estimated walking times (straight-line).'}
                 </Text>
-              </Pressable>
-            </View>
+
+                <Pressable
+                  onPress={editSelection}
+                  style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+                  className="items-center rounded-2xl border border-line-strong py-3.5"
+                >
+                  <Text className="text-base font-semibold text-ink">
+                    Edit selection
+                  </Text>
+                </Pressable>
+              </ScrollView>
+            </Animated.View>
           </>
         )}
       </View>
