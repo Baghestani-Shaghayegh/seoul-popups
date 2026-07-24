@@ -191,11 +191,19 @@ export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
       [],
     );
 
-    // Frame all popups once they've loaded (they may arrive after first render).
+    // Frame all popups once. We wait a beat rather than firing immediately (or
+    // in onMapReady, which iOS / Apple Maps doesn't reliably call): an
+    // animateToRegion right after mount is dropped natively, which left the map
+    // zoomed out to the whole city on open. The ref guard keeps it to a single
+    // fit so it never fights the user's panning; re-planning remounts the map.
     useEffect(() => {
       if (didAutoFit.current || popups.length === 0) return;
-      didAutoFit.current = true;
-      mapRef.current?.animateToRegion(regionForPopups(popups), 350);
+      const region = regionForPopups(popups);
+      const t = setTimeout(() => {
+        didAutoFit.current = true;
+        mapRef.current?.animateToRegion(region, 350);
+      }, 500);
+      return () => clearTimeout(t);
     }, [popups]);
 
     // Center on the selected popup (e.g. when picked from the list below).
