@@ -96,6 +96,25 @@ agree to Kakao's Business Terms. This unlocks the `account_email` consent item,
 after which the existing Supabase config (Client ID/Secret, redirect URI) needs
 no changes — Kakao login should work immediately.
 
+**Update 2026-07-24 — the Biz App conversion is bigger than expected.** Kakao
+Developers → App → General → "Register business" wants a real business
+registration number (not applicable). The individual-developer path
+("Consent to Kakao Business Terms of Service") instead redirects to
+**business.kakao.com/cold-start** — Kakao's *Kakao Business* product, which
+asks you to create a **public-facing Kakao Channel** (a business profile, not
+just an identity checkbox):
+
+- **유형1 기본채널형 (Type 1 — Basic Channel)** — chat/news/coupons, no physical
+  store needed. This is the one to use if continuing.
+- **유형2 오프라인매장형 (Type 2 — Offline store)** — needs a real store address.
+  Not applicable.
+
+This is more setup (a real, public Kakao Channel tied to your identity) than a
+quick toggle, so it's paused for now — not worth the detour until Kakao login
+is actually needed. To resume: create the Type 1 channel, link it as the app's
+Biz App in Kakao Developers, then `account_email` should become available
+under Kakao Login → Consent Items with no further Supabase/code changes.
+
 Status: **paused, not started** — Google is the working provider for now.
 
 ### Apple (deferred)
