@@ -8,7 +8,9 @@ import { getSupabase, isSupabaseConfigured } from '@/lib/supabase';
 // Dismisses the auth popup if the app is reopened mid-flow (web/native no-op).
 WebBrowser.maybeCompleteAuthSession();
 
-type OAuthProvider = Extract<Provider, 'apple' | 'google'>;
+// Kakao is Supabase-native and dominant in Korea; Apple is deferred until the
+// paid Apple Developer account exists (see supabase/AUTH.md).
+type OAuthProvider = Extract<Provider, 'google' | 'kakao' | 'apple'>;
 
 interface AuthValue {
   session: Session | null;

@@ -55,7 +55,7 @@ export default function AuthScreen() {
     }
   };
 
-  const oauth = async (provider: 'apple' | 'google') => {
+  const oauth = async (provider: 'google' | 'kakao') => {
     setError(null);
     setMessage(null);
     setSubmitting(true);
@@ -152,9 +152,12 @@ export default function AuthScreen() {
 
         <View className="gap-3">
           <OAuthButton
-            icon="logo-apple"
-            label="Continue with Apple"
-            onPress={() => oauth('apple')}
+            icon="chatbubble"
+            label="Continue with Kakao"
+            onPress={() => oauth('kakao')}
+            backgroundColor="#FEE500"
+            borderColor="#FEE500"
+            contentColor="#191600"
           />
           <OAuthButton
             icon="logo-google"
@@ -192,19 +195,31 @@ function OAuthButton({
   icon,
   label,
   onPress,
+  backgroundColor = colors.surface,
+  borderColor = colors.line.strong,
+  contentColor = colors.ink,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   onPress: () => void;
+  backgroundColor?: string;
+  borderColor?: string;
+  contentColor?: string;
 }) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
-      className="h-14 flex-row items-center justify-center gap-2.5 rounded-2xl border border-line-strong bg-surface"
+      style={({ pressed }) => ({
+        opacity: pressed ? 0.9 : 1,
+        backgroundColor,
+        borderColor,
+      })}
+      className="h-14 flex-row items-center justify-center gap-2.5 rounded-2xl border"
     >
-      <Ionicons name={icon} size={19} color={colors.ink} />
-      <Text className="text-base font-bold text-ink">{label}</Text>
+      <Ionicons name={icon} size={19} color={contentColor} />
+      <Text className="text-base font-bold" style={{ color: contentColor }}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
