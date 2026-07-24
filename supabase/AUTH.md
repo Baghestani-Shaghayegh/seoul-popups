@@ -67,6 +67,37 @@ Note: the Naver button + flow can't be exercised until steps 1–6 are done — 
 untested against real Naver, so verify on the dev build and tell me if the OTP
 exchange needs tweaking (the magiclink OTP `type` is the likeliest thing).
 
+### ⚠️ Known Kakao blocker (2026-07-24): `invalid_scope: account_email`
+
+Verified end-to-end on device: Client ID/Secret, redirect URI, and consent
+items are all configured correctly — tapping **Continue with Kakao** correctly
+opens `accounts.kakao.com` inside the app (PKCE flow works). But after logging
+in with a real Kakao account, it fails with **"Sign-in was interrupted"** in
+the app. Supabase auth logs (`get_logs` → `auth`) show the real cause:
+
+```
+invalid_scope: Invalid scope: account_email
+```
+
+**Root cause:** Supabase's Kakao provider integration always requests the
+`account_email` scope when calling Kakao's authorize endpoint — this is
+hardcoded on Supabase's (GoTrue's) side, not something our code or the
+provider's "Allow users without an email" toggle controls. Since this Kakao
+app isn't a **Biz App**, Kakao doesn't grant `account_email` at all and rejects
+the *entire authorize request* before any consent screen appears — this is a
+harder failure than "user declined email," which is the only case "Allow users
+without an email" actually covers.
+
+**Fix:** convert the Kakao app to a **Biz App**. Individual developers can do
+this **for free, without a real registered business** — Kakao Developers →
+**App Settings → App → General** → **Register Biz app** → complete identity
+verification (본인인증) instead of entering a business registration number →
+agree to Kakao's Business Terms. This unlocks the `account_email` consent item,
+after which the existing Supabase config (Client ID/Secret, redirect URI) needs
+no changes — Kakao login should work immediately.
+
+Status: **paused, not started** — Google is the working provider for now.
+
 ### Apple (deferred)
 
 Needs the paid Apple Developer Program ($99/yr) — bundle it with the iOS launch.
