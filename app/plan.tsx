@@ -1,19 +1,35 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Share, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Share,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { PopupMapView } from '@/components/map/PopupMapView';
+import {
+  PopupMapView,
+  type PopupMapHandle,
+} from '@/components/map/PopupMapView';
 import { Chip } from '@/components/ui/Chip';
 import { DatePickerSheet } from '@/components/plan/DatePickerSheet';
 import { SelectablePopupRow } from '@/components/plan/SelectablePopupRow';
 import { usePopups } from '@/hooks/usePopups';
+import { useUserLocation } from '@/hooks/useUserLocation';
 import { useWalkingRoute } from '@/hooks/useWalkingRoute';
 import { buildRoute, totalWalkMinutes, type RouteStop } from '@/lib/route';
 import { formatWeekdayDate, todayIso } from '@/lib/format';
 import { colors } from '@/constants/theme';
 import { NEIGHBORHOODS, type Neighborhood } from '@/types/popup';
+
+// Nearby-rail card geometry (Map mode), so tapping a pin can scroll to its card.
+const STOP_CARD_WIDTH = 224; // w-56
+const STOP_CARD_GAP = 12; // gap-3
 
 export default function PlanScreen() {
   const insets = useSafeAreaInsets();
@@ -24,6 +40,11 @@ export default function PlanScreen() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [route, setRoute] = useState<RouteStop[] | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+  const railRef = useRef<ScrollView>(null);
+  const mapRef = useRef<PopupMapHandle>(null);
+  const { permission, locating, locate } = useUserLocation();
 
   const isToday = date === todayIso();
 
@@ -59,10 +80,45 @@ export default function PlanScreen() {
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
 
+  const planRoute = () => {
+    setRoute(buildRoute(selectedPopups));
+    setViewMode('list');
+    setFocusedId(null);
+  };
+
+  const editSelection = () => {
+    setRoute(null);
+    setViewMode('list');
+    setFocusedId(null);
+  };
+
   // Enhances `route` with real walking legs + a road-following polyline when a
   // routing key is configured; falls back to the straight-line v1 estimates
   // otherwise. Hooks can't be conditional, so this runs every render.
   const enhanced = useWalkingRoute(route ?? []);
+
+  const onLocate = async () => {
+    const c = await locate();
+    if (c) {
+      mapRef.current?.centerOn(c);
+    } else {
+      Alert.alert(
+        'Location unavailable',
+        'Enable location access in Settings to see yourself on the map.',
+      );
+    }
+  };
+
+  // When a pin is tapped in full-map mode, bring its card to the front of the rail.
+  useEffect(() => {
+    if (!focusedId || viewMode !== 'map') return;
+    const index = enhanced.stops.findIndex((s) => s.popup.id === focusedId);
+    if (index < 0) return;
+    railRef.current?.scrollTo({
+      x: index * (STOP_CARD_WIDTH + STOP_CARD_GAP),
+      animated: true,
+    });
+  }, [focusedId, viewMode, enhanced.stops]);
 
   const shareItinerary = async () => {
     if (!route) return;
@@ -90,17 +146,165 @@ export default function PlanScreen() {
     const stopOrder = Object.fromEntries(
       enhanced.stops.map((s, i) => [s.popup.id, i + 1]),
     );
+    // Always draw a route line: the real road-following polyline once live
+    // directions load, otherwise a straight-line fallback between the stops
+    // (dashed, so it reads as an estimate rather than an actual path).
+    const liveCoords =
+      enhanced.polyline && enhanced.polyline.length > 1
+        ? enhanced.polyline
+        : null;
+    const fallbackCoords = enhanced.stops.map((s) => ({
+      latitude: s.popup.latitude,
+      longitude: s.popup.longitude,
+    }));
+    const mapRouteCoords = liveCoords ?? fallbackCoords;
+    const routeDashed = !enhanced.live;
+
+    // ---- Full-map mode: map takes the whole screen, itinerary collapses
+    // into a bottom rail (mirrors the Map tab's nearby-rail pattern). ----
+    if (viewMode === 'map') {
+      return (
+        <View className="flex-1 bg-bg">
+          <PopupMapView
+            ref={mapRef}
+            popups={enhanced.stops.map((s) => s.popup)}
+            selectedId={focusedId}
+            onSelect={setFocusedId}
+            showUser={permission === 'granted'}
+            routeCoords={mapRouteCoords}
+            routeDashed={routeDashed}
+            stopOrder={stopOrder}
+          />
+
+          <View
+            className="absolute inset-x-4 flex-row items-center justify-between"
+            style={{ top: insets.top + 8 }}
+          >
+            <Pressable
+              onPress={() => setViewMode('list')}
+              style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+              accessibilityRole="button"
+              accessibilityLabel="Back to list"
+              className="flex-row items-center gap-1.5 rounded-2xl border border-line-strong bg-surface px-3.5 py-2.5 shadow-sm"
+            >
+              <Ionicons name="list" size={16} color={colors.ink} />
+              <Text className="text-xs font-bold text-ink">List</Text>
+            </Pressable>
+            <Pressable
+              onPress={onLocate}
+              style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+              accessibilityRole="button"
+              accessibilityLabel="Show my location"
+              className="h-11 w-11 items-center justify-center rounded-2xl border border-line-strong bg-surface shadow-sm"
+            >
+              {locating ? (
+                <ActivityIndicator size="small" color={colors.brand.DEFAULT} />
+              ) : (
+                <Ionicons
+                  name="locate"
+                  size={19}
+                  color={
+                    permission === 'granted' ? colors.brand.DEFAULT : colors.ink
+                  }
+                />
+              )}
+            </Pressable>
+          </View>
+
+          <View
+            className="absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-line-strong bg-surface pt-2.5"
+            style={{ paddingBottom: insets.bottom + 12 }}
+          >
+            <View className="mb-3 h-[5px] w-10 self-center rounded-full bg-line-strong" />
+            <Text className="mb-2 px-4 text-xs font-bold text-muted">
+              {enhanced.loading
+                ? 'Fetching live walking directions…'
+                : enhanced.live
+                  ? 'Live walking times · tap a pin or card'
+                  : 'Estimated walking times · tap a pin or card'}
+            </Text>
+            <ScrollView
+              ref={railRef}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerClassName="gap-3 px-4 pb-1"
+            >
+              {enhanced.stops.map((stop, i) => {
+                const selected = stop.popup.id === focusedId;
+                return (
+                  <Pressable
+                    key={stop.popup.id}
+                    onPress={() => {
+                      setFocusedId(stop.popup.id);
+                      router.push({
+                        pathname: '/popup/[id]',
+                        params: { id: stop.popup.id },
+                      });
+                    }}
+                    style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+                    className={`w-56 flex-row items-center gap-3 rounded-2xl p-2.5 ${
+                      selected ? 'bg-purple-light' : 'bg-well'
+                    }`}
+                  >
+                    <View className="h-7 w-7 items-center justify-center rounded-full bg-purple">
+                      <Text className="text-xs font-bold text-white">
+                        {i + 1}
+                      </Text>
+                    </View>
+                    <View className="min-w-0 flex-1">
+                      <Text
+                        className="text-[13px] font-extrabold leading-4 text-ink"
+                        numberOfLines={1}
+                      >
+                        {stop.popup.name}
+                      </Text>
+                      <Text
+                        className="mt-0.5 text-[11px] text-muted"
+                        numberOfLines={1}
+                      >
+                        {i === 0
+                          ? 'Start here'
+                          : `~${stop.walkFromPrevMin} min walk`}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={16}
+                      color={colors.muted}
+                    />
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      );
+    }
+
+    // ---- List mode ----
     return (
       <View className="flex-1 bg-bg">
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-          <View className="mb-4 h-56 overflow-hidden rounded-3xl">
+          <View className="mb-4 h-64 overflow-hidden rounded-3xl">
             <PopupMapView
               popups={enhanced.stops.map((s) => s.popup)}
-              selectedId={null}
-              onSelect={() => {}}
-              routeCoords={enhanced.polyline ?? undefined}
+              selectedId={focusedId}
+              onSelect={setFocusedId}
+              showUser={permission === 'granted'}
+              routeCoords={mapRouteCoords}
+              routeDashed={routeDashed}
               stopOrder={stopOrder}
             />
+            <Pressable
+              onPress={() => setViewMode('map')}
+              style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+              accessibilityRole="button"
+              accessibilityLabel="Show full map"
+              className="absolute right-3 top-3 flex-row items-center gap-1.5 rounded-2xl bg-surface/95 px-3 py-2 shadow-sm"
+            >
+              <Ionicons name="expand" size={14} color={colors.ink} />
+              <Text className="text-xs font-bold text-ink">Full map</Text>
+            </Pressable>
           </View>
 
           <View className="mb-4 flex-row items-center justify-between rounded-2xl bg-purple p-4">
@@ -207,7 +411,7 @@ export default function PlanScreen() {
           style={{ paddingBottom: insets.bottom + 12 }}
         >
           <Pressable
-            onPress={() => setRoute(null)}
+            onPress={editSelection}
             style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
             className="items-center rounded-2xl border border-line-strong py-3.5"
           >
@@ -309,7 +513,7 @@ export default function PlanScreen() {
       >
         <Pressable
           disabled={selectedPopups.length < 2}
-          onPress={() => setRoute(buildRoute(selectedPopups))}
+          onPress={planRoute}
           style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
           className={`items-center rounded-2xl py-4 ${
             selectedPopups.length < 2 ? 'bg-line-strong' : 'bg-brand'

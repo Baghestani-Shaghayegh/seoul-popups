@@ -89,10 +89,15 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       `walking-directions` Edge Function (server-side key, SECURITY.md §1);
       route ordering stays the local nearest-neighbor pass (works offline,
       cheap), only the final leg distances/times + polyline come from Google.
-      Results screen now shows a mini map preview (numbered pins + route line)
-      and a "Share itinerary" button. Falls back to v1's straight-line
-      estimates with an honest "Estimated (straight-line)" label until
-      `GOOGLE_DIRECTIONS_SERVER_KEY` is set — see the function's README.
+      Results screen shows numbered pins + an always-drawn route line (solid
+      when live Google directions load, dashed straight-line when they're
+      estimates), a **List ⇄ Full-map toggle** (full-map collapses the
+      itinerary into a bottom rail so the map fills the screen), the user's
+      live location (blue dot + a locate button reusing `useUserLocation`),
+      tap-to-select pins synced to the rail, and a "Share itinerary" button.
+      Falls back to v1's straight-line estimates with an honest "Estimated
+      (straight-line)" label until `GOOGLE_DIRECTIONS_SERVER_KEY` is set — see
+      the function's README.
 - [x] **Save / favorites** ⭐ — done local-first: `useFavorites` context +
       AsyncStorage, save buttons on cards/detail, real Saved tab (no login)
 - [~] **Accounts / auth** _(email done 2026-07-22)_ — Supabase Auth via

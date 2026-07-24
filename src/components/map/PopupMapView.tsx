@@ -141,6 +141,10 @@ export interface PopupMapViewProps {
   showUser?: boolean;
   /** Plan-my-day preview: draws a walking route line under the pins. */
   routeCoords?: { latitude: number; longitude: number }[];
+  /** Dashes the route line — used when routeCoords is a straight-line
+   *  estimate rather than a real walking path, so the map is honest about
+   *  which kind of line it's showing. */
+  routeDashed?: boolean;
   /** Plan-my-day preview: popup id → stop number, shown on the pin instead
    *  of the category icon. */
   stopOrder?: Record<string, number>;
@@ -158,7 +162,15 @@ export interface PopupMapHandle {
  */
 export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
   function PopupMapView(
-    { popups, selectedId, onSelect, showUser, routeCoords, stopOrder },
+    {
+      popups,
+      selectedId,
+      onSelect,
+      showUser,
+      routeCoords,
+      routeDashed,
+      stopOrder,
+    },
     ref,
   ) {
     const mapRef = useRef<MapView>(null);
@@ -223,6 +235,7 @@ export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
             strokeWidth={4}
             lineCap="round"
             lineJoin="round"
+            lineDashPattern={routeDashed ? [10, 8] : undefined}
           />
         )}
         {popups.map((p) => (
