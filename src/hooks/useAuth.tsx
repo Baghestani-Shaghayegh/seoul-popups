@@ -28,8 +28,14 @@ interface AuthValue {
   signInWithOAuth: (
     provider: OAuthProvider,
   ) => Promise<{ error: string | null; cancelled: boolean }>;
+  /** Custom Naver flow (no native Supabase provider). */
+  signInWithNaver: () => Promise<{ error: string | null; cancelled: boolean }>;
   signOut: () => Promise<void>;
 }
+
+const NAVER_CLIENT_ID = process.env.EXPO_PUBLIC_NAVER_CLIENT_ID;
+/** True when a Naver app is configured — gates the Naver button. */
+export const isNaverConfigured = Boolean(NAVER_CLIENT_ID);
 
 const NOT_CONFIGURED = 'Sign-in is unavailable — Supabase isn’t configured.';
 
@@ -119,6 +125,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { error: exchangeError } =
           await supabase.auth.exchangeCodeForSession(code);
         return { error: exchangeError?.message ?? null, cancelled: false };
+      },
+      signInWithNaver: async () => {
+        if (!isSupabaseConfigured)
+          return { error: NOT_CONFIGURED, cancelled: false };
+        if (!NAVER_CLIENT_ID)
+          return { error: 'Naver isn’t configured yet.', cancelled: false };
+        const supabase = getSupabase();
+        // Naver's registered callback = our public naver-auth Edge Function,
+        // which redirects back to the app scheme with { email, otp }.
+        const redirectUri = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/naver-auth`;
+        const state = Math.random().toString(36).slice(2);
+        const authUrl =
+          'https://nid.naver.com/oauth2.0/authorize?' +
+          new URLSearchParams({
+            response_type: 'code',
+            client_id: NAVER_CLIENT_ID,
+            redirect_uri: redirectUri,
+            state,
+          }).toString();
+
+        const result = await WebBrowser.openAuthSessionAsync(
+          authUrl,
+          'seoulpopups://auth/callback',
+        );
+        if (result.type !== 'success') return { error: null, cancelled: true };
+
+        const params = Linking.parse(result.url).queryParams ?? {};
+        if (typeof params.error === 'string')
+          return { error: `Naver: ${params.error}`, cancelled: false };
+        const { email, otp } = params;
+        if (typeof email !== 'string' || typeof otp !== 'string')
+          return { error: 'Naver sign-in was interrupted.', cancelled: false };
+
+        const { error } = await supabase.auth.verifyOtp({
+          email,
+          token: otp,
+          type: 'magiclink',
+        });
+        return { error: error?.message ?? null, cancelled: false };
       },
       signOut: async () => {
         if (isSupabaseConfigured) await getSupabase().auth.signOut();

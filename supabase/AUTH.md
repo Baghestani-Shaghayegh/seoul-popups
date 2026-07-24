@@ -40,11 +40,32 @@ Google Cloud OAuth client (**Web application**) with authorized redirect
 `https://xkykpcjbnlihreikqonu.supabase.co/auth/v1/callback`; client id + secret
 pasted into **Authentication → Providers → Google**.
 
-### Naver (NOT built yet — custom)
+### Naver (built — custom, needs a Naver app)
 
-Supabase has **no native Naver provider**. It needs a custom flow: Naver OAuth
-in-app → an Edge Function verifies the Naver token and mints a Supabase session
-via the admin API. Real work; deferred.
+Supabase has **no native Naver provider**, so this uses a custom flow: the app
+opens Naver login → Naver redirects to the public `naver-auth` Edge Function →
+it verifies the profile, finds/creates the Supabase user, and bounces back to
+the app with a one-time OTP the app redeems for a session. The button appears
+once `EXPO_PUBLIC_NAVER_CLIENT_ID` is set.
+
+1. [Naver Developers](https://developers.naver.com) → **Application → 애플리케이션 등록**.
+2. Use **네이버 로그인**; request the **email** + nickname/profile scopes (email
+   is required — we key users by it).
+3. Set the **Callback URL** to the Edge Function:
+   `https://xkykpcjbnlihreikqonu.supabase.co/functions/v1/naver-auth`
+4. Copy the **Client ID** and **Client Secret**.
+5. Put the Client ID in the app env: `EXPO_PUBLIC_NAVER_CLIENT_ID=<id>` (`.env`,
+   and EAS env for cloud builds) — this reveals the Naver button.
+6. Set the secret on the Edge Function (dashboard → Edge Functions → secrets, or
+   CLI):
+   ```sh
+   supabase secrets set NAVER_CLIENT_ID=<id> NAVER_CLIENT_SECRET=<secret>
+   ```
+7. Also allow-list `seoulpopups://auth/callback` (the redirect step above).
+
+Note: the Naver button + flow can't be exercised until steps 1–6 are done — it's
+untested against real Naver, so verify on the dev build and tell me if the OTP
+exchange needs tweaking (the magiclink OTP `type` is the likeliest thing).
 
 ### Apple (deferred)
 

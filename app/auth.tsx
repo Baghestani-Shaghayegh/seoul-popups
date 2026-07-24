@@ -13,7 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/theme';
-import { useAuth } from '@/hooks/useAuth';
+import { isNaverConfigured, useAuth } from '@/hooks/useAuth';
 
 type Mode = 'signin' | 'signup';
 
@@ -21,7 +21,7 @@ type Mode = 'signin' | 'signup';
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { signIn, signUp, signInWithOAuth } = useAuth();
+  const { signIn, signUp, signInWithOAuth, signInWithNaver } = useAuth();
 
   const [mode, setMode] = useState<Mode>('signin');
   const [email, setEmail] = useState('');
@@ -55,15 +55,28 @@ export default function AuthScreen() {
     }
   };
 
+  const finishOAuth = (result: {
+    error: string | null;
+    cancelled: boolean;
+  }) => {
+    setSubmitting(false);
+    if (result.cancelled) return;
+    if (result.error) return setError(result.error);
+    router.back();
+  };
+
   const oauth = async (provider: 'google' | 'kakao') => {
     setError(null);
     setMessage(null);
     setSubmitting(true);
-    const { error: e, cancelled } = await signInWithOAuth(provider);
-    setSubmitting(false);
-    if (cancelled) return;
-    if (e) return setError(e);
-    router.back();
+    finishOAuth(await signInWithOAuth(provider));
+  };
+
+  const naver = async () => {
+    setError(null);
+    setMessage(null);
+    setSubmitting(true);
+    finishOAuth(await signInWithNaver());
   };
 
   return (
@@ -159,6 +172,16 @@ export default function AuthScreen() {
             borderColor="#FEE500"
             contentColor="#191600"
           />
+          {isNaverConfigured ? (
+            <OAuthButton
+              icon="leaf"
+              label="Continue with Naver"
+              onPress={naver}
+              backgroundColor="#03C75A"
+              borderColor="#03C75A"
+              contentColor="#FFFFFF"
+            />
+          ) : null}
           <OAuthButton
             icon="logo-google"
             label="Continue with Google"
