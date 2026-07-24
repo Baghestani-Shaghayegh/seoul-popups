@@ -53,10 +53,15 @@ export default function HomeScreen() {
             <Text className="text-xs text-muted">Let’s plan your day</Text>
           </View>
         </View>
-        <View className="h-11 w-11 items-center justify-center rounded-2xl border border-line-strong bg-surface">
+        <Pressable
+          onPress={() => router.push('/saved')}
+          accessibilityRole="button"
+          accessibilityLabel="Alerts and saved pop-ups"
+          style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+          className="h-11 w-11 items-center justify-center rounded-2xl border border-line-strong bg-surface"
+        >
           <Ionicons name="notifications-outline" size={19} color={colors.ink} />
-          <View className="absolute right-3 top-3 h-2 w-2 rounded-full border-2 border-surface bg-brand" />
-        </View>
+        </Pressable>
       </View>
 
       {/* Location pill */}

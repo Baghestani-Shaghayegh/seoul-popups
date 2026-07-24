@@ -1,10 +1,13 @@
 import { useMemo } from 'react';
 import { usePopups } from './usePopups';
 import { todayIso } from '@/lib/format';
-import { isActiveOn, isActiveToday } from '@/lib/popupStatus';
+import { isActiveOn, isActiveToday, isEndingSoon } from '@/lib/popupStatus';
 import type { Popup } from '@/types/popup';
 
 const RAIL_LIMIT = 6;
+// "Ending soon" should mean actually soon — a pop-up with weeks left isn't
+// urgent. Two weeks is the window; the rail hides itself when nothing qualifies.
+const ENDING_SOON_DAYS = 14;
 
 export interface HomeSections {
   liveCount: number;
@@ -35,7 +38,8 @@ export function useHomeSections(
       .filter((p) => isActiveOn(p, selectedDateIso))
       .slice(0, RAIL_LIMIT);
 
-    const endingSoon = [...live]
+    const endingSoon = live
+      .filter((p) => isEndingSoon(p, ENDING_SOON_DAYS))
       .sort((a, b) => a.endDate.localeCompare(b.endDate))
       .slice(0, RAIL_LIMIT);
 
