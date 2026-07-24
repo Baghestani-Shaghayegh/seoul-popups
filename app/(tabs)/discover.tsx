@@ -184,6 +184,19 @@ export default function DiscoverScreen() {
           open={openSheet === 'status'}
           onPress={() => setOpenSheet('status')}
         />
+        {filtersActive && (
+          <Pressable
+            onPress={clearFilters}
+            accessibilityRole="button"
+            accessibilityLabel="Clear all filters"
+            hitSlop={6}
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            className="ml-auto flex-row items-center gap-1 py-2"
+          >
+            <Ionicons name="close-circle" size={16} color={colors.muted} />
+            <Text className="text-sm font-semibold text-muted">Clear all</Text>
+          </Pressable>
+        )}
       </View>
 
       {/* Period (left) + Sort (right) */}

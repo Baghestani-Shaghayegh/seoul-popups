@@ -49,10 +49,12 @@ export function isEnded(popup: Popup, fromIso: string = todayIso()): boolean {
 
 export type PopupStatus = 'open' | 'upcoming' | 'ended';
 
+// 'ended' stays a valid status (used for badges/labels), but it's intentionally
+// not offered as a discovery filter — you can't visit a pop-up that's over, so
+// filtering *to* ended ones has no use in the find-something-to-do flow.
 export const STATUS_OPTIONS: { key: PopupStatus; label: string }[] = [
   { key: 'open', label: 'Open now' },
   { key: 'upcoming', label: 'Coming soon' },
-  { key: 'ended', label: 'Ended' },
 ];
 
 /** Whether a popup matches a single status filter. */
