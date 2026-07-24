@@ -1,13 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PopupMapView } from '@/components/map/PopupMapView';
 import { Chip } from '@/components/ui/Chip';
 import { DatePickerSheet } from '@/components/plan/DatePickerSheet';
 import { SelectablePopupRow } from '@/components/plan/SelectablePopupRow';
 import { usePopups } from '@/hooks/usePopups';
+import { useWalkingRoute } from '@/hooks/useWalkingRoute';
 import { buildRoute, totalWalkMinutes, type RouteStop } from '@/lib/route';
 import { formatWeekdayDate, todayIso } from '@/lib/format';
 import { colors } from '@/constants/theme';
@@ -57,20 +59,69 @@ export default function PlanScreen() {
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
 
+  // Enhances `route` with real walking legs + a road-following polyline when a
+  // routing key is configured; falls back to the straight-line v1 estimates
+  // otherwise. Hooks can't be conditional, so this runs every render.
+  const enhanced = useWalkingRoute(route ?? []);
+
+  const shareItinerary = async () => {
+    if (!route) return;
+    const lines = [
+      `My Seoul Popups day — ${neighborhood}, ${formatWeekdayDate(date)}`,
+      ...enhanced.stops.map(
+        (s, i) =>
+          `${i + 1}. ${s.popup.name}` +
+          (i > 0 ? ` (${s.walkFromPrevMin} min walk)` : ''),
+      ),
+      `${enhanced.stops.length} stops · ~${totalWalkMinutes(enhanced.stops)} min walking total`,
+      'Planned on Seoul Popups',
+    ];
+    try {
+      await Share.share({ message: lines.join('\n') });
+    } catch {
+      // dismissed or unavailable — nothing to do
+    }
+  };
+
   // ---- Route results view ----
   if (route && route.length > 0) {
-    const totalWalk = totalWalkMinutes(route);
-    const first = route[0].popup;
+    const totalWalk = totalWalkMinutes(enhanced.stops);
+    const first = enhanced.stops[0].popup;
+    const stopOrder = Object.fromEntries(
+      enhanced.stops.map((s, i) => [s.popup.id, i + 1]),
+    );
     return (
       <View className="flex-1 bg-bg">
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-          <View className="mb-4 rounded-2xl bg-purple p-4">
-            <Text className="text-xs font-semibold uppercase tracking-wide text-[#D8CBFF]">
-              Your day in {neighborhood} · {formatWeekdayDate(date)}
-            </Text>
-            <Text className="mt-1 text-xl font-extrabold text-white">
-              {route.length} stops · ~{totalWalk} min walking
-            </Text>
+          <View className="mb-4 h-56 overflow-hidden rounded-3xl">
+            <PopupMapView
+              popups={enhanced.stops.map((s) => s.popup)}
+              selectedId={null}
+              onSelect={() => {}}
+              routeCoords={enhanced.polyline ?? undefined}
+              stopOrder={stopOrder}
+            />
+          </View>
+
+          <View className="mb-4 flex-row items-center justify-between rounded-2xl bg-purple p-4">
+            <View className="flex-1">
+              <Text className="text-xs font-semibold uppercase tracking-wide text-[#D8CBFF]">
+                Your day in {neighborhood} · {formatWeekdayDate(date)}
+              </Text>
+              <Text className="mt-1 text-xl font-extrabold text-white">
+                {route.length} stops · ~{totalWalk} min walking
+              </Text>
+            </View>
+            <Pressable
+              onPress={shareItinerary}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Share itinerary"
+              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+              className="h-10 w-10 items-center justify-center rounded-2xl bg-white/15"
+            >
+              <Ionicons name="share-outline" size={19} color="#fff" />
+            </Pressable>
           </View>
 
           {/* Getting there */}
@@ -83,8 +134,8 @@ export default function PlanScreen() {
           </View>
 
           {/* Timeline of stops */}
-          {route.map((stop, i) => {
-            const isLast = i === route.length - 1;
+          {enhanced.stops.map((stop, i) => {
+            const isLast = i === enhanced.stops.length - 1;
             return (
               <View key={stop.popup.id} className="flex-row">
                 {/* Rail: number + connecting line */}
@@ -133,7 +184,7 @@ export default function PlanScreen() {
                     <View className="mt-2 flex-row items-center gap-1.5">
                       <Ionicons name="walk" size={15} color={colors.muted} />
                       <Text className="text-xs text-muted">
-                        ~{route[i + 1].walkFromPrevMin} min walk
+                        ~{enhanced.stops[i + 1].walkFromPrevMin} min walk
                       </Text>
                     </View>
                   )}
@@ -143,7 +194,11 @@ export default function PlanScreen() {
           })}
 
           <Text className="mt-2 text-center text-xs text-muted">
-            Walking times are estimates and will improve with live routing.
+            {enhanced.loading
+              ? 'Fetching live walking directions…'
+              : enhanced.live
+                ? 'Live walking times from Google Directions.'
+                : 'Estimated walking times (straight-line).'}
           </Text>
         </ScrollView>
 

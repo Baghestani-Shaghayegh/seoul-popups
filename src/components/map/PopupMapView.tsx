@@ -7,9 +7,10 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import MapView, {
   Marker,
+  Polyline,
   PROVIDER_DEFAULT,
   PROVIDER_GOOGLE,
   type Region,
@@ -73,12 +74,15 @@ function PopupPin({
   popup,
   selected,
   onPress,
+  orderNumber,
 }: {
   popup: Popup;
   selected: boolean;
   onPress: (id: string) => void;
+  /** When set (Plan-my-day preview), shows the stop's position instead of a category icon. */
+  orderNumber?: number;
 }) {
-  const tracking = useBriefTracking(selected);
+  const tracking = useBriefTracking(`${selected}:${orderNumber ?? ''}`);
   const size = selected ? 42 : 34;
   const bg = selected ? colors.purple.DEFAULT : colors.brand.DEFAULT;
   return (
@@ -107,11 +111,23 @@ function PopupPin({
           elevation: 5,
         }}
       >
-        <Ionicons
-          name={CATEGORY_ICON[popup.category]}
-          size={selected ? 20 : 16}
-          color="#fff"
-        />
+        {orderNumber ? (
+          <Text
+            style={{
+              color: '#fff',
+              fontWeight: '800',
+              fontSize: selected ? 17 : 14,
+            }}
+          >
+            {orderNumber}
+          </Text>
+        ) : (
+          <Ionicons
+            name={CATEGORY_ICON[popup.category]}
+            size={selected ? 20 : 16}
+            color="#fff"
+          />
+        )}
       </View>
     </Marker>
   );
@@ -123,6 +139,11 @@ export interface PopupMapViewProps {
   onSelect: (id: string) => void;
   /** Show the device's blue location dot (only once permission is granted). */
   showUser?: boolean;
+  /** Plan-my-day preview: draws a walking route line under the pins. */
+  routeCoords?: { latitude: number; longitude: number }[];
+  /** Plan-my-day preview: popup id → stop number, shown on the pin instead
+   *  of the category icon. */
+  stopOrder?: Record<string, number>;
 }
 
 /** Imperative handle so the screen can recenter the map on "near me". */
@@ -136,7 +157,10 @@ export interface PopupMapHandle {
  * app.config.js). Native only — the web build resolves PopupMapView.web.tsx.
  */
 export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
-  function PopupMapView({ popups, selectedId, onSelect, showUser }, ref) {
+  function PopupMapView(
+    { popups, selectedId, onSelect, showUser, routeCoords, stopOrder },
+    ref,
+  ) {
     const mapRef = useRef<MapView>(null);
     const didAutoFit = useRef(false);
 
@@ -192,12 +216,22 @@ export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
         // room for the search bar (top) and the nearby sheet (bottom)
         mapPadding={{ top: 80, right: 0, bottom: 220, left: 0 }}
       >
+        {routeCoords && routeCoords.length > 1 && (
+          <Polyline
+            coordinates={routeCoords}
+            strokeColor={colors.purple.DEFAULT}
+            strokeWidth={4}
+            lineCap="round"
+            lineJoin="round"
+          />
+        )}
         {popups.map((p) => (
           <PopupPin
             key={p.id}
             popup={p}
             selected={p.id === selectedId}
             onPress={onSelect}
+            orderNumber={stopOrder?.[p.id]}
           />
         ))}
       </MapView>

@@ -84,9 +84,15 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
 - [x] **Plan my day (v1)** ⭐ — pick date + area → select popups → optimized
       walking route with subway start + timeline _(mock; straight-line
       estimates)_
-- [ ] **Plan my day (v2)** — real walking times/polylines via a routing API
-      (server-side key, SECURITY.md §1); show route on the Map screen; share
-      itinerary
+- [~] **Plan my day (v2)** _(built 2026-07-24; needs a routing key)_ — real
+      walking legs + a road-following polyline via the deployed
+      `walking-directions` Edge Function (server-side key, SECURITY.md §1);
+      route ordering stays the local nearest-neighbor pass (works offline,
+      cheap), only the final leg distances/times + polyline come from Google.
+      Results screen now shows a mini map preview (numbered pins + route line)
+      and a "Share itinerary" button. Falls back to v1's straight-line
+      estimates with an honest "Estimated (straight-line)" label until
+      `GOOGLE_DIRECTIONS_SERVER_KEY` is set — see the function's README.
 - [x] **Save / favorites** ⭐ — done local-first: `useFavorites` context +
       AsyncStorage, save buttons on cards/detail, real Saved tab (no login)
 - [~] **Accounts / auth** _(email done 2026-07-22)_ — Supabase Auth via
