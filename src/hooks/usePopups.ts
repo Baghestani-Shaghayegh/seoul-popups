@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MOCK_POPUPS } from '@/data/mockPopups';
 import type { DateRange } from '@/lib/dateRanges';
-import { matchesStatus, type PopupStatus } from '@/lib/popupStatus';
+import { isEnded, matchesStatus, type PopupStatus } from '@/lib/popupStatus';
 import { getSupabase, isSupabaseConfigured } from '@/lib/supabase';
 import type { Category, Neighborhood, Popup } from '@/types/popup';
 
@@ -16,6 +16,14 @@ export interface PopupFilters {
   dateRange?: DateRange | null;
   /** free-text search over name / tagline / neighborhood / category. '' = none */
   query?: string;
+  /**
+   * Drop pop-ups that have already finished. Opt-in per call site rather than
+   * a default: browsing surfaces (Discover) shouldn't offer dead events, but
+   * the Saved tab's "Been there" history is *about* pop-ups that are over, so
+   * it must keep resolving them. Ended rows stay `published` for that reason —
+   * unpublishing them would hide them behind RLS and wipe visit history.
+   */
+  excludeEnded?: boolean;
 }
 
 /** Internal loaded-data state, before a `reload` handle is attached. */
@@ -212,6 +220,7 @@ export function usePopups(filters: PopupFilters): UsePopupsResult {
   const categories = filters.categories ?? [];
   const statuses = filters.statuses ?? [];
   const dateRange = filters.dateRange ?? null;
+  const excludeEnded = filters.excludeEnded ?? false;
 
   // Stable primitive keys so the memo only recomputes when selections change.
   const neighborhoodsKey = neighborhoods.join(',');
@@ -221,6 +230,9 @@ export function usePopups(filters: PopupFilters): UsePopupsResult {
 
   const popups = useMemo(() => {
     return all.filter((p) => {
+      if (excludeEnded && isEnded(p)) {
+        return false;
+      }
       if (neighborhoods.length && !neighborhoods.includes(p.neighborhood)) {
         return false;
       }
@@ -239,7 +251,15 @@ export function usePopups(filters: PopupFilters): UsePopupsResult {
       return true;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [all, neighborhoodsKey, categoriesKey, statusesKey, rangeKey, query]);
+  }, [
+    all,
+    excludeEnded,
+    neighborhoodsKey,
+    categoriesKey,
+    statusesKey,
+    rangeKey,
+    query,
+  ]);
 
   return { popups, loading, error, reload };
 }

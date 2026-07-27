@@ -88,6 +88,8 @@ export default function DiscoverScreen() {
     statuses,
     dateRange,
     query,
+    // Browsing shouldn't surface pop-ups that are already over.
+    excludeEnded: true,
   });
 
   const sorted = useMemo(() => {
