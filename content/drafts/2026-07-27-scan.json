@@ -1,0 +1,47 @@
+[
+  {
+    "name": "MY LIFE WITH ROBLOX 2026 × Musinsa",
+    "tagline": "Roblox's blocky world rebuilt as Seongsu streetwear",
+    "description": "Musinsa turned four of its Seongsu stores into a Roblox playground for three weeks. The main Megastore space recreates everyday Korean hangouts — a study room, a subway car, a convenience store and a PC bang — as walk-through sets built in Roblox's blocky style. The limited collection puts three of the platform's biggest game worlds onto graphic tees and character goods, sold only while the pop-up runs.",
+    "neighborhood": "Seongsu",
+    "category": "Fashion",
+    "startDate": "2026-07-26",
+    "endDate": "2026-08-12",
+    "hours": "11:00 – 22:00",
+    "imageUrl": "https://images.unsplash.com/photo-1441986300917-64674bd600d8",
+    "latitude": 37.5447,
+    "longitude": 127.0553,
+    "subway": {
+      "line": "Line 2",
+      "station": "Seongsu",
+      "exit": "1",
+      "walkMinutes": 7
+    },
+    "reservable": false,
+    "sourceUrl": "https://www.khgames.co.kr/news/articleView.html?idxno=306695",
+    "sourceName": "Kyunghyang Games"
+  },
+  {
+    "name": "Evangelion 30th Anniversary Fair",
+    "tagline": "Three decades of Eva, celebrated in Hongdae",
+    "description": "Animate's Hongdae branch marks Evangelion's 30th anniversary with a merchandise fair running into early September. Expect the anniversary goods line alongside the shop's standing Evangelion range, with a collectible phone-card-style sticker given out at random when you buy or pre-order a series item. An easy stop if you are already circling the Hongik University station shops.",
+    "neighborhood": "Hongdae",
+    "category": "Art",
+    "startDate": "2026-08-23",
+    "endDate": "2026-09-07",
+    "hours": "Mon–Fri 11:00–22:00 · Sat–Sun 10:30–22:00",
+    "imageUrl": "https://images.unsplash.com/photo-1578632767115-351597cf2477",
+    "latitude": 37.5568,
+    "longitude": 126.9243,
+    "subway": {
+      "line": "Line 2",
+      "station": "Hongik Univ.",
+      "exit": "2",
+      "walkMinutes": 2
+    },
+    "reservable": false,
+    "instagramUrl": "https://www.instagram.com/animate_hongdae/",
+    "sourceUrl": "https://x.com/animate_hongdae/status/1958876822344802602",
+    "sourceName": "animate Seoul Hongdae (official)"
+  }
+]
