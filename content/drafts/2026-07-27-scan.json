@@ -43,5 +43,27 @@
     "instagramUrl": "https://www.instagram.com/animate_hongdae/",
     "sourceUrl": "https://x.com/animate_hongdae/status/1958876822344802602",
     "sourceName": "animate Seoul Hongdae (official)"
+  },
+  {
+    "name": "Pompompurin Bakery Cafe",
+    "tagline": "Sanrio's pudding-loving retriever runs a bakery counter",
+    "description": "Sanrio's beret-wearing golden retriever gets his own bakery counter on the Sweet Park pop-up stage, in the basement food hall of Shinsegae's Gangnam store. Expect breads and desserts shaped after the character plus limited merchandise that only exists for the run. The food floor connects straight into Express Bus Terminal station, so it is an easy detour rather than a trip out.",
+    "neighborhood": "Gangnam",
+    "category": "Food",
+    "startDate": "2026-07-28",
+    "endDate": "2026-10-26",
+    "hours": "10:30 – 20:00",
+    "imageUrl": "https://images.unsplash.com/photo-1509440159596-0249088772ff",
+    "latitude": 37.5048,
+    "longitude": 127.0043,
+    "subway": {
+      "line": "Line 3",
+      "station": "Express Bus Terminal",
+      "exit": "7",
+      "walkMinutes": 1
+    },
+    "reservable": false,
+    "sourceUrl": "https://en.asiatoday.co.kr/view.php?key=20260625001423373",
+    "sourceName": "Asia Today"
   }
 ]
