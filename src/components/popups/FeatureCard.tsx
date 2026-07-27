@@ -4,7 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { PopupImage } from '@/components/popups/PopupImage';
 import { SaveButton } from '@/components/popups/SaveButton';
-import { formatDateRange } from '@/lib/format';
+import { formatDateRange, formatWalkMinutes } from '@/lib/format';
 import type { Popup } from '@/types/popup';
 
 interface FeatureCardProps {
@@ -57,7 +57,8 @@ export function FeatureCard({ popup, onPress }: FeatureCardProps) {
           <View className="flex-row items-center gap-1">
             <Ionicons name="walk-outline" size={13} color="#fff" />
             <Text className="text-xs text-white">
-              {popup.subway.station} · {popup.subway.walkMinutes} min
+              {popup.subway.station} ·{' '}
+              {formatWalkMinutes(popup.subway.walkMinutes)}
             </Text>
           </View>
         </View>

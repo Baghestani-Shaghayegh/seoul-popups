@@ -24,10 +24,14 @@ export interface SubwayDirection {
   line: string;
   /** Station name in English, e.g. "Seongsu" */
   station: string;
-  /** Exit number, e.g. "3" */
-  exit: string;
-  /** Walking time from the exit in minutes */
-  walkMinutes: number;
+  /**
+   * Exit number, e.g. "3". Undefined when nobody has confirmed it — the DB
+   * dropped NOT NULL here precisely so a row can say "unknown" instead of
+   * being given a plausible guess (migration 008).
+   */
+  exit?: string;
+  /** Walking time from the exit in minutes. Undefined when unconfirmed. */
+  walkMinutes?: number;
 }
 
 export interface Popup {
@@ -44,8 +48,8 @@ export interface Popup {
   /** ISO date strings (YYYY-MM-DD). */
   startDate: string;
   endDate: string;
-  /** Human-readable opening hours, e.g. "11:00 – 20:00". */
-  hours: string;
+  /** Human-readable opening hours, e.g. "11:00 – 20:00". Undefined if unknown. */
+  hours?: string;
 
   subway: SubwayDirection;
 

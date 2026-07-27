@@ -19,6 +19,7 @@ import { PopupImage } from '@/components/popups/PopupImage';
 import { colors } from '@/constants/theme';
 import { usePopups } from '@/hooks/usePopups';
 import { useUserLocation } from '@/hooks/useUserLocation';
+import { formatExit } from '@/lib/format';
 import { endingLabel, isActiveToday } from '@/lib/popupStatus';
 import { haversineMeters } from '@/lib/route';
 
@@ -206,7 +207,7 @@ export default function MapScreen() {
                       className="mt-0.5 text-[11px] text-muted"
                       numberOfLines={1}
                     >
-                      {p.neighborhood} · Exit {p.subway.exit}
+                      {p.neighborhood} · {formatExit(p.subway.exit)}
                     </Text>
                     <Text className="mt-0.5 text-[11px] font-bold text-brand">
                       {endingLabel(p)}

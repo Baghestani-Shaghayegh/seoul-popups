@@ -12,7 +12,12 @@ import { ErrorState, LoadingState } from '@/components/ui/StateViews';
 import { colors } from '@/constants/theme';
 import { usePopup } from '@/hooks/usePopups';
 import { useVisited } from '@/hooks/useVisited';
-import { formatDateRange } from '@/lib/format';
+import {
+  formatDateRange,
+  formatExit,
+  formatHours,
+  formatWalkMinutes,
+} from '@/lib/format';
 import { openExternalUrl } from '@/lib/links';
 import { endingLabel } from '@/lib/popupStatus';
 
@@ -55,8 +60,17 @@ export default function PopupDetailScreen() {
   const onShare = async () => {
     const lines = [
       `${popup.name} — ${popup.neighborhood}, Seoul`,
-      `${formatDateRange(popup.startDate, popup.endDate)} · ${popup.hours}`,
-      `🚇 ${popup.subway.station} Station, Exit ${popup.subway.exit} · ${popup.subway.walkMinutes} min walk`,
+      [
+        formatDateRange(popup.startDate, popup.endDate),
+        popup.hours, // omitted entirely when unconfirmed
+      ]
+        .filter(Boolean)
+        .join(' · '),
+      `🚇 ${popup.subway.station} Station` +
+        (popup.subway.exit ? `, Exit ${popup.subway.exit}` : '') +
+        (typeof popup.subway.walkMinutes === 'number'
+          ? ` · ${popup.subway.walkMinutes} min walk`
+          : ''),
       popup.websiteUrl ?? popup.instagramUrl,
       'Found on Seoul Popups',
     ].filter(Boolean);
@@ -157,11 +171,13 @@ export default function PopupDetailScreen() {
               label="Dates"
               value={formatDateRange(popup.startDate, popup.endDate)}
             />
-            <FactPill label="Hours" value={popup.hours} />
+            <FactPill label="Hours" value={formatHours(popup.hours)} />
             <FactPill label="Ends" value={endingLabel(popup)} />
             <FactPill
               label="Station"
-              value={`${popup.subway.station} · ${popup.subway.walkMinutes} min`}
+              value={`${popup.subway.station} · ${formatWalkMinutes(
+                popup.subway.walkMinutes,
+              )}`}
             />
           </ScrollView>
 
@@ -227,10 +243,14 @@ export default function PopupDetailScreen() {
               label="Subway"
               value={`${popup.subway.line} → ${popup.subway.station} Station`}
             />
-            <Row label="Exit" value={`Exit ${popup.subway.exit}`} />
+            <Row label="Exit" value={formatExit(popup.subway.exit)} />
             <Row
               label="Walk"
-              value={`~${popup.subway.walkMinutes} min from exit`}
+              value={
+                typeof popup.subway.walkMinutes === 'number'
+                  ? `~${popup.subway.walkMinutes} min from exit`
+                  : '—'
+              }
             />
           </View>
         </View>

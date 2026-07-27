@@ -126,8 +126,13 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       button now opens the popup's `reservationUrl` (falls back to `websiteUrl`)
       via the https-only `openExternalUrl`. Active only when reservable AND a
       link exists; otherwise "Booking opens soon" / "No reservation needed".
-      `reservation_url` flows through the `Popup` type + hook (Gintama seeded
-      with its Naver-reservation page).
+      `reservation_url` flows through the `Popup` type + hook. **Correction
+      (2026-07-27):** this doc previously claimed Gintama was seeded with "its
+      Naver-reservation page" — it was actually a popply.co.kr link, i.e. the
+      Reserve button, the highest-intent tap in the app, sent users to a
+      competitor. Cleared in migration 008 along with 4 aggregator
+      `website_url`s, and now blocked by a CHECK constraint. No pop-up
+      currently has a real reservation link.
 - [ ] **Reserve (native)** — time slots, manage/cancel, reminders (needs RLS
       user-owned tables)
 - [x] **Curated collections** _(2026-07-22)_ — editorial groupings

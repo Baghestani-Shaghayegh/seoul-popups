@@ -43,3 +43,28 @@ export function todayIso(): string {
   const d = String(now.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 }
+
+// ---------------------------------------------------------------------------
+// Honest labels for fields that may legitimately be unknown.
+//
+// `subway_exit`, `subway_walk_minutes` and `hours` are nullable (migration
+// 008): they used to be NOT NULL, which meant a row with no confirmed value
+// got a guessed one — 5 of the first 9 pop-ups carry estimated exits and walk
+// times as a result. These render absence as absence instead of inventing a
+// number, so the ⭐ subway detail is trustworthy when it IS shown.
+// ---------------------------------------------------------------------------
+
+/** "Exit 3", or an honest prompt when the exit was never confirmed. */
+export function formatExit(exit?: string): string {
+  return exit ? `Exit ${exit}` : 'Exit — check map';
+}
+
+/** "6 min walk" / "~6 min from exit"-style value, or a dash when unknown. */
+export function formatWalkMinutes(minutes?: number, suffix = 'min'): string {
+  return typeof minutes === 'number' ? `${minutes} ${suffix}` : '—';
+}
+
+/** Opening hours, or a pointer to the official source when we don't have them. */
+export function formatHours(hours?: string): string {
+  return hours ?? 'Hours — check official page';
+}

@@ -22,6 +22,23 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 const BUCKET = 'popup-images';
 const MAX_BYTES = 5 * 1024 * 1024; // matches the bucket's own 5 MB limit
 
+// Hosts we must never copy from. Mirroring a competitor's re-cropped,
+// sometimes watermarked image moves us from hot-linking (arguably their
+// bandwidth problem) to reproducing and distributing from our own domain —
+// the worse position, and the image isn't the brand's anyway. The first run of
+// this function did exactly that for all 12 rows; this is the guard that stops
+// it recurring. Images must come from the brand, the venue, or us.
+const DENIED_HOST = new RegExp(
+  '(^|\\.)(' +
+    ['popply', 'popga', 'dayforyou', 'heypop', 'aniway', 'insideseoul'].join(
+      '|',
+    ) +
+    ')\\.[a-z.]+$|' +
+    // aggregator CDN fronts seen in our own data
+    'd8nffddmkwqeq\\.cloudfront\\.net$',
+  'i',
+);
+
 const EXT: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
@@ -67,9 +84,22 @@ Deno.serve(async () => {
         continue;
       }
 
+      // Never re-host a competitor's copy (see DENIED_HOST).
+      const host = new URL(row.image_url).hostname;
+      if (DENIED_HOST.test(host)) {
+        skipped.push({
+          name: row.name,
+          reason: `refusing to mirror aggregator host ${host} — needs a brand/venue source`,
+        });
+        continue;
+      }
+
       const res = await fetch(row.image_url, { redirect: 'follow' });
       if (!res.ok) {
-        skipped.push({ name: row.name, reason: `source returned ${res.status}` });
+        skipped.push({
+          name: row.name,
+          reason: `source returned ${res.status}`,
+        });
         continue;
       }
 
@@ -104,7 +134,10 @@ Deno.serve(async () => {
         .update({ image_url: publicUrl })
         .eq('id', row.id);
       if (patch.error) {
-        skipped.push({ name: row.name, reason: `update: ${patch.error.message}` });
+        skipped.push({
+          name: row.name,
+          reason: `update: ${patch.error.message}`,
+        });
         continue;
       }
 

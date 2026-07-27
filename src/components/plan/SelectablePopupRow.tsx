@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 import { PopupImage } from '@/components/popups/PopupImage';
 import { colors } from '@/constants/theme';
+import { formatExit } from '@/lib/format';
 import type { Popup } from '@/types/popup';
 
 interface SelectablePopupRowProps {
@@ -34,7 +35,8 @@ export function SelectablePopupRow({
           {popup.name}
         </Text>
         <Text className="text-xs text-muted" numberOfLines={1}>
-          {popup.category} · {popup.subway.station} · Exit {popup.subway.exit}
+          {popup.category} · {popup.subway.station} ·{' '}
+          {formatExit(popup.subway.exit)}
         </Text>
       </View>
       <Ionicons

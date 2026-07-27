@@ -67,11 +67,11 @@ interface PopupRow {
   image_url: string;
   start_date: string;
   end_date: string;
-  hours: string;
+  hours: string | null;
   subway_line: string;
   subway_station: string;
-  subway_exit: string;
-  subway_walk_minutes: number;
+  subway_exit: string | null;
+  subway_walk_minutes: number | null;
   latitude: number;
   longitude: number;
   reservable: boolean;
@@ -92,12 +92,12 @@ function rowToPopup(row: PopupRow): Popup {
     imageUrl: row.image_url,
     startDate: row.start_date,
     endDate: row.end_date,
-    hours: row.hours,
+    hours: row.hours ?? undefined,
     subway: {
       line: row.subway_line,
       station: row.subway_station,
-      exit: row.subway_exit,
-      walkMinutes: row.subway_walk_minutes,
+      exit: row.subway_exit ?? undefined,
+      walkMinutes: row.subway_walk_minutes ?? undefined,
     },
     latitude: row.latitude,
     longitude: row.longitude,

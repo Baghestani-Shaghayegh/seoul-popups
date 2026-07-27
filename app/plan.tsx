@@ -267,7 +267,7 @@ export default function PlanScreen() {
                   />
                   <Text className="flex-1 text-sm text-ink">
                     Start at {first.subway.station} Station ({first.subway.line}
-                    ), Exit {first.subway.exit}
+                    ){first.subway.exit ? `, Exit ${first.subway.exit}` : ''}
                   </Text>
                 </View>
 
@@ -313,7 +313,8 @@ export default function PlanScreen() {
                               {stop.popup.name}
                             </Text>
                             <Text className="text-xs text-muted">
-                              {stop.popup.category} · {stop.popup.hours}
+                              {stop.popup.category}
+                              {stop.popup.hours ? ` · ${stop.popup.hours}` : ''}
                             </Text>
                           </View>
                           <Ionicons
