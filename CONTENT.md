@@ -132,10 +132,21 @@ and bump `last_verified_at` whenever you re-confirm a row against its source.
 - Use the brand's official announcement photos (credit by linking
   `instagram_url`) or your own shots. Only owner-published promo images — no
   random visitors' photos.
-- **Never hot-link Instagram image URLs** — they're signed and expire. Upload
-  the image to our Supabase Storage bucket (`popup-images`, public read) and
-  put that permanent URL in `image_url`. Steps in
-  [supabase/README.md](supabase/README.md).
+- **Never hot-link anyone else's image URL** — Instagram's are signed and
+  expire, and aggregator CDNs (Popga, dayforyou, heyPOP) rotate theirs. Photos
+  must end up in our own `popup-images` bucket (public read).
+- **You don't have to upload by hand.** Set `image_url` on the row to the
+  brand's official photo, then call the `ingest-image` Edge Function — it
+  downloads server-side, stores the file in `popup-images`, and rewrites the
+  row to the permanent URL. It takes no arguments and is idempotent, so it
+  also repairs any row that has drifted back to an external host. See
+  [supabase/functions/ingest-image/README.md](supabase/functions/ingest-image/README.md).
+  Dashboard drag-and-drop still works if you prefer it.
+- **Choosing** the photo stays a human call — an official brand announcement
+  image, not a repost or a visitor's snapshot.
+- ⚠️ Mirroring copies whatever the row points at, placeholder included. Once
+  mirrored the URL is ours, so the validator's "Unsplash placeholder" warning
+  stops firing — swap the real photo in *before* publishing a draft.
 - `https` only (the schema enforces it). Landscape-ish images look best on
   the cards.
 
