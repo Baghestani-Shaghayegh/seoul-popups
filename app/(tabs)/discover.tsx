@@ -16,6 +16,7 @@ import {
   ErrorState,
   LoadingState,
 } from '@/components/ui/StateViews';
+import { useNeighborhoodCounts } from '@/hooks/useNeighborhoodCounts';
 import { usePopups } from '@/hooks/usePopups';
 import { colors } from '@/constants/theme';
 import { DATE_PRESETS, presetToRange, type DatePreset } from '@/lib/dateRanges';
@@ -81,6 +82,11 @@ export default function DiscoverScreen() {
   const [query, setQuery] = useState('');
   const [openSheet, setOpenSheet] = useState<SheetName | null>(null);
 
+  // Live counts per area, so an empty neighbourhood is stated rather than
+  // discovered after tapping. Seoul's pop-ups cluster in Seongsu and Gangnam
+  // genuinely runs dry between them.
+  const { counts, nonEmpty } = useNeighborhoodCounts();
+
   const dateRange = useMemo(() => presetToRange(datePreset), [datePreset]);
   const { popups, loading, error, reload } = usePopups({
     neighborhoods,
@@ -124,7 +130,10 @@ export default function DiscoverScreen() {
   const sortLabel = SORT_OPTIONS.find((o) => o.key === sort)?.label ?? 'Newest';
 
   const neighborhoodOptions: FilterOption<Neighborhood>[] = NEIGHBORHOODS.map(
-    (n) => ({ key: n, label: n }),
+    (n) => ({
+      key: n,
+      label: counts[n] > 0 ? `${n} (${counts[n]})` : `${n} (0)`,
+    }),
   );
   const categoryOptions: FilterOption<Category>[] = CATEGORIES.map((c) => ({
     key: c,
@@ -254,7 +263,15 @@ export default function DiscoverScreen() {
             <EmptyState
               icon="search"
               title="No pop-ups found"
-              subtitle="Try a different location, category, or search term."
+              subtitle={
+                // Name somewhere that does have pop-ups instead of a generic
+                // shrug — an area running dry is normal, not an error.
+                neighborhoods.length === 1 && nonEmpty.length > 0
+                  ? `Nothing in ${neighborhoods[0]} right now. ${nonEmpty.join(' and ')} ${
+                      nonEmpty.length === 1 ? 'has' : 'have'
+                    } pop-ups today.`
+                  : 'Try a different location, category, or search term.'
+              }
               action={
                 filtersActive
                   ? { label: 'Clear filters', onPress: clearFilters }

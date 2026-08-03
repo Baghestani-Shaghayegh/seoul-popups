@@ -21,6 +21,7 @@ import { Chip } from '@/components/ui/Chip';
 import { DatePickerSheet } from '@/components/plan/DatePickerSheet';
 import { SelectablePopupRow } from '@/components/plan/SelectablePopupRow';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
+import { useNeighborhoodCounts } from '@/hooks/useNeighborhoodCounts';
 import { usePopups } from '@/hooks/usePopups';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { useWalkingRoute } from '@/hooks/useWalkingRoute';
@@ -44,6 +45,9 @@ export default function PlanScreen() {
   const mapRef = useRef<PopupMapHandle>(null);
   const sheet = useBottomSheet(mapAreaH);
   const { permission, locating, locate } = useUserLocation();
+  // Counts for the chosen day, so an area that has nothing says so before it
+  // is tapped rather than after.
+  const { counts, nonEmpty } = useNeighborhoodCounts(date);
 
   const isToday = date === todayIso();
 
@@ -418,6 +422,7 @@ export default function PlanScreen() {
             <Chip
               key={n}
               label={n}
+              count={counts[n]}
               selected={neighborhood === n}
               onPress={() => pickNeighborhood(n)}
             />
@@ -431,10 +436,19 @@ export default function PlanScreen() {
               3. Choose pop-ups ({selectedIds.length} selected)
             </Text>
             {areaPopups.length === 0 ? (
-              <Text className="text-sm text-muted">
-                No pop-ups running in {neighborhood} on{' '}
-                {formatWeekdayDate(date)}.
-              </Text>
+              // An empty area is expected, not an error — say what to do next
+              // instead of leaving a dead end.
+              <View className="rounded-2xl bg-well p-4">
+                <Text className="text-sm text-ink">
+                  Nothing running in {neighborhood} on {formatWeekdayDate(date)}
+                  .
+                </Text>
+                {nonEmpty.length > 0 && (
+                  <Text className="mt-1 text-sm text-muted">
+                    Try {nonEmpty.join(' or ')} — or pick another day.
+                  </Text>
+                )}
+              </View>
             ) : (
               areaPopups.map((p) => (
                 <SelectablePopupRow
