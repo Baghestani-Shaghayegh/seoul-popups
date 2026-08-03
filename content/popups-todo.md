@@ -129,3 +129,28 @@ week as a content failure.
 **Cheapest unblock:** Crocs needs one call to Galleria (1544-6600) or a look at
 their Instagram to settle building + start date. That single answer restores
 Gangnam coverage through Aug 19.
+
+
+### Gangnam hunt, round 2 (2026-08-03 evening)
+
+Exhausted the accessible primary sources for a Gangnam pop-up running past
+Aug 10. Checked, all dead ends:
+
+- **Crocs @ Galleria (to Aug 19)** — checked Galleria's own brand page (lists
+  only their 4 *other* branches, confirming it's a pop-up), **all 12 floor
+  guides across EAST and WEST**, their shopping-news feed, and 3 press
+  articles. Not one states the building or a start date. Pop-ups aren't in the
+  permanent floor directory.
+- **LOiViE @ Shinsegae Gangnam B1 파미에스트리트** — real, and it's a beauty
+  brand's first pop-up. But the source says "이달 15일 오픈했다" (opened the 15th
+  of *this month*, past tense) with no end date, and the Shinsegae newsroom
+  publishes no date metadata, so the month is unresolvable. **Worth a manual
+  check — if it's still running it's a good Gangnam entry.**
+- **더 스테이지 successor** — The Stage is Shinsegae Gangnam's dedicated 1F
+  luxury pop-up space, so a follow-on to Gucci will come. Not yet announced.
+  Added the 신세계백화점팝업스토어 newsroom tag as a source so the Tue/Fri scan
+  catches it automatically.
+
+**Cheapest unblock is still one phone call:** Galleria 1544-6600 settles the
+Crocs building + start date, which covers Gangnam through Aug 19 — past both
+the deadline and the cliff.
