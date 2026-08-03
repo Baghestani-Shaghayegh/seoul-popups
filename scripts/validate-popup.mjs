@@ -40,7 +40,7 @@ function validatePopup(p) {
   const err = (m) => errors.push(m);
   const warn = (m) => warnings.push(m);
 
-  for (const f of ['name', 'tagline', 'description', 'hours']) {
+  for (const f of ['name', 'tagline', 'description']) {
     if (!nonEmpty(p[f])) err(`${f} is required and must be non-empty`);
   }
 
@@ -57,6 +57,11 @@ function validatePopup(p) {
   }
   if (!p.sourceUrl) warn('sourceUrl missing — needed to re-verify this popup later');
 
+  if (p.hours != null && !nonEmpty(p.hours))
+    err('hours must be a non-empty string when present');
+  if (!nonEmpty(p.hours))
+    warn('hours unknown — will render "Hours — check official page"');
+
   if (!validDate(p.startDate)) err('startDate must be YYYY-MM-DD');
   if (!validDate(p.endDate)) err('endDate must be YYYY-MM-DD');
   if (validDate(p.startDate) && validDate(p.endDate) && p.endDate < p.startDate)
@@ -64,13 +69,26 @@ function validatePopup(p) {
   if (validDate(p.endDate) && p.endDate < today)
     warn(`already ended (${p.endDate}) — CONTENT.md wants a week+ of run left`);
 
+  // Line + station are always knowable. `exit`, `walkMinutes` and `hours` are
+  // NOT — migration 008 made them nullable precisely so a row can say "nobody
+  // confirmed this" instead of carrying a guess (5 of the first 9 pop-ups
+  // shipped with estimated exits/walk times because the schema demanded a
+  // value). Absent is fine and renders honestly; present-but-wrong is not.
   const s = p.subway ?? {};
-  for (const f of ['line', 'station', 'exit']) {
+  for (const f of ['line', 'station']) {
     if (!nonEmpty(s[f])) err(`subway.${f} is required`);
   }
-  if (!Number.isInteger(s.walkMinutes) || s.walkMinutes < 0)
-    err('subway.walkMinutes must be an integer >= 0');
-  if (s.walkMinutes > 20) warn(`subway.walkMinutes is ${s.walkMinutes} — unusually far, double-check`);
+  if (s.exit != null && !nonEmpty(s.exit))
+    err('subway.exit must be a non-empty string when present');
+  if (!nonEmpty(s.exit)) warn('subway.exit unknown — will render "Exit — check map"');
+  if (s.walkMinutes != null) {
+    if (!Number.isInteger(s.walkMinutes) || s.walkMinutes < 0)
+      err('subway.walkMinutes must be an integer >= 0 when present');
+    else if (s.walkMinutes > 20)
+      warn(`subway.walkMinutes is ${s.walkMinutes} — unusually far, double-check`);
+  } else {
+    warn('subway.walkMinutes unknown — verify from Naver/Kakao Map before publish');
+  }
 
   if (typeof p.latitude !== 'number' || p.latitude < -90 || p.latitude > 90)
     err('latitude must be a number between -90 and 90');

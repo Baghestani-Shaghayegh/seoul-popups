@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Gucci Pop-up Store — Shinsegae Gangnam",
+    "tagline": "The current collection, plus pieces sold only here",
+    "description": "Gucci takes over the first-floor event space at Shinsegae's Gangnam store with a curated run of the current collection — women's and men's ready-to-wear, handbags including the Jackie and Paparazzi lines, shoes and accessories. A handful of items are sold only at this pop-up for the length of the run. You can book a slot through Gucci's own site, or simply walk in.",
+    "neighborhood": "Gangnam",
+    "category": "Fashion",
+    "startDate": "2026-07-30",
+    "endDate": "2026-08-09",
+    "hours": "Mon–Thu 10:30 – 20:00 · Fri–Sun 10:30 – 20:30",
+    "imageUrl": "https://images.unsplash.com/photo-1441986300917-64674bd600d8",
+    "latitude": 37.5048,
+    "longitude": 127.0043,
+    "subway": {
+      "line": "Line 3",
+      "station": "Express Bus Terminal"
+    },
+    "reservable": true,
+    "websiteUrl": "https://www.gucci.com/kr/ko/",
+    "sourceUrl": "https://www.munhwa.com/article/11604345",
+    "sourceName": "Munhwa Ilbo"
+  }
+]
