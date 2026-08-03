@@ -90,15 +90,35 @@ const RANGE_PATTERNS: RegExp[] = [
  * (어뮤즈 @ Galeries Lafayette, Paris). Reject only when a non-Seoul place is
  * named AND no Seoul-area place is, so "서울 강남점과 부산점" still passes.
  */
+// Foreign cities are unambiguous. Korean ones are NOT: 경기 is also 경기 침체
+// (recession), 광주 is inside 광주요 (a ceramics brand that runs pop-ups), 대구
+// is also cod, 부산 is inside 부산물 (by-product). Matching those bare produced
+// false rejects, so domestic places must carry a branch suffix (부산점) to
+// count. 두바이 is dropped entirely — 두바이 초콜릿 is a Seoul food trend, not a
+// location.
 const NON_SEOUL =
-  /파리|도쿄|오사카|뉴욕|런던|상하이|홍콩|싱가포르|타이베이|방콕|밀라노|두바이(?!\s*식|\s*쫀|\s*김밥)|부산|대구|대전|광주|인천|수원|제주|경기|천안/;
+  /파리|도쿄|오사카|뉴욕|런던|상하이|홍콩|싱가포르|타이베이|방콕|밀라노|부산점|대구점|대전점|광주점|인천점|수원점|제주점|천안점|경기점/;
 const SEOUL_HINT =
-  /서울|성수|홍대|강남|신사|압구정|청담|여의도|명동|연남|합정|잠실|가로수길|용산|한남|삼성동|코엑스/;
+  /서울|성수|홍대|강남|신사|압구정|청담|여의도|명동|연남|합정|잠실|가로수길|용산|한남|삼성동|코엑스|을지로|종로|익선|동대문|DDP|이태원|망원|문래|서촌|북촌|성북|건대|뚝섬|왕십리|상수|도산|본점/;
 
 /** "오는 8월 5일(수)까지" — end only. */
 const END_ONLY =
   /(?:오는\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일\s*(?:\([월화수목금토일]\))?\s*까지/;
 
+/** Korean weekday markers, Monday-first to match Date.getUTCDay() offset by 1. */
+const KO_DOW = ['월', '화', '수', '목', '금', '토', '일'];
+
+function koDayOf(y: number, m: number, d: number): string {
+  return KO_DOW[(new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7];
+}
+
+/**
+ * Sources write the weekday next to the date — "7월 30일(금)". Since the year is
+ * usually inferred rather than stated, that marker is a free checksum on the
+ * inference, and it caught a real bad row: "7월 30일(금)" resolved to 2026-07-30,
+ * which is a 목. Wrong year, silently written. Mismatch now voids the dates
+ * (never a wrong date) while keeping the evidence and a note for review.
+ */
 interface DateResult {
   start: string | null;
   end: string | null;
@@ -145,6 +165,17 @@ function toDates(text: string, articleYear: number): DateResult | null {
     if (sm < 1 || sm > 12 || em < 1 || em > 12 || sd > 31 || ed > 31) {
       return null;
     }
+    const marks = [...m[0].matchAll(/\(([월화수목금토일])\)/g)].map(
+      (x) => x[1],
+    );
+    const startBad = marks[0] && koDayOf(sy, sm, sd) !== marks[0];
+    const endBad =
+      marks.length > 1 && koDayOf(ey, em, ed) !== marks[marks.length - 1];
+    if (startBad || endBad) {
+      notes.push('weekday_mismatch_year_unreliable');
+      return { start: null, end: null, evidence: m[0].trim(), notes };
+    }
+
     return {
       start: iso(sy, sm, sd),
       end: iso(ey, em, ed),
@@ -158,11 +189,17 @@ function toDates(text: string, articleYear: number): DateResult | null {
     const em = Number(e[1]);
     const ed = Number(e[2]);
     if (em >= 1 && em <= 12 && ed <= 31) {
+      const mark = e[0].match(/\(([월화수목금토일])\)/)?.[1];
+      const notes = ['end_only_no_start_stated', 'year_inferred_from_article'];
+      if (mark && koDayOf(articleYear, em, ed) !== mark) {
+        notes.push('weekday_mismatch_year_unreliable');
+        return { start: null, end: null, evidence: e[0].trim(), notes };
+      }
       return {
         start: null,
         end: `${articleYear}-${String(em).padStart(2, '0')}-${String(ed).padStart(2, '0')}`,
         evidence: e[0].trim(),
-        notes: ['end_only_no_start_stated', 'year_inferred_from_article'],
+        notes,
       };
     }
   }
@@ -286,13 +323,7 @@ Deno.serve(async () => {
       await supabase
         .from('popup_candidates')
         .update({
-          title: betterTitle,
-          ...(outsideSeoul
-            ? {
-                status: 'rejected',
-                rejected_reason: `outside Seoul — mentions ${foreign![0]}`,
-              }
-            : {}),
+          title: betterTitle.slice(0, 300),
           detail_fetched_at: new Date().toISOString(),
           venue_id: venueId,
           og_image_url: ogImage,
@@ -310,7 +341,7 @@ Deno.serve(async () => {
       line.venue = venueId ? venues.find((v) => v.id === venueId)?.name : null;
       line.image = !!ogImage;
       line.title = betterTitle.slice(0, 48);
-      if (outsideSeoul) line.rejected = `outside Seoul (${foreign![0]})`;
+      if (outsideSeoul) line.flagged = `likely outside Seoul (${foreign![0]})`;
     } catch (e) {
       line.status = `error:${e}`;
     }

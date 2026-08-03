@@ -49,13 +49,27 @@ function validatePopup(p) {
   if (!CATEGORIES.includes(p.category))
     err(`category must be one of ${CATEGORIES.join(', ')}`);
 
-  if (!isHttps(p.imageUrl)) err('imageUrl must be an https:// URL');
+  // Optional since migration 010: a pop-up legitimately has no photo until a
+  // brand/venue one is sourced, and the app renders a house card meanwhile.
+  // Left mandatory here, this blocked 100% of drafts — the gate would have
+  // been skipped rather than fixed.
+  if (p.imageUrl != null && !isHttps(p.imageUrl))
+    err('imageUrl must be an https:// URL when present');
+  if (p.imageUrl == null) warn('no imageUrl — will render the house card');
   if (typeof p.imageUrl === 'string' && p.imageUrl.includes('unsplash.com'))
-    warn('imageUrl is an Unsplash placeholder — replace with an official photo');
-  for (const f of ['instagramUrl', 'websiteUrl', 'reservationUrl', 'sourceUrl']) {
+    warn(
+      'imageUrl is an Unsplash placeholder — replace with an official photo',
+    );
+  for (const f of [
+    'instagramUrl',
+    'websiteUrl',
+    'reservationUrl',
+    'sourceUrl',
+  ]) {
     if (p[f] != null && !isHttps(p[f])) err(`${f}, if set, must be https://`);
   }
-  if (!p.sourceUrl) warn('sourceUrl missing — needed to re-verify this popup later');
+  if (!p.sourceUrl)
+    warn('sourceUrl missing — needed to re-verify this popup later');
 
   if (p.hours != null && !nonEmpty(p.hours))
     err('hours must be a non-empty string when present');
@@ -80,31 +94,49 @@ function validatePopup(p) {
   }
   if (s.exit != null && !nonEmpty(s.exit))
     err('subway.exit must be a non-empty string when present');
-  if (!nonEmpty(s.exit)) warn('subway.exit unknown — will render "Exit — check map"');
+  if (!nonEmpty(s.exit))
+    warn('subway.exit unknown — will render "Exit — check map"');
   if (s.walkMinutes != null) {
     if (!Number.isInteger(s.walkMinutes) || s.walkMinutes < 0)
       err('subway.walkMinutes must be an integer >= 0 when present');
     else if (s.walkMinutes > 20)
-      warn(`subway.walkMinutes is ${s.walkMinutes} — unusually far, double-check`);
+      warn(
+        `subway.walkMinutes is ${s.walkMinutes} — unusually far, double-check`,
+      );
   } else {
-    warn('subway.walkMinutes unknown — verify from Naver/Kakao Map before publish');
+    warn(
+      'subway.walkMinutes unknown — verify from Naver/Kakao Map before publish',
+    );
   }
 
   if (typeof p.latitude !== 'number' || p.latitude < -90 || p.latitude > 90)
     err('latitude must be a number between -90 and 90');
-  if (typeof p.longitude !== 'number' || p.longitude < -180 || p.longitude > 180)
+  if (
+    typeof p.longitude !== 'number' ||
+    p.longitude < -180 ||
+    p.longitude > 180
+  )
     err('longitude must be a number between -180 and 180');
   // Seoul sanity box — catches swapped or wrong coordinates.
-  if (typeof p.latitude === 'number' && (p.latitude < 37.4 || p.latitude > 37.7))
+  if (
+    typeof p.latitude === 'number' &&
+    (p.latitude < 37.4 || p.latitude > 37.7)
+  )
     warn(`latitude ${p.latitude} is outside Seoul — verify the pin`);
-  if (typeof p.longitude === 'number' && (p.longitude < 126.7 || p.longitude > 127.2))
+  if (
+    typeof p.longitude === 'number' &&
+    (p.longitude < 126.7 || p.longitude > 127.2)
+  )
     warn(`longitude ${p.longitude} is outside Seoul — verify the pin`);
 
   if (p.reservable != null && typeof p.reservable !== 'boolean')
     err('reservable must be a boolean');
 
-  const sentences = String(p.description ?? '').split(/[.!?](\s|$)/).filter((x) => x.trim()).length;
-  if (sentences > 5) warn('description is long — CONTENT.md suggests 2–4 sentences');
+  const sentences = String(p.description ?? '')
+    .split(/[.!?](\s|$)/)
+    .filter((x) => x.trim()).length;
+  if (sentences > 5)
+    warn('description is long — CONTENT.md suggests 2–4 sentences');
 
   return { errors, warnings };
 }
