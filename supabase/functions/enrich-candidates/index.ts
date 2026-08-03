@@ -39,6 +39,24 @@ interface Venue {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** og:* content is HTML-escaped; a title stored raw shows up as &#8220; in the
+ *  app. Decode here so what lands in the queue is what a human would read. */
+function decodeEntities(s: string): string {
+  return s
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;|&apos;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#(\d+);/g, (_, d) => String.fromCharCode(Number(d)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) =>
+      String.fromCharCode(parseInt(h, 16)),
+    )
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function meta(html: string, prop: string): string | null {
   const re = new RegExp(
     `<meta[^>]+(?:property|name)=["']${prop}["'][^>]*content=["']([^"']+)["']`,
@@ -65,8 +83,21 @@ const RANGE_PATTERNS: RegExp[] = [
   /(\d{1,2})\s*월\s*(\d{1,2})\s*일\s*(?:\([월화수목금토일]\))?\s*(?:부터|~|-|–|—)\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일\s*(?:까지)?/,
 ];
 
+/**
+ * Places that mean "not our app". A Korean retailer's newsroom happily covers
+ * its Paris and Busan stores, and a candidate scoring on 팝업 + a date can look
+ * perfect while being 9,000 km away — the queue surfaced exactly that
+ * (어뮤즈 @ Galeries Lafayette, Paris). Reject only when a non-Seoul place is
+ * named AND no Seoul-area place is, so "서울 강남점과 부산점" still passes.
+ */
+const NON_SEOUL =
+  /파리|도쿄|오사카|뉴욕|런던|상하이|홍콩|싱가포르|타이베이|방콕|밀라노|두바이(?!\s*식|\s*쫀|\s*김밥)|부산|대구|대전|광주|인천|수원|제주|경기|천안/;
+const SEOUL_HINT =
+  /서울|성수|홍대|강남|신사|압구정|청담|여의도|명동|연남|합정|잠실|가로수길|용산|한남|삼성동|코엑스/;
+
 /** "오는 8월 5일(수)까지" — end only. */
-const END_ONLY = /(?:오는\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일\s*(?:\([월화수목금토일]\))?\s*까지/;
+const END_ONLY =
+  /(?:오는\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일\s*(?:\([월화수목금토일]\))?\s*까지/;
 
 interface DateResult {
   start: string | null;
@@ -145,7 +176,8 @@ function matchVenue(text: string, venues: Venue[]): string | null {
     for (const a of [v.name, ...(v.aliases ?? [])]) {
       const alias = a.toLowerCase().trim();
       if (alias.length >= 2 && hay.includes(alias)) {
-        if (!best || alias.length > best.len) best = { id: v.id, len: alias.length };
+        if (!best || alias.length > best.len)
+          best = { id: v.id, len: alias.length };
       }
     }
   }
@@ -211,8 +243,8 @@ Deno.serve(async () => {
       // article returned the same range — it was matching a *related article*
       // teaser in the page's "latest news" block. og:* is authored per article
       // and cannot contain a neighbouring pop-up's dates.
-      const summary = meta(html, 'og:description') ?? '';
-      const ogTitle = meta(html, 'og:title') ?? c.title;
+      const summary = decodeEntities(meta(html, 'og:description') ?? '');
+      const ogTitle = decodeEntities(meta(html, 'og:title') ?? c.title);
       const scope = `${ogTitle} ${summary}`;
 
       const published =
@@ -229,14 +261,38 @@ Deno.serve(async () => {
       const tier = tierById.get(c.source_id) ?? 3;
       const ogImage = tier === 1 ? meta(html, 'og:image') : null;
 
+      // LCDC's event anchors carry no text, so scan-sources stored the raw URL
+      // as the title. og:title is the real name and we already have it here.
+      const cleanTitle = ogTitle
+        .replace(
+          /\s*[|–—-]\s*[^|–—-]{0,40}(뉴스룸|newsroom|LCDC|SEOUL)\s*$/i,
+          '',
+        )
+        .trim();
+      const betterTitle =
+        cleanTitle.length > 3 && !/^https?:\/\//.test(cleanTitle)
+          ? cleanTitle
+          : c.title;
+
       const notes = ['scope:og_metadata', ...(dates?.notes ?? [])];
       if (!dates) notes.push('no_date_pattern_matched');
       if (!venueId) notes.push('venue_unmatched');
       if (tier !== 1) notes.push('image_skipped_non_tier1');
 
+      const foreign = scope.match(NON_SEOUL);
+      const outsideSeoul = !!foreign && !SEOUL_HINT.test(scope);
+      if (outsideSeoul) notes.push(`outside_seoul:${foreign[0]}`);
+
       await supabase
         .from('popup_candidates')
         .update({
+          title: betterTitle,
+          ...(outsideSeoul
+            ? {
+                status: 'rejected',
+                rejected_reason: `outside Seoul — mentions ${foreign![0]}`,
+              }
+            : {}),
           detail_fetched_at: new Date().toISOString(),
           venue_id: venueId,
           og_image_url: ogImage,
@@ -253,6 +309,8 @@ Deno.serve(async () => {
       line.evidence = dates?.evidence ?? null;
       line.venue = venueId ? venues.find((v) => v.id === venueId)?.name : null;
       line.image = !!ogImage;
+      line.title = betterTitle.slice(0, 48);
+      if (outsideSeoul) line.rejected = `outside Seoul (${foreign![0]})`;
     } catch (e) {
       line.status = `error:${e}`;
     }

@@ -70,3 +70,38 @@ fix for the 5-of-9 estimated exits and the four pop-ups sharing one pin.
 
 Note Galleria is **two buildings** with different addresses *and* different
 subway exits; they are separate rows on purpose.
+
+## Source viability — check before adding
+
+A source is only useful if its detail pages expose **per-article** `og:title`
+and `og:description`. Verify before seeding:
+
+```sh
+curl -sL "<a detail page URL>" | grep -oE '<meta[^>]*og:(title|description)[^>]*>'
+```
+
+**LCDC Seoul was disabled on 2026-08-03** for failing this: every event page
+returns the site-wide `og:title` of "LCDC SEOUL", so 12 queued rows were
+indistinguishable, and no per-event dates were exposed either. Getting real
+names would mean parsing the page body — the exact thing that produced six
+identical date ranges. Re-enable only if they publish per-event metadata.
+
+## Geography gate
+
+A Korean retailer's newsroom covers its Paris and Incheon stores too, and those
+score just as well on 팝업 + a date. A candidate is auto-rejected when it names
+a non-Seoul place AND no Seoul-area place — so "서울 강남점과 부산점" survives,
+while a Galeries Lafayette popup in Paris does not. Both real cases; both were
+sitting in the queue.
+
+## Known ceiling: dates
+
+The Shinsegae newsroom publishes **no date metadata at all** — no
+`article:published_time`, no JSON-LD, no `<time>`. So `이달`/`내달` ("this
+month"/"next month") and day-only ranges are unresolvable, and roughly two
+thirds of candidates arrive with no dates.
+
+This is not a parser bug to fix. Reading the run off the page is the
+irreducible human step — about 10 seconds, with the source already linked in
+the queue. Better than a wrong date, which sends a visitor across Seoul to a
+closed shop.
