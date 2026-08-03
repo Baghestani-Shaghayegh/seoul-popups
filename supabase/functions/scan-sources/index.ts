@@ -49,6 +49,7 @@ interface Source {
   display_name: string;
   url: string;
   tier: number;
+  source_type: 'html' | 'rss';
   link_pattern: string;
   etag: string | null;
   last_modified: string | null;
@@ -119,6 +120,29 @@ function extractAnchors(html: string): { href: string; text: string }[] {
       .replace(/\s+/g, ' ')
       .trim();
     out.push({ href: m[1], text });
+  }
+  return out;
+}
+
+/**
+ * RSS items. Used instead of anchor-scraping for feed sources: Korean
+ * department-store sites are JS-rendered and expose no per-event page, while a
+ * feed is a stable published format with a title and link per item.
+ */
+function extractRssItems(xml: string): { href: string; text: string }[] {
+  const out: { href: string; text: string }[] = [];
+  for (const m of xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)) {
+    const block = m[1];
+    const rawTitle =
+      block.match(
+        /<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i,
+      )?.[1] ?? '';
+    const rawLink =
+      block.match(/<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i)?.[1] ??
+      '';
+    const href = rawLink.trim();
+    if (!href) continue;
+    out.push({ href, text: decodeEntities(rawTitle.replace(/<[^>]*>/g, ' ')) });
   }
   return out;
 }
@@ -341,16 +365,20 @@ Deno.serve(async () => {
         lastModified = res.headers.get('last-modified');
         const html = (await res.text()).slice(0, MAX_HTML_BYTES);
 
+        const isRss = src.source_type === 'rss';
         const pattern = new RegExp(src.link_pattern, 'i');
         const host = new URL(src.url).hostname;
         const seen = new Set<string>();
         const links: { url: string; text: string }[] = [];
 
-        for (const a of extractAnchors(html)) {
+        // A feed's whole point is that every item is an article, so the
+        // same-host and link_pattern filters (which exist to strip a web
+        // page's nav) would only get in the way.
+        for (const a of isRss ? extractRssItems(html) : extractAnchors(html)) {
           const abs = normalizeUrl(a.href, src.url);
           if (!abs) continue;
-          if (new URL(abs).hostname !== host) continue;
-          if (!pattern.test(abs)) continue;
+          if (!isRss && new URL(abs).hostname !== host) continue;
+          if (!isRss && !pattern.test(abs)) continue;
           if (seen.has(abs)) continue;
           seen.add(abs);
           links.push({ url: abs, text: a.text });

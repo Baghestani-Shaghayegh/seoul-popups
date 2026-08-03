@@ -111,3 +111,44 @@ is a parked domain.
 **Aggregators (tier 3) are deliberately not seeded.** They carry the ToS risk
 and can only ever tell you to go look somewhere else — migration 008 blocks
 their links from reaching a user regardless.
+
+## Source viability — what actually works (probed 2026-08-03)
+
+Adding a source is one INSERT, but most candidates fail. Check before seeding.
+
+**Viable**
+- **Shinsegae Group Newsroom** (`html`) — WordPress, server-rendered, per-article
+  `og:title` / `og:description` / `og:image`. The pattern that works.
+
+**Rejected, with reasons**
+
+| Source | Why |
+|---|---|
+| LCDC Seoul | Site-wide `og:title` — every event page returns "LCDC SEOUL" |
+| Hyundai (incl. its 팝업스토어 정보 page) | JS-rendered; no `og:title`, links are branch pages |
+| Lotte shopping news | JS-rendered; site-wide `og:title` of "롯데백화점" |
+| Galleria | Index links go to other branches, not per-event pages |
+| AK Plaza culture | Culture-centre classes, not pop-ups |
+| Starfield COEX / thehyundai.com / insideseoul | SPAs, <2 KB of text |
+| Project Rent | Parked domain |
+| **Google News RSS** | **robots.txt is `Disallow: /`** with an allowlist excluding `/rss/`. Our robots gate blocked it, correctly. Removed rather than worked around. |
+
+**The finding worth keeping:** Korean department-store sites are near-universally
+JS-rendered and expose no per-event page to a plain fetch, so automated
+discovery in this space is genuinely constrained. Press *newsrooms* are the
+reliable shape. RSS support (`source_type = 'rss'`) is built and tested against
+a real feed — it just needs a publisher whose robots.txt permits it.
+
+## Checklist before adding a source
+
+```sh
+# 1. Does a plain fetch return real text?
+curl -sL "<index-url>" | sed 's/<[^>]*>/ /g' | tr -s ' ' | wc -c      # want > 10000
+
+# 2. Does robots.txt allow the path?
+curl -sL "<origin>/robots.txt"
+
+# 3. Do DETAIL pages expose per-article metadata? (the LCDC trap)
+curl -sL "<a detail-url>" | grep -oE '<meta[^>]*og:(title|description)[^>]*>'
+#    -> two different detail pages MUST give two different og:titles
+```
