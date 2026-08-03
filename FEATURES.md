@@ -133,8 +133,15 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       competitor. Cleared in migration 008 along with 4 aggregator
       `website_url`s, and now blocked by a CHECK constraint. No pop-up
       currently has a real reservation link.
-- [ ] **Reserve (native)** — time slots, manage/cancel, reminders (needs RLS
-      user-owned tables)
+- [–] **Reserve (native)** — ~~time slots, manage/cancel, reminders~~
+      **Dropped 2026-08-03 (product decision).** Reservations stay a hand-off
+      to wherever the brand actually takes them (their own page, Naver 예약).
+      We never hold a booking, so there is no payment handling, no
+      cancellation policy, and no liability when a brand changes its slots —
+      and the external link already covers the user need. Revisit only if
+      brand partnerships make us the booking system of record.
+      **What this needs is content, not code:** the button lights up on its
+      own once `reservation_url` (or `website_url`) is populated per pop-up.
 - [x] **Curated collections** _(2026-07-22)_ — editorial groupings
       (`collections` table, migration 005, public-read RLS; `popup_ids` array,
       no join table). A Collections rail on Home → a collection detail screen
