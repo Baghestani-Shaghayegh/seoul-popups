@@ -101,3 +101,31 @@ Gangnam is quiet for popups in late July; no *July* aggregator roundup exists
 
 Re-scan Gangnam in early August — new launches usually land then. Gangnam
 stays at 1 published for now.
+
+
+## Gangnam gap — hunt log (2026-08-03)
+
+Gangnam has **0 published pop-ups from Aug 10**. Every candidate that outlives
+that date failed verification against a primary source. Recorded so the next
+hunt doesn't re-walk the same ground:
+
+| Candidate | Runs to | Why not published |
+|---|---|---|
+| Pompompurin Bakery Cafe | "Oct 26" | **Not a pop-up.** Shinsegae's own newsroom + 5 outlets describe a permanent bakery cafe (상시 운영). The end date exists only on an aggregator. Would have shown a fake countdown. |
+| Crocs @ Galleria | Aug 19 | 3 press outlets confirm the run, none says EAST or WEST — different addresses *and* different subway exits — and none gives a start date. Galleria's own promotions page doesn't list it. |
+| Limin @ KARY MARKET Sinsa | Aug 31 | Aggregator only. Venue confirmed real (가로수길 82, 10:00–21:00, runs monthly pop-ups) but karymarket.com doesn't list it. |
+| Sun Jelly / Ticket to the Moon | Aug 19 | Same as above. |
+| Zero Concept Store | Aug 30 | Aggregator only; no venue given. |
+| Bvlgari @ Hyundai Trade Center | Dec 31 | 9-month run — the Pompompurin shape. Almost certainly a long-term installation, not a pop-up. |
+| LG "Origins" @ Cheongdam D5 | Dec 31 | Year-long brand exhibition at LG's own flagship, not a pop-up. |
+
+**Structural finding, not a one-week problem:** Seoul's pop-up scene is
+concentrated in Seongsu — Korean trade press literally calls it the 팝업 성지
+(pop-up mecca). Gangnam runs fewer, shorter, more fashion-brand pop-ups with
+less appeal to a visitor who doesn't read Korean. Expect Gangnam to stay the
+thinnest of the three areas; plan around it rather than treating each empty
+week as a content failure.
+
+**Cheapest unblock:** Crocs needs one call to Galleria (1544-6600) or a look at
+their Instagram to settle building + start date. That single answer restores
+Gangnam coverage through Aug 19.
