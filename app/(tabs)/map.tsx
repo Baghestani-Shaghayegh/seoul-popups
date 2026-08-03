@@ -193,6 +193,9 @@ export default function MapScreen() {
                 >
                   <PopupImage
                     uri={p.imageUrl}
+                    name={p.name}
+                    category={p.category}
+                    neighborhood={p.neighborhood}
                     className="h-[52px] w-[52px] rounded-xl"
                     iconSize={16}
                   />

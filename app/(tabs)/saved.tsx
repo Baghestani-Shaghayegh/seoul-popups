@@ -210,6 +210,9 @@ function SavedRow({
     >
       <PopupImage
         uri={popup.imageUrl}
+        name={popup.name}
+        category={popup.category}
+        neighborhood={popup.neighborhood}
         className="h-[70px] w-[70px] rounded-2xl"
         iconSize={20}
       />
@@ -258,6 +261,9 @@ function VisitedRow({
     >
       <PopupImage
         uri={popup.imageUrl}
+        name={popup.name}
+        category={popup.category}
+        neighborhood={popup.neighborhood}
         className="h-[70px] w-[70px] rounded-2xl"
         iconSize={20}
       />

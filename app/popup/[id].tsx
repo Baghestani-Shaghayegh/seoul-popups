@@ -94,6 +94,9 @@ export default function PopupDetailScreen() {
         <View className="mx-4 overflow-hidden rounded-3xl">
           <PopupImage
             uri={popup.imageUrl}
+            name={popup.name}
+            category={popup.category}
+            neighborhood={popup.neighborhood}
             className="aspect-square w-full"
             iconSize={32}
           />

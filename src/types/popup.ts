@@ -42,8 +42,9 @@ export interface Popup {
   description: string;
   neighborhood: Neighborhood;
   category: Category;
-  /** Hero image URL. */
-  imageUrl: string;
+  /** Hero image URL. Undefined when we have no photo we're entitled to
+   *  use (CONTENT.md §4) — the UI renders a branded card instead. */
+  imageUrl?: string;
 
   /** ISO date strings (YYYY-MM-DD). */
   startDate: string;

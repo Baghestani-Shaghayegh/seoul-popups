@@ -33,6 +33,9 @@ export function RailCard({ popup, grid = false, onPress }: RailCardProps) {
       <View className="overflow-hidden rounded-3xl bg-surface shadow-sm">
         <PopupImage
           uri={popup.imageUrl}
+          name={popup.name}
+          category={popup.category}
+          neighborhood={popup.neighborhood}
           className={grid ? 'aspect-square w-full' : 'h-40 w-40'}
           iconSize={24}
         />

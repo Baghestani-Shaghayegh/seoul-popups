@@ -64,7 +64,7 @@ interface PopupRow {
   description: string;
   neighborhood: Neighborhood;
   category: Category;
-  image_url: string;
+  image_url: string | null;
   start_date: string;
   end_date: string;
   hours: string | null;
@@ -89,7 +89,7 @@ function rowToPopup(row: PopupRow): Popup {
     description: row.description,
     neighborhood: row.neighborhood,
     category: row.category,
-    imageUrl: row.image_url,
+    imageUrl: row.image_url ?? undefined,
     startDate: row.start_date,
     endDate: row.end_date,
     hours: row.hours ?? undefined,

@@ -144,6 +144,10 @@ and bump `last_verified_at` whenever you re-confirm a row against its source.
   Dashboard drag-and-drop still works if you prefer it.
 - **Choosing** the photo stays a human call — an official brand announcement
   image, not a repost or a visitor's snapshot.
+- **No photo is a valid state.** `image_url` is nullable (migration 010) and
+  the app renders a branded category card instead. Never reach for an
+  aggregator's image to fill the gap — that is exactly how all 12 early
+  pop-ups ended up serving competitors' crops from our own bucket.
 - ⚠️ Mirroring copies whatever the row points at, placeholder included. Once
   mirrored the URL is ours, so the validator's "Unsplash placeholder" warning
   stops firing — swap the real photo in *before* publishing a draft.

@@ -27,6 +27,8 @@ export function SelectablePopupRow({
     >
       <PopupImage
         uri={popup.imageUrl}
+        name={popup.name}
+        category={popup.category}
         className="h-14 w-14 rounded-xl"
         iconSize={18}
       />

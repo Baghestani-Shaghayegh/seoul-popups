@@ -25,7 +25,14 @@ export function FeatureCard({ popup, onPress }: FeatureCardProps) {
       })}
       className="mx-4 overflow-hidden rounded-3xl bg-surface shadow-sm"
     >
-      <PopupImage uri={popup.imageUrl} className="h-64 w-full" iconSize={32} />
+      <PopupImage
+        uri={popup.imageUrl}
+        name={popup.name}
+        category={popup.category}
+        neighborhood={popup.neighborhood}
+        className="h-64 w-full"
+        iconSize={32}
+      />
       <LinearGradient
         colors={['transparent', 'rgba(22,11,26,0.78)']}
         locations={[0.35, 1]}
