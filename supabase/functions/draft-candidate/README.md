@@ -37,6 +37,18 @@ An aggregator host is refused outright and the row falls back to the house
 card. A failed download does **not** undo the draft — a pop-up with no photo is
 a valid row.
 
+## ⚠️ `start_date` / `end_date` overrides are the sharp edge
+
+The "need both dates" guard is satisfied by passing `start_date` — which makes
+**inventing one** the path of least resistance. It happened the first time this
+function was used: a candidate whose source said only `오는 8월 6일(목)까지`
+was drafted with a made-up `2026-07-30` start simply to get past the guard.
+
+Only ever pass a date you have **read in the source**. If the source gives an
+end but no start, that is not a formatting problem to work around — it is a
+missing fact, and the pop-up waits until someone confirms it. A guard you can
+satisfy with a guess protects nothing.
+
 ## Guards (all in `draft_from_candidate`, so both entry points share them)
 
 - **Idempotent** — a second call returns `already drafted as popup <id>` rather
