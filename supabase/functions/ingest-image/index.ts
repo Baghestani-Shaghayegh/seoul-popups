@@ -84,12 +84,16 @@ Deno.serve(async () => {
         continue;
       }
 
-      // Never re-host a competitor's copy (see DENIED_HOST).
+      // Never re-host a competitor's copy (see DENIED_HOST). Since 2026-08-04
+      // an aggregator photo may be used as a stopgap, but it stays HOT-LINKED
+      // — mirroring is what turned hot-linking into reproduction and
+      // distribution from our own domain. So this is now the intended resting
+      // state for such a row, not a defect to be fixed.
       const host = new URL(row.image_url).hostname;
       if (DENIED_HOST.test(host)) {
         skipped.push({
           name: row.name,
-          reason: `refusing to mirror aggregator host ${host} — needs a brand/venue source`,
+          reason: `aggregator stopgap on ${host} — hot-linked by design; swap in a brand photo to make it permanent`,
         });
         continue;
       }

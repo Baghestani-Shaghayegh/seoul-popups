@@ -132,9 +132,11 @@ and bump `last_verified_at` whenever you re-confirm a row against its source.
 - Use the brand's official announcement photos (credit by linking
   `instagram_url`) or your own shots. Only owner-published promo images — no
   random visitors' photos.
-- **Never hot-link anyone else's image URL** — Instagram's are signed and
-  expire, and aggregator CDNs (Popga, dayforyou, heyPOP) rotate theirs. Photos
-  must end up in our own `popup-images` bucket (public read).
+- **Never hot-link a photo we intend to keep** — Instagram's URLs are signed
+  and expire, and aggregator CDNs (Popga, dayforyou, heyPOP) rotate theirs. A
+  `brand`/`venue`/`own` photo must end up in our own `popup-images` bucket
+  (public read). The one deliberate exception is an `aggregator` stopgap, which
+  is hot-linked precisely _because_ we do not want a copy — see below.
 - **You don't have to upload by hand.** Set `image_url` on the row to the
   brand's official photo, then call the `ingest-image` Edge Function — it
   downloads server-side, stores the file in `popup-images`, and rewrites the
@@ -145,12 +147,25 @@ and bump `last_verified_at` whenever you re-confirm a row against its source.
 - **Choosing** the photo stays a human call — an official brand announcement
   image, not a repost or a visitor's snapshot.
 - **No photo is a valid state.** `image_url` is nullable (migration 010) and
-  the app renders a branded category card instead. Never reach for an
-  aggregator's image to fill the gap — that is exactly how all 12 early
-  pop-ups ended up serving competitors' crops from our own bucket.
+  the app renders a branded category card instead.
+- **Every photo declares its origin.** `image_source` is one of `brand`,
+  `venue`, `own` or `aggregator`, and migration 015 makes a photo without one
+  impossible to store — including from the dashboard. `popups_needing_photo`
+  lists everything still on a house card or a borrowed image.
+- **Aggregator photos are a stopgap, not a source.** Policy decision
+  2026-08-04: rather than ship a house card on every pop-up, an aggregator
+  image may fill the gap where no brand photo has been sourced yet — but only
+  when tagged `image_source = 'aggregator'`, which the check constraint
+  enforces. Two rules follow:
+  - **Never mirrored into our bucket.** They stay hot-linked. Copying them
+    into `popup-images` is what turned this from hot-linking into reproduction
+    and distribution from our own domain — the worse position. If the CDN
+    rotates the URL the card falls back to the house card, which is fine.
+  - **Replace them.** They are the top of the photo work queue, not a
+    resting state. A brand photo always wins; swap it in and retag.
 - ⚠️ Mirroring copies whatever the row points at, placeholder included. Once
   mirrored the URL is ours, so the validator's "Unsplash placeholder" warning
-  stops firing — swap the real photo in *before* publishing a draft.
+  stops firing — swap the real photo in _before_ publishing a draft.
 - `https` only (the schema enforces it). Landscape-ish images look best on
   the cards.
 
