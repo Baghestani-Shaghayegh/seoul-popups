@@ -16,7 +16,6 @@ import {
   ErrorState,
   LoadingState,
 } from '@/components/ui/StateViews';
-import { useNeighborhoodCounts } from '@/hooks/useNeighborhoodCounts';
 import { usePopups } from '@/hooks/usePopups';
 import { colors } from '@/constants/theme';
 import { DATE_PRESETS, presetToRange, type DatePreset } from '@/lib/dateRanges';
@@ -82,11 +81,6 @@ export default function DiscoverScreen() {
   const [query, setQuery] = useState('');
   const [openSheet, setOpenSheet] = useState<SheetName | null>(null);
 
-  // Live counts per area, so an empty neighbourhood is stated rather than
-  // discovered after tapping. Seoul's pop-ups cluster in Seongsu and Gangnam
-  // genuinely runs dry between them.
-  const { counts, nonEmpty } = useNeighborhoodCounts();
-
   const dateRange = useMemo(() => presetToRange(datePreset), [datePreset]);
   const { popups, loading, error, reload } = usePopups({
     neighborhoods,
@@ -97,6 +91,27 @@ export default function DiscoverScreen() {
     // Browsing shouldn't surface pop-ups that are already over.
     excludeEnded: true,
   });
+
+  // Counts must answer "how many results would I get if I picked this area?",
+  // so they apply every active facet EXCEPT neighbourhood. Deriving them from
+  // the unfiltered catalogue (the first cut) made the chip disagree with its
+  // own list — e.g. Gangnam dimmed to (0) while returning 2 upcoming pop-ups.
+  const { popups: withoutArea, loading: countsLoading } = usePopups({
+    categories,
+    statuses,
+    dateRange,
+    query,
+    excludeEnded: true,
+  });
+  const counts = useMemo(() => {
+    const c = Object.fromEntries(NEIGHBORHOODS.map((n) => [n, 0])) as Record<
+      Neighborhood,
+      number
+    >;
+    for (const p of withoutArea) c[p.neighborhood] += 1;
+    return c;
+  }, [withoutArea]);
+  const nonEmpty = NEIGHBORHOODS.filter((n) => counts[n] > 0);
 
   const sorted = useMemo(() => {
     const arr = [...popups];
@@ -130,10 +145,9 @@ export default function DiscoverScreen() {
   const sortLabel = SORT_OPTIONS.find((o) => o.key === sort)?.label ?? 'Newest';
 
   const neighborhoodOptions: FilterOption<Neighborhood>[] = NEIGHBORHOODS.map(
-    (n) => ({
-      key: n,
-      label: counts[n] > 0 ? `${n} (${counts[n]})` : `${n} (0)`,
-    }),
+    // While the catalogue is still loading every count is 0, which would assert
+    // "nothing anywhere in Seoul" as fact for the length of a network trip.
+    (n) => ({ key: n, label: countsLoading ? n : `${n} (${counts[n]})` }),
   );
   const categoryOptions: FilterOption<Category>[] = CATEGORIES.map((c) => ({
     key: c,

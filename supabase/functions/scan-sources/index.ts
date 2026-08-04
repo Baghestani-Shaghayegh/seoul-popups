@@ -25,6 +25,14 @@ const MAX_SOURCES_PER_RUN = 12;
 const FETCH_TIMEOUT_MS = 10_000;
 const POLITE_DELAY_MS = 2_000;
 const MAX_HTML_BYTES = 3 * 1024 * 1024;
+/** Upper bound on politeness. Crawl-delay comes from untrusted external
+ *  content; an unclamped "Crawl-delay: 300" would sleep five minutes inside
+ *  the handler, get the invocation killed, and leave every later source
+ *  unfetched — deterministically, since the value is persisted. */
+const MAX_CRAWL_DELAY_MS = 10_000;
+/** Bound on work per source. 3 MB of HTML can hold thousands of anchors, each
+ *  costing a sequential hash + upsert round-trip. */
+const MAX_LINKS_PER_SOURCE = 120;
 
 /** Literal date-ish strings. Stored verbatim — never parsed into a date. */
 const DATE_PATTERNS = [
@@ -81,9 +89,17 @@ function normalizeUrl(raw: string, base?: string): string | null {
     for (const k of [...u.searchParams.keys()]) {
       if (/^(utm_|fbclid$|gclid$|igshid$)/i.test(k)) u.searchParams.delete(k);
     }
-    let s = u.toString();
-    if (s.endsWith('/') && u.pathname !== '/') s = s.slice(0, -1);
-    return s;
+    // Strip the trailing slash from the PATH, not the serialized URL — doing
+    // it after the query string is appended meant /a/?id=5 kept its slash
+    // while /a?id=5 lost one, giving the same article two rows. The query
+    // case is the common one here (Korean CMSes put the id there).
+    if (u.pathname.length > 1 && u.pathname.endsWith('/')) {
+      u.pathname = u.pathname.slice(0, -1);
+    }
+    // Lowercase the path too: /News/x and /news/x are one article on any
+    // case-insensitive CMS.
+    u.pathname = u.pathname.toLowerCase();
+    return u.toString();
   } catch {
     return null;
   }
@@ -298,6 +314,7 @@ Deno.serve(async () => {
     let lastModified = src.last_modified;
     let robotsAllows = src.robots_allows;
     let crawlDelay = src.crawl_delay_seconds;
+    let robotsChecked = false;
 
     try {
       const origin = new URL(src.url).origin;
@@ -307,6 +324,7 @@ Deno.serve(async () => {
         !src.robots_checked_at ||
         Date.now() - Date.parse(src.robots_checked_at) > 7 * 864e5;
       if (robotsStale) {
+        robotsChecked = true;
         try {
           const r = await fetch(`${origin}/robots.txt`, {
             headers: { 'User-Agent': UA },
@@ -367,7 +385,12 @@ Deno.serve(async () => {
 
         const isRss = src.source_type === 'rss';
         const pattern = new RegExp(src.link_pattern, 'i');
-        const host = new URL(src.url).hostname;
+        // Resolve against where we actually landed. If the index redirects,
+        // resolving relative hrefs against the old URL queues 404s — and a
+        // cross-host redirect drops every link, which looks identical to a
+        // broken link_pattern.
+        const base = res.url || src.url;
+        const host = new URL(base).hostname;
         const seen = new Set<string>();
         const links: { url: string; text: string }[] = [];
 
@@ -375,13 +398,14 @@ Deno.serve(async () => {
         // same-host and link_pattern filters (which exist to strip a web
         // page's nav) would only get in the way.
         for (const a of isRss ? extractRssItems(html) : extractAnchors(html)) {
-          const abs = normalizeUrl(a.href, src.url);
+          const abs = normalizeUrl(a.href, base);
           if (!abs) continue;
           if (!isRss && new URL(abs).hostname !== host) continue;
           if (!isRss && !pattern.test(abs)) continue;
           if (seen.has(abs)) continue;
           seen.add(abs);
           links.push({ url: abs, text: a.text });
+          if (links.length >= MAX_LINKS_PER_SOURCE) break;
         }
 
         linkCount = links.length;
@@ -389,6 +413,7 @@ Deno.serve(async () => {
         line.links_matched = linkCount;
 
         let newHere = 0;
+        let writeErrors = 0;
         for (const link of links) {
           const title = (link.text || link.url).slice(0, 300);
           const hash = await sha256(`${title}|${link.url}`);
@@ -427,6 +452,7 @@ Deno.serve(async () => {
               { onConflict: 'url', ignoreDuplicates: false },
             )
             .select('first_seen_at');
+          if (error) writeErrors++;
           const firstSeen = data?.[0]?.first_seen_at as string | undefined;
           if (
             !error &&
@@ -440,7 +466,12 @@ Deno.serve(async () => {
         }
         totalNew += newHere;
         line.new_candidates = newHere;
-        line.status = 'ok';
+        // "matched 40 links, wrote 0 because every insert failed" must not look
+        // like "matched 40 links, all already known".
+        if (writeErrors) line.write_errors = writeErrors;
+        line.status = writeErrors
+          ? `ok_with_${writeErrors}_write_errors`
+          : 'ok';
         ok++;
         failures = 0;
       }
@@ -460,13 +491,23 @@ Deno.serve(async () => {
         etag,
         last_modified: lastModified,
         robots_allows: robotsAllows,
-        robots_checked_at: new Date().toISOString(),
+        // Only advance this when robots.txt was actually re-fetched. Stamping
+        // it every run made the staleness test never true again, so the weekly
+        // re-check was dead code and a newly-added Disallow would go unnoticed.
+        ...(robotsChecked
+          ? { robots_checked_at: new Date().toISOString() }
+          : {}),
         crawl_delay_seconds: crawlDelay,
       })
       .eq('id', src.id);
 
     detail.push(line);
-    await sleep(Math.max(POLITE_DELAY_MS, (crawlDelay ?? 0) * 1000));
+    await sleep(
+      Math.min(
+        MAX_CRAWL_DELAY_MS,
+        Math.max(POLITE_DELAY_MS, (crawlDelay ?? 0) * 1000),
+      ),
+    );
   }
 
   if (runId) {
