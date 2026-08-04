@@ -52,6 +52,26 @@ const NEIGHBORHOOD_HINTS: [string, RegExp][] = [
 
 const POPUP_HINTS = /팝업|팝업스토어|pop-?\s?up|기획전|한정|오픈/i;
 
+/**
+ * Site furniture that satisfies a permissive `link_pattern` but is never a
+ * pop-up. The Shinsegae sources match "any slug of 12+ chars", which queued
+ * group-history, group-careers, group-family and newsroom-intro — 4 of the 21
+ * live candidates. Matched as whole hyphen-delimited tokens in the final path
+ * segment, so a real article like `escape-sweet-home-staycation-popup` is
+ * untouched.
+ */
+const NON_ARTICLE_SLUG =
+  /(?:^|-)(about|intro|introduction|overview|history|career|careers|recruit|family|privacy|terms|policy|sitemap|login|signup|contact|faq|ethics|vision|esg)(?:-|$)/i;
+
+function isNonArticle(url: string): boolean {
+  try {
+    const slug = new URL(url).pathname.split('/').filter(Boolean).pop() ?? '';
+    return NON_ARTICLE_SLUG.test(slug);
+  } catch {
+    return false;
+  }
+}
+
 interface Source {
   id: string;
   display_name: string;
@@ -393,6 +413,7 @@ Deno.serve(async () => {
         const host = new URL(base).hostname;
         const seen = new Set<string>();
         const links: { url: string; text: string }[] = [];
+        let navSkipped = 0;
 
         // A feed's whole point is that every item is an article, so the
         // same-host and link_pattern filters (which exist to strip a web
@@ -404,10 +425,17 @@ Deno.serve(async () => {
           if (!isRss && !pattern.test(abs)) continue;
           if (seen.has(abs)) continue;
           seen.add(abs);
+          if (!isRss && isNonArticle(abs)) {
+            navSkipped++;
+            continue;
+          }
           links.push({ url: abs, text: a.text });
           if (links.length >= MAX_LINKS_PER_SOURCE) break;
         }
 
+        // Reported, never silent: a filter that quietly eats links is
+        // indistinguishable from a source that stopped publishing.
+        if (navSkipped) line.nav_links_skipped = navSkipped;
         linkCount = links.length;
         totalLinks += linkCount;
         line.links_matched = linkCount;

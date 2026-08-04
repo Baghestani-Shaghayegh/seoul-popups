@@ -23,6 +23,10 @@ const UA =
 const MAX_PER_RUN = 12;
 const FETCH_TIMEOUT_MS = 12_000;
 const POLITE_DELAY_MS = 2_000;
+/** A pop-up announced more than this long ago has almost certainly ended; the
+ *  longest run in our own catalogue is well under it. Generous on purpose —
+ *  this drops archive articles, it is not a freshness policy. */
+const MAX_ARTICLE_AGE_DAYS = 120;
 
 interface Candidate {
   id: string;
@@ -69,6 +73,90 @@ function meta(html: string, prop: string): string | null {
     'i',
   );
   return html.match(re2)?.[1] ?? null;
+}
+
+/**
+ * The article's own text, which is where the run dates actually are.
+ *
+ * The first cut read the whole page and every Shinsegae article came back with
+ * the same range — it was matching a *related article* teaser in the "latest
+ * news" block. The response was to read og:title + og:description instead,
+ * which removed the teasers but also removed the dates: measured across the 21
+ * live candidates, the run date is in og:description on 5 pages and in the
+ * article body on 15, with 10 having it ONLY in the body. Those were
+ * unreachable by construction.
+ *
+ * Scoping to the article's container keeps the teasers out (they sit outside
+ * it) while reaching the text that states the run. Verified on
+ * summer-shinsegae-twl-popup: 4 date matches page-wide, 2 inside the container,
+ * both the real one.
+ */
+const ARTICLE_CONTAINERS = [
+  'post-body',
+  'post-contents',
+  'entry-content',
+  'article-body',
+  'post-content',
+];
+
+/** Inner HTML of the first matching <div>, honouring nested divs. */
+function sliceContainer(html: string, cls: string): string | null {
+  const m = html.match(
+    new RegExp(`<div[^>]*class=["'][^"']*\\b${cls}\\b[^"']*["'][^>]*>`, 'i'),
+  );
+  if (!m || m.index === undefined) return null;
+  const from = m.index + m[0].length;
+  const tag = /<(\/?)div\b/gi;
+  tag.lastIndex = from;
+  let depth = 1;
+  let t: RegExpExecArray | null;
+  while ((t = tag.exec(html)) !== null) {
+    depth += t[1] ? -1 : 1;
+    if (depth === 0) return html.slice(from, t.index);
+  }
+  // Unbalanced markup: treat as not found rather than swallow the rest of the
+  // page, which would put the teaser block back in scope.
+  return null;
+}
+
+function articleText(html: string): string | null {
+  for (const cls of ARTICLE_CONTAINERS) {
+    const inner = sliceContainer(html, cls);
+    if (inner && inner.length > 200) {
+      return decodeEntities(inner.replace(/<[^>]+>/g, ' '));
+    }
+  }
+  return null;
+}
+
+/**
+ * The article's own publication date, used as the year for runs that omit one.
+ *
+ * `article:published_time` and `og:updated_time` are absent on ALL 21 pages in
+ * the live queue, so the old `?? new Date().getFullYear()` fallback fired every
+ * single time. Nine of those articles predate 2026 — three are from 2021 — so
+ * the fallback was silently stamping five-year-old runs with the current year.
+ * The date is in the markup as `<span class="date">2026.07.21</span>`; read it,
+ * and return null when nothing resolves so the caller declines rather than
+ * guesses.
+ */
+function articleDate(html: string): string | null {
+  for (const raw of [
+    meta(html, 'article:published_time'),
+    meta(html, 'og:updated_time'),
+    html.match(/<time[^>]+datetime=["']([^"']+)["']/i)?.[1] ?? null,
+  ]) {
+    if (!raw) continue;
+    const d = new Date(raw);
+    if (!Number.isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+  }
+  const vis = html.match(
+    /class=["'][^"']*\bdate\b[^"']*["'][^>]*>\s*(20\d{2})[.\-/](\d{1,2})[.\-/](\d{1,2})/i,
+  );
+  if (vis) {
+    return `${vis[1]}-${vis[2].padStart(2, '0')}-${vis[3].padStart(2, '0')}`;
+  }
+  return null;
 }
 
 /**
@@ -129,11 +217,12 @@ interface DateResult {
 /**
  * Year rule: a Korean run almost never spans a year boundary, and the source
  * usually omits the year entirely. We take the year from the article's own
- * published date when present, else the current year, and roll the end forward
- * a year only if it would otherwise precede the start (a Dec->Jan run).
- * Anything we cannot resolve this way is left null with a note — never guessed.
+ * published date, and roll the end forward a year only if it would otherwise
+ * precede the start (a Dec->Jan run). With no article date the year is
+ * unresolvable, so we decline rather than fall back to the current year —
+ * that fallback is what stamped 2021 runs with 2026.
  */
-function toDates(text: string, articleYear: number): DateResult | null {
+function toDates(text: string, articleYear: number | null): DateResult | null {
   for (const re of RANGE_PATTERNS) {
     const m = text.match(re);
     if (!m) continue;
@@ -148,6 +237,17 @@ function toDates(text: string, articleYear: number): DateResult | null {
       em = Number(m[5]);
       ed = Number(m[6]);
     } else {
+      // The run states no year, so it can only come from the article. With no
+      // article date there is nothing to infer from — keep the evidence and
+      // decline. Defaulting to the current year is what stamped 2021 runs 2026.
+      if (articleYear === null) {
+        return {
+          start: null,
+          end: null,
+          evidence: m[0].trim(),
+          notes: ['article_year_unresolved'],
+        };
+      }
       sy = articleYear;
       sm = Number(m[1]);
       sd = Number(m[2]);
@@ -189,6 +289,14 @@ function toDates(text: string, articleYear: number): DateResult | null {
     const em = Number(e[1]);
     const ed = Number(e[2]);
     if (em >= 1 && em <= 12 && ed <= 31) {
+      if (articleYear === null) {
+        return {
+          start: null,
+          end: null,
+          evidence: e[0].trim(),
+          notes: ['end_only_no_start_stated', 'article_year_unresolved'],
+        };
+      }
       const mark = e[0].match(/\(([월화수목금토일])\)/)?.[1];
       const notes = ['end_only_no_start_stated', 'year_inferred_from_article'];
       if (mark && koDayOf(articleYear, em, ed) !== mark) {
@@ -275,22 +383,15 @@ Deno.serve(async () => {
 
       const html = await res.text();
 
-      // Dates and venue come from og:description + og:title ONLY, never the
-      // page body. The first cut read the whole page and every Shinsegae
-      // article returned the same range — it was matching a *related article*
-      // teaser in the page's "latest news" block. og:* is authored per article
-      // and cannot contain a neighbouring pop-up's dates.
+      // Scope is the article's own container, falling back to og:* when the
+      // page uses a layout we don't recognise (see ARTICLE_CONTAINERS).
       const summary = decodeEntities(meta(html, 'og:description') ?? '');
       const ogTitle = decodeEntities(meta(html, 'og:title') ?? c.title);
-      const scope = `${ogTitle} ${summary}`;
+      const body = articleText(html);
+      const scope = `${ogTitle} ${body ?? summary}`;
 
-      const published =
-        meta(html, 'article:published_time') ??
-        meta(html, 'og:updated_time') ??
-        null;
-      const articleYear = published
-        ? new Date(published).getFullYear()
-        : new Date().getFullYear();
+      const published = articleDate(html);
+      const articleYear = published ? Number(published.slice(0, 4)) : null;
 
       const dates = toDates(scope, articleYear);
       const venueId = matchVenue(scope, venues);
@@ -311,14 +412,31 @@ Deno.serve(async () => {
           ? cleanTitle
           : c.title;
 
-      const notes = ['scope:og_metadata', ...(dates?.notes ?? [])];
+      const notes = [
+        body ? 'scope:article_body' : 'scope:og_metadata_fallback',
+        ...(dates?.notes ?? []),
+      ];
       if (!dates) notes.push('no_date_pattern_matched');
       if (!venueId) notes.push('venue_unmatched');
       if (tier !== 1) notes.push('image_skipped_non_tier1');
+      notes.push(
+        published ? `article_date:${published}` : 'article_date_unresolved',
+      );
 
       const foreign = scope.match(NON_SEOUL);
       const outsideSeoul = !!foreign && !SEOUL_HINT.test(scope);
       if (outsideSeoul) notes.push(`outside_seoul:${foreign[0]}`);
+
+      // An archive article describes a run that finished years ago. The
+      // newsroom tag pages carry the full back-catalogue with no cut-off, so
+      // 9 of the 21 live candidates predate 2026 and three are from 2021.
+      // Reject them here, where the publication date is actually known —
+      // scan-sources only sees the listing page and cannot tell.
+      const ageDays = published
+        ? Math.floor((Date.now() - Date.parse(published)) / 86_400_000)
+        : null;
+      const stale = ageDays !== null && ageDays > MAX_ARTICLE_AGE_DAYS;
+      if (stale) notes.push(`stale_article:${ageDays}d`);
 
       await supabase
         .from('popup_candidates')
@@ -332,10 +450,18 @@ Deno.serve(async () => {
           date_evidence: dates?.evidence ?? null,
           extract_notes: notes,
           excerpt: summary.slice(0, 300),
+          ...(stale
+            ? {
+                status: 'rejected',
+                rejected_reason: `article published ${published} — ${ageDays}d old, older than the ${MAX_ARTICLE_AGE_DAYS}d cut-off`,
+              }
+            : {}),
         })
         .eq('id', c.id);
 
-      line.status = 'ok';
+      line.status = stale ? 'rejected_stale' : 'ok';
+      line.published = published;
+      line.scope = body ? 'article_body' : 'og_metadata_fallback';
       line.dates = dates ? `${dates.start ?? '?'} → ${dates.end}` : null;
       line.evidence = dates?.evidence ?? null;
       line.venue = venueId ? venues.find((v) => v.id === venueId)?.name : null;
