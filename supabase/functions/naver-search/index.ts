@@ -8,8 +8,8 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 // Korean department-store sites are JS-rendered with no per-event page, Popply
 // included (its /popup listing yields zero per-event hrefs and its sitemap
 // lists 10 section pages). Instagram's Hashtag Search needs Meta App Review.
-// Naver is the remaining candidate and the credentials already exist here for
-// the OAuth login, so this costs nothing to answer with evidence.
+// Naver is the remaining candidate, and unlike scraping a competitor it is an
+// official, documented API with terms — which is the whole point.
 //
 // WHAT IT DOES NOT DO: it writes nothing. It reports what Naver returns so a
 // human can judge whether the quality justifies wiring it into the pipeline.
@@ -19,8 +19,18 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 // SECURITY: takes NO caller input. The queries are the fixed list below, so a
 // holder of the anon key cannot turn this into an open search proxy.
 //
-// Secrets (same Naver Developers app as naver-auth; the app must have
-// 검색 API enabled):  NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
+// PLATFORM NOTE (2026-08-04): the old free Search API on developers.naver.com
+// is gone — 검색 is no longer offered when registering an application there.
+// It moved to NAVER API HUB on Naver Cloud Platform: different host, different
+// auth headers (X-NCP-APIGW-*, not X-Naver-Client-*), and an NCP account
+// rather than a Naver Developers one. Currently free, 775,000 search calls a
+// month. naver-auth still uses developers.naver.com and is unaffected.
+//
+// Secrets (from NCP Console → NAVER API HUB → 인증정보):
+//   NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
+
+/** API HUB gateway. The old openapi.naver.com host serves the retired API. */
+const API_HUB = 'https://naverapihub.apigw.ntruss.com';
 
 const QUERIES = ['성수 팝업스토어', '홍대 팝업스토어', '강남 팝업스토어'];
 
@@ -65,13 +75,13 @@ Deno.serve(async () => {
   for (const query of QUERIES) {
     for (const corpus of CORPORA) {
       const url =
-        `https://openapi.naver.com/v1/search/${corpus}.json` +
-        `?query=${encodeURIComponent(query)}&display=${DISPLAY}&sort=date`;
+        `${API_HUB}/search/v1/${corpus}` +
+        `?query=${encodeURIComponent(query)}&display=${DISPLAY}&sort=date&format=json`;
       try {
         const res = await fetch(url, {
           headers: {
-            'X-Naver-Client-Id': id,
-            'X-Naver-Client-Secret': secret,
+            'X-NCP-APIGW-API-KEY-ID': id,
+            'X-NCP-APIGW-API-KEY': secret,
           },
         });
         const bodyText = await res.text();
