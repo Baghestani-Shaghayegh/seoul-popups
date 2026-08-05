@@ -23,6 +23,15 @@ on conflict (id) do update
   set file_size_limit = excluded.file_size_limit,
       allowed_mime_types = excluded.allowed_mime_types;
 
+-- Read policy. The bucket is public so the CDN serves files without one, but
+-- `upsert: true` makes the API check whether the object already exists, and
+-- THAT read goes through RLS. Without this the upload fails with "new row
+-- violates row-level security policy" — an error that points at the write and
+-- hides the fact that a missing read is the cause.
+drop policy if exists "avatars are readable" on storage.objects;
+create policy "avatars are readable" on storage.objects
+  for select using (bucket_id = 'avatars');
+
 drop policy if exists "users upload their own avatar" on storage.objects;
 create policy "users upload their own avatar" on storage.objects
   for insert to authenticated
