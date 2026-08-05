@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -11,7 +10,6 @@ import { SectionHeader } from '@/components/home/SectionHeader';
 import { FeatureCard } from '@/components/popups/FeatureCard';
 import { RailCard } from '@/components/popups/RailCard';
 import { ErrorState, LoadingState } from '@/components/ui/StateViews';
-import { colors } from '@/constants/theme';
 import { useCollections, type Collection } from '@/hooks/useCollections';
 import { useHomeSections } from '@/hooks/useHomeSections';
 import { formatWeekdayDate, todayIso } from '@/lib/format';
@@ -45,22 +43,6 @@ export default function HomeScreen() {
     >
       {/* Header: greeting + notification bell */}
       <HomeGreeting />
-
-      {/* Location pill */}
-      <View className="mt-3.5 flex-row px-4">
-        <Pressable
-          onPress={openDiscover}
-          style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
-          className="flex-row items-center gap-2 rounded-full border border-line-strong bg-surface py-2 pl-2 pr-3.5"
-        >
-          <View className="h-6 w-6 items-center justify-center rounded-full bg-brand-light">
-            <Ionicons name="location" size={13} color={colors.brand.DEFAULT} />
-          </View>
-          <Text className="text-[13px] font-bold text-ink">
-            Seongsu <Text className="text-faint">· Seoul ▾</Text>
-          </Text>
-        </Pressable>
-      </View>
 
       {loading ? (
         <LoadingState />
