@@ -33,7 +33,13 @@ import { pickAndUploadAvatar } from '@/lib/uploadAvatar';
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, signOut, loading: authLoading } = useAuth();
+  const {
+    user,
+    signOut,
+    loading: authLoading,
+    changePassword,
+    hasPassword,
+  } = useAuth();
   const { displayName, avatarUrl, setDisplayName, setAvatarUrl } = useProfile();
   const { favoriteIds } = useFavorites();
   const { visitedIds } = useVisited();
@@ -97,6 +103,31 @@ export default function ProfileScreen() {
     setUploading(false);
     if (saveErr) return setError(saveErr);
     setMessage('Photo updated.');
+  };
+
+  const [currentPw, setCurrentPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [pwMessage, setPwMessage] = useState<string | null>(null);
+
+  const canChangePw =
+    newPw.length >= 6 && (!hasPassword || currentPw.length > 0) && !pwSaving;
+
+  const onChangePassword = async () => {
+    if (!canChangePw) return;
+    setPwError(null);
+    setPwMessage(null);
+    setPwSaving(true);
+    const { error: e } = await changePassword(
+      hasPassword ? currentPw : null,
+      newPw,
+    );
+    setPwSaving(false);
+    if (e) return setPwError(e);
+    setCurrentPw('');
+    setNewPw('');
+    setPwMessage('Password updated.');
   };
 
   const doSignOut = async () => {
@@ -252,6 +283,67 @@ export default function ProfileScreen() {
       <View className="rounded-2xl border border-line-strong bg-surface p-4">
         <Text className="text-base text-ink">{user.email}</Text>
       </View>
+
+      {/* Password. Titled for what it actually does: an account created with
+          Google has no password until this sets one. */}
+      <Text className="mb-1.5 mt-7 text-xs font-bold uppercase tracking-wide text-muted">
+        {hasPassword ? 'Change password' : 'Set a password'}
+      </Text>
+      <View className="gap-3">
+        {hasPassword ? (
+          <TextInput
+            value={currentPw}
+            onChangeText={setCurrentPw}
+            placeholder="Current password"
+            placeholderTextColor={colors.faint}
+            secureTextEntry
+            autoCapitalize="none"
+            className="h-14 rounded-2xl border border-line-strong bg-surface px-4 text-base text-ink"
+          />
+        ) : null}
+        <TextInput
+          value={newPw}
+          onChangeText={setNewPw}
+          placeholder="New password (6+ characters)"
+          placeholderTextColor={colors.faint}
+          secureTextEntry
+          autoCapitalize="none"
+          returnKeyType="done"
+          onSubmitEditing={() => {
+            Keyboard.dismiss();
+            if (canChangePw) void onChangePassword();
+          }}
+          className="h-14 rounded-2xl border border-line-strong bg-surface px-4 text-base text-ink"
+        />
+      </View>
+      <Pressable
+        onPress={onChangePassword}
+        disabled={!canChangePw}
+        style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+        className={`mt-3 h-14 flex-row items-center justify-center rounded-2xl ${
+          canChangePw ? 'bg-brand' : 'bg-line-strong'
+        }`}
+      >
+        {pwSaving ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text
+            className={`text-base font-extrabold ${
+              canChangePw ? 'text-white' : 'text-muted'
+            }`}
+          >
+            {hasPassword ? 'Update password' : 'Set password'}
+          </Text>
+        )}
+      </Pressable>
+      {pwError ? (
+        <Text className="mt-3 text-sm font-semibold text-brand">{pwError}</Text>
+      ) : null}
+      {pwMessage ? (
+        <Text className="mt-3 text-sm font-semibold text-purple">
+          {pwMessage}
+        </Text>
+      ) : null}
 
       <Pressable
         onPress={onSignOut}

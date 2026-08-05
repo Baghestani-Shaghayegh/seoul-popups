@@ -34,6 +34,17 @@ interface AuthValue {
   requestPasswordReset: (email: string) => Promise<{ error: string | null }>;
   /** Sets a new password for the session the recovery link established. */
   updatePassword: (password: string) => Promise<{ error: string | null }>;
+  /**
+   * Changes the password of the signed-in user. `current` is verified first
+   * when they already have one; pass null for an OAuth-only account that is
+   * setting a password for the first time (see `hasPassword`).
+   */
+  changePassword: (
+    current: string | null,
+    next: string,
+  ) => Promise<{ error: string | null }>;
+  /** True when the account has an email/password identity to change. */
+  hasPassword: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -187,9 +198,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { error } = await getSupabase().auth.updateUser({ password });
         return { error: error?.message ?? null };
       },
+      changePassword: async (current, next) => {
+        if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+        const supabase = getSupabase();
+        const email = session?.user?.email;
+        // Supabase does not ask for the old password, so anyone holding an
+        // unlocked phone could change it and lock the owner out. Verify first
+        // when there is one to verify.
+        if (current !== null) {
+          if (!email) return { error: 'This account has no email address.' };
+          const { error: reauth } = await supabase.auth.signInWithPassword({
+            email,
+            password: current,
+          });
+          if (reauth) return { error: 'That current password is not right.' };
+        }
+        const { error } = await supabase.auth.updateUser({ password: next });
+        return { error: error?.message ?? null };
+      },
       signOut: async () => {
         if (isSupabaseConfigured) await getSupabase().auth.signOut();
       },
+      // An OAuth-only account has no `email` identity, so there is no current
+      // password to confirm — it is setting one, not changing one.
+      hasPassword: !!session?.user?.identities?.some(
+        (i) => i.provider === 'email',
+      ),
     }),
     [session, loading],
   );
