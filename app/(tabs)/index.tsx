@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DayStrip } from '@/components/home/DayStrip';
+import { HomeGreeting } from '@/components/home/HomeGreeting';
 import { PlanMyDayCard } from '@/components/home/PlanMyDayCard';
 import { SectionHeader } from '@/components/home/SectionHeader';
 import { FeatureCard } from '@/components/popups/FeatureCard';
@@ -43,26 +44,7 @@ export default function HomeScreen() {
       showsVerticalScrollIndicator={false}
     >
       {/* Header: greeting + notification bell */}
-      <View className="flex-row items-center justify-between px-4">
-        <View className="flex-row items-center gap-3">
-          <View className="h-11 w-11 items-center justify-center rounded-2xl bg-brand-light">
-            <Text className="text-base font-extrabold text-brand-dark">S</Text>
-          </View>
-          <View>
-            <Text className="text-lg font-extrabold text-ink">Hi, Sara</Text>
-            <Text className="text-xs text-muted">Let’s plan your day</Text>
-          </View>
-        </View>
-        <Pressable
-          onPress={() => router.push('/saved')}
-          accessibilityRole="button"
-          accessibilityLabel="Alerts and saved pop-ups"
-          style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-          className="h-11 w-11 items-center justify-center rounded-2xl border border-line-strong bg-surface"
-        >
-          <Ionicons name="notifications-outline" size={19} color={colors.ink} />
-        </Pressable>
-      </View>
+      <HomeGreeting />
 
       {/* Location pill */}
       <View className="mt-3.5 flex-row px-4">

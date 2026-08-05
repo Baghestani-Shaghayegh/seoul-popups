@@ -34,6 +34,12 @@
         {
           "locationWhenInUsePermission": "Allow Seoul Popups to use your location to show pop-ups near you."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Seoul Popups to use your photos to set your profile picture."
+        }
       ]
     ],
     "experiments": {
