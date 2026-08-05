@@ -30,6 +30,10 @@ interface AuthValue {
   ) => Promise<{ error: string | null; cancelled: boolean }>;
   /** Custom Naver flow (no native Supabase provider). */
   signInWithNaver: () => Promise<{ error: string | null; cancelled: boolean }>;
+  /** Emails a recovery link that deep-links back to /reset-password. */
+  requestPasswordReset: (email: string) => Promise<{ error: string | null }>;
+  /** Sets a new password for the session the recovery link established. */
+  updatePassword: (password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -164,6 +168,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           type: 'magiclink',
         });
         return { error: error?.message ?? null, cancelled: false };
+      },
+      requestPasswordReset: async (email) => {
+        if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+        // Supabase sends a link to its own /verify endpoint, which redirects
+        // here with a `code` the reset screen exchanges for a session. The
+        // resolved URL must be allow-listed under Authentication → URL
+        // Configuration, same as the OAuth callback.
+        const redirectTo = Linking.createURL('reset-password');
+        const { error } = await getSupabase().auth.resetPasswordForEmail(
+          email.trim(),
+          { redirectTo },
+        );
+        return { error: error?.message ?? null };
+      },
+      updatePassword: async (password) => {
+        if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+        const { error } = await getSupabase().auth.updateUser({ password });
+        return { error: error?.message ?? null };
       },
       signOut: async () => {
         if (isSupabaseConfigured) await getSupabase().auth.signOut();

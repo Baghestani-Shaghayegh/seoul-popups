@@ -44,6 +44,12 @@ export default function RootLayout() {
                       presentation: 'card',
                     }}
                   />
+                  {/* Reached by deep link from the recovery email, so it is
+                      modal like auth rather than a card you back out of. */}
+                  <Stack.Screen
+                    name="reset-password"
+                    options={{ presentation: 'modal' }}
+                  />
                   <Stack.Screen
                     name="profile"
                     options={{

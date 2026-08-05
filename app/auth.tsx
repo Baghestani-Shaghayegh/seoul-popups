@@ -23,7 +23,13 @@ type Mode = 'signin' | 'signup';
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { signIn, signUp, signInWithOAuth, signInWithNaver } = useAuth();
+  const {
+    signIn,
+    signUp,
+    signInWithOAuth,
+    signInWithNaver,
+    requestPasswordReset,
+  } = useAuth();
 
   const [mode, setMode] = useState<Mode>('signin');
   const [email, setEmail] = useState('');
@@ -75,6 +81,28 @@ export default function AuthScreen() {
         router.back();
       }
     }
+  };
+
+  /**
+   * Password recovery. Gated on a plausible email because the reset is sent to
+   * whatever is in the field — asking for it separately in a dialog would be a
+   * second place to type the same thing.
+   */
+  const forgotPassword = async () => {
+    setError(null);
+    setMessage(null);
+    if (!email.includes('@')) {
+      return setError('Enter your email address first, then tap this again.');
+    }
+    setSubmitting(true);
+    const { error: e } = await requestPasswordReset(email);
+    setSubmitting(false);
+    if (e) return setError(e);
+    // Deliberately the same wording whether or not the address has an account:
+    // a different message would let anyone test which emails are registered.
+    setMessage(
+      'If that email has an account, a reset link is on its way. Check your inbox.',
+    );
   };
 
   const finishOAuth = (result: {
@@ -160,6 +188,19 @@ export default function AuthScreen() {
               className="h-14 rounded-2xl border border-line-strong bg-surface px-4 text-base text-ink"
             />
           </View>
+
+          {mode === 'signin' ? (
+            <Pressable
+              onPress={forgotPassword}
+              disabled={submitting}
+              hitSlop={8}
+              className="mt-3 self-end"
+            >
+              <Text className="text-sm font-bold text-brand">
+                Forgot password?
+              </Text>
+            </Pressable>
+          ) : null}
 
           {error ? (
             <Text className="mt-3 text-sm font-semibold text-brand">
