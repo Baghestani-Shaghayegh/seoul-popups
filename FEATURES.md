@@ -158,6 +158,18 @@ Goal: a foreigner can discover a popup and physically get there. All read-only.
       (AsyncStorage, mirrors `useFavorites`); a "Mark as visited / Been here"
       toggle on the detail screen and a "Been there" history section on the
       Saved tab. Swaps to a per-user table when accounts land.
+- [x] **Notification inbox** _(2026-08-05)_ — `notify-ending-soon` was sending
+      real pushes and storing nothing, so a dismissed banner was gone forever.
+      Migration 019 adds a `notifications` table (own-rows RLS, read + mark-read
+      only; the service role writes) and the sender now records every push it
+      sends. A bell in the home header shows an unread dot and opens
+      `/notifications`; opening the inbox marks everything read. A unique index
+      on `(user_id, popup_id, kind)` stops the scheduled run re-notifying the
+      same pop-up daily. Guests never see the bell — a notification is about
+      your own saved pop-ups. **Note:** a bell was removed earlier the same day
+      because it just re-opened Saved; it came back only once there was an
+      inbox behind it. Next kinds worth adding: a saved pop-up opening today,
+      and a new pop-up in a neighbourhood you follow.
 - [~] **Share** _(popups done 2026-07-22)_ — share button on the detail header
       opens the native share sheet with a self-contained blurb (name, dates,
       hours, subway directions, link). Itinerary sharing still to do (with Plan

@@ -8,10 +8,16 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 const EXPO_PUSH = 'https://exp.host/--/api/v2/push/send';
 
 interface Target {
+  user_id: string;
+  popup_id: string;
   token: string;
   popup_name: string;
   end_date: string;
 }
+
+const title = 'Ending soon 👀';
+const bodyFor = (name: string) =>
+  `${name} wraps up soon — catch it before it's gone.`;
 
 Deno.serve(async () => {
   const supabase = createClient(
@@ -30,10 +36,37 @@ Deno.serve(async () => {
   }
 
   const targets = (data ?? []) as Target[];
+
+  // Record before sending. A push is gone the moment it is dismissed, so the
+  // row is what the in-app inbox reads; writing it first means a delivery
+  // failure still leaves the user something to find. The unique index on
+  // (user_id, popup_id, kind) makes repeat runs a no-op rather than a flood,
+  // so `stored` counts genuinely NEW notifications.
+  let stored = 0;
+  if (targets.length) {
+    const { data: inserted, error: insertErr } = await supabase
+      .from('notifications')
+      .upsert(
+        targets.map((t) => ({
+          user_id: t.user_id,
+          popup_id: t.popup_id,
+          kind: 'ending_soon',
+          title,
+          body: bodyFor(t.popup_name),
+        })),
+        { onConflict: 'user_id,popup_id,kind', ignoreDuplicates: true },
+      )
+      .select('id');
+    if (insertErr) {
+      return json({ error: `storing notifications: ${insertErr.message}` }, 500);
+    }
+    stored = inserted?.length ?? 0;
+  }
+
   const messages = targets.map((t) => ({
     to: t.token,
-    title: 'Ending soon 👀',
-    body: `${t.popup_name} wraps up soon — catch it before it's gone.`,
+    title,
+    body: bodyFor(t.popup_name),
     sound: 'default',
   }));
 
@@ -49,7 +82,12 @@ Deno.serve(async () => {
     if (res.ok) sent += batch.length;
   }
 
-  return new Response(JSON.stringify({ targets: targets.length, sent }), {
+  return json({ targets: targets.length, stored, sent });
+});
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
     headers: { 'Content-Type': 'application/json' },
   });
-});
+}
