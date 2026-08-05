@@ -1,14 +1,27 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
+import Svg, { Circle, Path } from 'react-native-svg';
 
-/** One almond "mgn eye": cream almond, pink iris, dark pupil. */
-function Eye() {
+/**
+ * The pair of "mgn eyes".
+ *
+ * Path and geometry are lifted verbatim from the source design
+ * (`app for sara/mgn-radar.html`, the `.heart` svg in the hero). An almond is
+ * two quadratic curves meeting at a point on each side — React Native's
+ * borderRadius cannot express that, and the previous approximation
+ * (`rounded-full` on a 64×36 box) rendered them as capsules with no points at
+ * all. Hence react-native-svg.
+ */
+function Eyes({ height = 96 }: { height?: number }) {
   return (
-    <View className="h-9 w-16 items-center justify-center rounded-full bg-[#F3E9D6]">
-      <View className="h-6 w-6 items-center justify-center rounded-full bg-brand">
-        <View className="h-3.5 w-3.5 rounded-full bg-[#141018]" />
-      </View>
-    </View>
+    <Svg width={(height * 68) / 102} height={height} viewBox="0 0 68 102">
+      <Path d="M2 26 Q34 4 66 26 Q34 48 2 26 Z" fill="#F3E9D6" />
+      <Circle cx="34" cy="26" r="11.5" fill="#EE5D8C" />
+      <Circle cx="34" cy="26" r="7.4" fill="#141018" />
+      <Path d="M2 76 Q34 54 66 76 Q34 98 2 76 Z" fill="#F3E9D6" />
+      <Circle cx="34" cy="76" r="11.5" fill="#EE5D8C" />
+      <Circle cx="34" cy="76" r="7.4" fill="#141018" />
+    </Svg>
   );
 }
 
@@ -44,9 +57,8 @@ export function PlanMyDayCard({ eyebrow, onPress }: PlanMyDayCardProps) {
           </View>
         </View>
       </View>
-      <View className="gap-3 pr-1" aria-hidden>
-        <Eye />
-        <Eye />
+      <View className="pr-1" aria-hidden>
+        <Eyes />
       </View>
     </Pressable>
   );
