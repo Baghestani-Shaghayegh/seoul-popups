@@ -1,9 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/ui/Avatar';
-import { colors } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -50,16 +48,6 @@ export function HomeGreeting() {
             {isGuest ? 'Sign in to sync your day' : 'Let’s plan your day'}
           </Text>
         </View>
-      </Pressable>
-
-      <Pressable
-        onPress={() => router.push('/saved')}
-        accessibilityRole="button"
-        accessibilityLabel="Alerts and saved pop-ups"
-        style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-        className="h-11 w-11 items-center justify-center rounded-2xl border border-line-strong bg-surface"
-      >
-        <Ionicons name="notifications-outline" size={19} color={colors.ink} />
       </Pressable>
     </View>
   );
