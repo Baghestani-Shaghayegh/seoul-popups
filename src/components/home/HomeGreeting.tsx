@@ -16,12 +16,9 @@ import { useProfile } from '@/hooks/useProfile';
  * their email local part, and anyone with a profile gets their own name and
  * photo.
  *
- * Everyone lands on /profile, guests included. Sending guests straight to
- * /auth instead was tempting — they have no email, avatar or sign-out — but
- * this is the ONLY route to /profile, so it made the whole guest half of the
- * feature unreachable: the nickname field, its local storage, and the
- * merge-up-on-sign-in rule could never run. My Page is worth a guest's time
- * anyway (nickname, saved/visited counts) and carries its own sign-in CTA.
+ * Guests go to /auth, not /profile: My Page is for people with an account.
+ * The guest half of the profile (a local nickname, merged up on sign-in) was
+ * built and then removed rather than left unreachable — see the screen.
  */
 export function HomeGreeting() {
   const router = useRouter();
@@ -32,9 +29,9 @@ export function HomeGreeting() {
   return (
     <View className="flex-row items-center justify-between px-4">
       <Pressable
-        onPress={() => router.push('/profile')}
+        onPress={() => router.push(isGuest ? '/auth' : '/profile')}
         accessibilityRole="button"
-        accessibilityLabel="Your profile"
+        accessibilityLabel={isGuest ? 'Sign in' : 'Your profile'}
         style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
         className="flex-row items-center gap-3"
       >
@@ -46,12 +43,8 @@ export function HomeGreeting() {
           guest={isGuest}
         />
         <View>
-          {/* A guest who has set a nickname must see it — otherwise saving one
-              changes nothing on screen and the field looks broken. */}
           <Text className="text-lg font-extrabold text-ink">
-            {isGuest && !displayName?.trim()
-              ? 'Hi there'
-              : `Hi, ${greetingName}`}
+            {isGuest ? 'Hi there' : `Hi, ${greetingName}`}
           </Text>
           <Text className="text-xs text-muted">
             {isGuest ? 'Sign in to sync your day' : 'Let’s plan your day'}

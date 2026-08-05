@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -34,7 +33,7 @@ import { pickAndUploadAvatar } from '@/lib/uploadAvatar';
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const { displayName, avatarUrl, setDisplayName, setAvatarUrl } = useProfile();
   const { favoriteIds } = useFavorites();
   const { visitedIds } = useVisited();
@@ -54,7 +53,15 @@ export default function ProfileScreen() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  const isGuest = !user;
+  // My Page is for people with an account. The header already sends guests to
+  // /auth, but guard the screen too so a deep link or a sign-out while it is
+  // open cannot leave someone looking at an empty profile. `authLoading`
+  // matters: `user` is null while the stored session is being restored, and
+  // redirecting then would bounce a signed-in user to the sign-in sheet.
+  useEffect(() => {
+    if (!authLoading && !user) router.replace('/auth');
+  }, [authLoading, user, router]);
+
   // Counted against the loaded catalogue, matching saved.tsx — a raw id count
   // would include saves whose pop-up is gone, so this screen would disagree
   // with the Saved tab and read as a bug.
@@ -120,6 +127,11 @@ export default function ProfileScreen() {
     ]);
   };
 
+  // Nothing to show without an account; the effect above is already sending
+  // them to /auth. Rendering the signed-in layout with empty values first
+  // would flash a blank profile on the way there.
+  if (!user) return <View className="flex-1 bg-bg" />;
+
   return (
     <ScrollView
       className="flex-1 bg-bg"
@@ -135,26 +147,23 @@ export default function ProfileScreen() {
         <Avatar
           uri={avatarUrl}
           name={displayName}
-          email={user?.email}
+          email={user.email}
           size={96}
           rounded="full"
-          guest={isGuest}
         />
-        {!isGuest && (
-          <Pressable
-            onPress={onChangePhoto}
-            disabled={uploading}
-            hitSlop={8}
-            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-            className="mt-3 h-6 justify-center"
-          >
-            {uploading ? (
-              <ActivityIndicator color={colors.brand.DEFAULT} />
-            ) : (
-              <Text className="text-sm font-bold text-brand">Change photo</Text>
-            )}
-          </Pressable>
-        )}
+        <Pressable
+          onPress={onChangePhoto}
+          disabled={uploading}
+          hitSlop={8}
+          style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+          className="mt-3 h-6 justify-center"
+        >
+          {uploading ? (
+            <ActivityIndicator color={colors.brand.DEFAULT} />
+          ) : (
+            <Text className="text-sm font-bold text-brand">Change photo</Text>
+          )}
+        </Pressable>
       </View>
 
       {/* Display name */}
@@ -237,48 +246,20 @@ export default function ProfileScreen() {
       </View>
 
       {/* Account */}
-      {isGuest ? (
-        <Pressable
-          onPress={() => router.push('/auth')}
-          style={({ pressed }) => ({ opacity: pressed ? 0.92 : 1 })}
-          className="mt-7 flex-row items-center justify-between rounded-2xl bg-purple-light p-3.5"
-        >
-          <View className="flex-row items-center gap-2.5">
-            <Ionicons
-              name="person-circle-outline"
-              size={22}
-              color={colors.purple.DEFAULT}
-            />
-            <Text className="text-sm font-bold text-ink">
-              Sign in to sync your saves
-            </Text>
-          </View>
-          <Ionicons
-            name="chevron-forward"
-            size={18}
-            color={colors.purple.DEFAULT}
-          />
-        </Pressable>
-      ) : (
-        <>
-          <Text className="mb-1.5 mt-7 text-xs font-bold uppercase tracking-wide text-muted">
-            Email
-          </Text>
-          <View className="rounded-2xl border border-line-strong bg-surface p-4">
-            <Text className="text-base text-ink">{user.email}</Text>
-          </View>
+      <Text className="mb-1.5 mt-7 text-xs font-bold uppercase tracking-wide text-muted">
+        Email
+      </Text>
+      <View className="rounded-2xl border border-line-strong bg-surface p-4">
+        <Text className="text-base text-ink">{user.email}</Text>
+      </View>
 
-          <Pressable
-            onPress={onSignOut}
-            style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
-            className="mt-7 h-14 items-center justify-center rounded-2xl border border-line-strong bg-surface"
-          >
-            <Text className="text-base font-extrabold text-brand">
-              Sign out
-            </Text>
-          </Pressable>
-        </>
-      )}
+      <Pressable
+        onPress={onSignOut}
+        style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+        className="mt-7 h-14 items-center justify-center rounded-2xl border border-line-strong bg-surface"
+      >
+        <Text className="text-base font-extrabold text-brand">Sign out</Text>
+      </Pressable>
     </ScrollView>
   );
 }
