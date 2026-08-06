@@ -233,6 +233,9 @@ export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
         initialRegion={initialRegion}
         showsUserLocation={showUser}
         showsMyLocationButton={false}
+        // The compass sat over the route sheet and rotated into view on any
+        // stray two-finger twist; there is nothing here that needs a heading.
+        showsCompass={false}
         // room for the search bar (top) and the nearby sheet (bottom)
         mapPadding={{ top: 80, right: 0, bottom: 220, left: 0 }}
       >
