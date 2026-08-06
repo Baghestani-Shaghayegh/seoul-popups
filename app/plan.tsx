@@ -24,7 +24,6 @@ import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useNeighborhoodCounts } from '@/hooks/useNeighborhoodCounts';
 import { usePopups } from '@/hooks/usePopups';
 import { useUserLocation } from '@/hooks/useUserLocation';
-import { useWalkingRoute } from '@/hooks/useWalkingRoute';
 import { buildRoute, totalWalkMinutes, type RouteStop } from '@/lib/route';
 import { formatWeekdayDate, todayIso } from '@/lib/format';
 import { colors } from '@/constants/theme';
@@ -105,10 +104,13 @@ export default function PlanScreen() {
     setFocusedId(null);
   };
 
-  // Enhances `route` with real walking legs + a road-following polyline when a
-  // routing key is configured; falls back to the straight-line v1 estimates
-  // otherwise. Hooks can't be conditional, so this runs every render.
-  const enhanced = useWalkingRoute(route ?? []);
+  // Straight-line estimates from buildRoute are all there is, by geography
+  // rather than by choice: Google cannot serve walking directions in South
+  // Korea (the Spatial Information Management Act blocks the map data leaving
+  // the country), so the Directions API it used to call could never have
+  // improved on this. Real turn-by-turn is the Naver/Kakao hand-off in
+  // src/lib/directions.ts, which is what people here actually use.
+  const stops = route ?? [];
 
   const onLocate = async () => {
     const c = await locate();
@@ -126,12 +128,12 @@ export default function PlanScreen() {
     if (!route) return;
     const lines = [
       `My Seoul Popups day · ${formatWeekdayDate(date)}`,
-      `${selectedAreas.join(' → ')} · ${enhanced.stops.length} stops`,
+      `${selectedAreas.join(' → ')} · ${stops.length} stops`,
       '',
       // A list of names is not a plan — whoever opens this needs to be able to
       // GET there. Every stop carries the station, exit and hours we already
       // hold, so the message is enough to act on without the app.
-      ...enhanced.stops.flatMap((s, i) => {
+      ...stops.flatMap((s, i) => {
         const p = s.popup;
         const lines: string[] = [];
         if (s.startsNewArea) lines.push(`🚇 Subway to ${p.neighborhood}`);
@@ -146,7 +148,7 @@ export default function PlanScreen() {
         return lines;
       }),
       '',
-      `~${totalWalkMinutes(enhanced.stops)} min walking between stops`,
+      `~${totalWalkMinutes(stops)} min walking between stops`,
       'Planned on Seoul Popups',
     ];
     try {
@@ -158,24 +160,17 @@ export default function PlanScreen() {
 
   // ---- Route results view ----
   if (route && route.length > 0) {
-    const totalWalk = totalWalkMinutes(enhanced.stops);
-    const first = enhanced.stops[0].popup;
+    const totalWalk = totalWalkMinutes(stops);
+    const first = stops[0].popup;
     const stopOrder = Object.fromEntries(
-      enhanced.stops.map((s, i) => [s.popup.id, i + 1]),
+      stops.map((s, i) => [s.popup.id, i + 1]),
     );
-    // Always draw a route line: the real road-following polyline once live
-    // directions load, otherwise a straight-line fallback between the stops
-    // (dashed, so it reads as an estimate rather than an actual path).
-    const liveCoords =
-      enhanced.polyline && enhanced.polyline.length > 1
-        ? enhanced.polyline
-        : null;
-    const fallbackCoords = enhanced.stops.map((s) => ({
+    // Dashed always: this line connects the stops, it is not the path you
+    // walk, and nothing available here can make it one.
+    const mapRouteCoords = stops.map((s) => ({
       latitude: s.popup.latitude,
       longitude: s.popup.longitude,
     }));
-    const mapRouteCoords = liveCoords ?? fallbackCoords;
-    const routeDashed = !enhanced.live;
 
     return (
       <View
@@ -186,12 +181,12 @@ export default function PlanScreen() {
             pins; tapping a pin focuses it (centers + highlights its row). */}
         <PopupMapView
           ref={mapRef}
-          popups={enhanced.stops.map((s) => s.popup)}
+          popups={stops.map((s) => s.popup)}
           selectedId={focusedId}
           onSelect={setFocusedId}
           showUser={permission === 'granted'}
           routeCoords={mapRouteCoords}
-          routeDashed={routeDashed}
+          routeDashed
           stopOrder={stopOrder}
         />
 
@@ -328,8 +323,8 @@ export default function PlanScreen() {
                 </View>
 
                 {/* Timeline of stops */}
-                {enhanced.stops.map((stop, i) => {
-                  const isLast = i === enhanced.stops.length - 1;
+                {stops.map((stop, i) => {
+                  const isLast = i === stops.length - 1;
                   const focused = stop.popup.id === focusedId;
                   return (
                     <View key={stop.popup.id} className="flex-row">
@@ -381,7 +376,7 @@ export default function PlanScreen() {
                         </Pressable>
 
                         {!isLast &&
-                          (enhanced.stops[i + 1].startsNewArea ? (
+                          (stops[i + 1].startsNewArea ? (
                             // Areas are kilometres apart — showing this leg as
                             // a walk would claim a two-hour stroll across Seoul.
                             <View className="mt-2 flex-row items-center gap-1.5">
@@ -391,10 +386,8 @@ export default function PlanScreen() {
                                 color={colors.purple.DEFAULT}
                               />
                               <Text className="text-xs font-bold text-purple">
-                                Subway to{' '}
-                                {enhanced.stops[i + 1].popup.neighborhood} ·{' '}
-                                {enhanced.stops[i + 1].popup.subway.station}{' '}
-                                Station
+                                Subway to {stops[i + 1].popup.neighborhood} ·{' '}
+                                {stops[i + 1].popup.subway.station} Station
                               </Text>
                             </View>
                           ) : (
@@ -405,8 +398,7 @@ export default function PlanScreen() {
                                 color={colors.muted}
                               />
                               <Text className="text-xs text-muted">
-                                ~{enhanced.stops[i + 1].walkFromPrevMin} min
-                                walk
+                                ~{stops[i + 1].walkFromPrevMin} min walk
                               </Text>
                             </View>
                           ))}
@@ -416,11 +408,8 @@ export default function PlanScreen() {
                 })}
 
                 <Text className="mb-4 mt-1 text-center text-xs text-muted">
-                  {enhanced.loading
-                    ? 'Fetching live walking directions…'
-                    : enhanced.live
-                      ? 'Live walking times from Google Directions.'
-                      : 'Estimated walking times (straight-line).'}
+                  Straight-line estimates · tap a stop for Naver or Kakao
+                  directions
                 </Text>
 
                 <Pressable
