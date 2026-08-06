@@ -19,6 +19,7 @@ import {
 import { usePopups } from '@/hooks/usePopups';
 import { colors } from '@/constants/theme';
 import { DATE_PRESETS, presetToRange, type DatePreset } from '@/lib/dateRanges';
+import { formatShortDate } from '@/lib/format';
 import { STATUS_OPTIONS, type PopupStatus } from '@/lib/popupStatus';
 import {
   CATEGORIES,
@@ -45,9 +46,12 @@ export default function DiscoverScreen() {
   // Route params are validated before use (they can arrive via deep links)
   // and cleared once consumed — this tab stays mounted, so a later tap on a
   // Home area card / search bar updates params on the existing screen.
-  const { neighborhood, focus } = useLocalSearchParams<{
+  const { neighborhood, focus, date } = useLocalSearchParams<{
     neighborhood?: string;
     focus?: string;
+    /** ISO day from Home's "Pick a day" rail — an exact-day filter, which no
+     *  preset can express. */
+    date?: string;
   }>();
   const paramNeighborhood = NEIGHBORHOODS.includes(neighborhood as Neighborhood)
     ? (neighborhood as Neighborhood)
@@ -77,11 +81,33 @@ export default function DiscoverScreen() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [statuses, setStatuses] = useState<PopupStatus[]>([]);
   const [datePreset, setDatePreset] = useState<DatePreset>('anytime');
+  // A single day chosen on Home. Held apart from datePreset because the
+  // presets are relative ("This weekend") and cannot name an arbitrary date.
+  const [dayIso, setDayIso] = useState<string | null>(null);
   const [sort, setSort] = useState<SortKey>('newest');
   const [query, setQuery] = useState('');
   const [openSheet, setOpenSheet] = useState<SheetName | null>(null);
 
-  const dateRange = useMemo(() => presetToRange(datePreset), [datePreset]);
+  // Consume the param once, the same way `focus` is handled: this tab stays
+  // mounted, so leaving it set would re-apply the day on every later visit.
+  //
+  // useFocusEffect, not useEffect: arriving by deep link runs a plain effect
+  // on the first render, and setParams then throws "Attempted to navigate
+  // before mounting the Root Layout component". Focus fires after the
+  // navigator exists.
+  useFocusEffect(
+    useCallback(() => {
+      if (!date) return;
+      setDayIso(date);
+      setDatePreset('anytime');
+      router.setParams({ date: '' });
+    }, [date, router]),
+  );
+
+  const dateRange = useMemo(
+    () => (dayIso ? { start: dayIso, end: dayIso } : presetToRange(datePreset)),
+    [dayIso, datePreset],
+  );
   const { popups, loading, error, reload } = usePopups({
     neighborhoods,
     categories,
@@ -130,6 +156,7 @@ export default function DiscoverScreen() {
     categories.length > 0 ||
     statuses.length > 0 ||
     datePreset !== 'anytime' ||
+    dayIso !== null ||
     query !== '';
 
   const clearFilters = () => {
@@ -137,11 +164,13 @@ export default function DiscoverScreen() {
     setCategories([]);
     setStatuses([]);
     setDatePreset('anytime');
+    setDayIso(null);
     setQuery('');
   };
 
-  const periodLabel =
-    DATE_PRESETS.find((p) => p.key === datePreset)?.label ?? 'All';
+  const periodLabel = dayIso
+    ? formatShortDate(dayIso)
+    : (DATE_PRESETS.find((p) => p.key === datePreset)?.label ?? 'All');
   const sortLabel = SORT_OPTIONS.find((o) => o.key === sort)?.label ?? 'Newest';
 
   const neighborhoodOptions: FilterOption<Neighborhood>[] = NEIGHBORHOODS.map(
@@ -325,8 +354,11 @@ export default function DiscoverScreen() {
         visible={openSheet === 'period'}
         title="Period"
         options={DATE_PRESETS}
-        selectedKey={datePreset}
-        onSelect={setDatePreset}
+        selectedKey={dayIso ? 'anytime' : datePreset}
+        onSelect={(k) => {
+          setDayIso(null);
+          setDatePreset(k);
+        }}
         onClose={() => setOpenSheet(null)}
       />
       <FilterSheet
