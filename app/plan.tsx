@@ -125,18 +125,28 @@ export default function PlanScreen() {
   const shareItinerary = async () => {
     if (!route) return;
     const lines = [
-      `My Seoul Popups day — ${selectedAreas.join(' & ')}, ${formatWeekdayDate(date)}`,
-      ...enhanced.stops.map((s, i) => {
-        // A new-area stop has no walk from the previous one; saying
-        // "(0 min walk)" would read as if they were next door.
-        const leg = s.startsNewArea
-          ? ` (subway to ${s.popup.neighborhood})`
-          : i > 0
-            ? ` (${s.walkFromPrevMin} min walk)`
-            : '';
-        return `${i + 1}. ${s.popup.name}${leg}`;
+      `My Seoul Popups day · ${formatWeekdayDate(date)}`,
+      `${selectedAreas.join(' → ')} · ${enhanced.stops.length} stops`,
+      '',
+      // A list of names is not a plan — whoever opens this needs to be able to
+      // GET there. Every stop carries the station, exit and hours we already
+      // hold, so the message is enough to act on without the app.
+      ...enhanced.stops.flatMap((s, i) => {
+        const p = s.popup;
+        const lines: string[] = [];
+        if (s.startsNewArea) lines.push(`🚇 Subway to ${p.neighborhood}`);
+        lines.push(`${i + 1}. ${p.name}`);
+
+        const exit = p.subway.exit ? ` Exit ${p.subway.exit}` : '';
+        const where =
+          i > 0 && !s.startsNewArea
+            ? `${s.walkFromPrevMin} min walk`
+            : `${p.subway.station} Stn${exit}`;
+        lines.push(`   ${[where, p.hours].filter(Boolean).join(' · ')}`);
+        return lines;
       }),
-      `${enhanced.stops.length} stops · ~${totalWalkMinutes(enhanced.stops)} min walking total`,
+      '',
+      `~${totalWalkMinutes(enhanced.stops)} min walking between stops`,
       'Planned on Seoul Popups',
     ];
     try {
