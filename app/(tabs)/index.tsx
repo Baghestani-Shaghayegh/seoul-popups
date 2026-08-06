@@ -30,8 +30,6 @@ export default function HomeScreen() {
   const openPopup = (id: string) =>
     router.push({ pathname: '/popup/[id]', params: { id } });
 
-  const openDiscover = () => router.push('/discover');
-
   const dayPicksTitle =
     selectedDay === todayIso()
       ? 'Happening today'
@@ -116,7 +114,17 @@ export default function HomeScreen() {
 
           {/* Pop-ups on the selected day */}
           <View className="mt-4">
-            <SectionHeader title={dayPicksTitle} onSeeAll={openDiscover} />
+            {/* Carries the chosen day through, so "See all" continues the same
+                list instead of resetting to the whole catalogue. */}
+            <SectionHeader
+              title={dayPicksTitle}
+              onSeeAll={() =>
+                router.push({
+                  pathname: '/discover',
+                  params: { date: selectedDay },
+                })
+              }
+            />
             {dayPicks.length > 0 ? (
               <ScrollView
                 horizontal
