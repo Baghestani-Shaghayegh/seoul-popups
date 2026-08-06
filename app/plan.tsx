@@ -51,19 +51,30 @@ export default function PlanScreen() {
 
   const isToday = date === todayIso();
 
-  // Popups running on the chosen date in the chosen area.
-  const { popups } = usePopups({
-    neighborhoods: neighborhood ? [neighborhood] : [],
+  // Everything running that day, across all areas. Fetching only the current
+  // area would drop selections made elsewhere the moment you switched.
+  const { popups: dayPopups } = usePopups({
     dateRange: { start: date, end: date },
   });
   const areaPopups = useMemo(
-    () => (neighborhood ? popups : []),
-    [neighborhood, popups],
+    () =>
+      neighborhood
+        ? dayPopups.filter((p) => p.neighborhood === neighborhood)
+        : [],
+    [neighborhood, dayPopups],
   );
 
+  // Resolved against the whole day, so a Seongsu pick survives switching to
+  // Hongdae — buildRoute walks within each area and marks the hop between.
   const selectedPopups = useMemo(
-    () => areaPopups.filter((p) => selectedIds.includes(p.id)),
-    [areaPopups, selectedIds],
+    () => dayPopups.filter((p) => selectedIds.includes(p.id)),
+    [dayPopups, selectedIds],
+  );
+
+  /** Areas the current selection spans, in the order they were picked. */
+  const selectedAreas = useMemo(
+    () => [...new Set(selectedPopups.map((p) => p.neighborhood))],
+    [selectedPopups],
   );
 
   const pickDate = (d: string) => {
@@ -72,9 +83,10 @@ export default function PlanScreen() {
     setRoute(null);
   };
 
+  // Deliberately keeps selectedIds: switching areas is how you build a day
+  // that spans two neighbourhoods. Only the route is invalidated.
   const pickNeighborhood = (n: Neighborhood) => {
     setNeighborhood(n);
-    setSelectedIds([]);
     setRoute(null);
   };
 
@@ -113,12 +125,17 @@ export default function PlanScreen() {
   const shareItinerary = async () => {
     if (!route) return;
     const lines = [
-      `My Seoul Popups day — ${neighborhood}, ${formatWeekdayDate(date)}`,
-      ...enhanced.stops.map(
-        (s, i) =>
-          `${i + 1}. ${s.popup.name}` +
-          (i > 0 ? ` (${s.walkFromPrevMin} min walk)` : ''),
-      ),
+      `My Seoul Popups day — ${selectedAreas.join(' & ')}, ${formatWeekdayDate(date)}`,
+      ...enhanced.stops.map((s, i) => {
+        // A new-area stop has no walk from the previous one; saying
+        // "(0 min walk)" would read as if they were next door.
+        const leg = s.startsNewArea
+          ? ` (subway to ${s.popup.neighborhood})`
+          : i > 0
+            ? ` (${s.walkFromPrevMin} min walk)`
+            : '';
+        return `${i + 1}. ${s.popup.name}${leg}`;
+      }),
       `${enhanced.stops.length} stops · ~${totalWalkMinutes(enhanced.stops)} min walking total`,
       'Planned on Seoul Popups',
     ];
@@ -236,7 +253,8 @@ export default function PlanScreen() {
                 <View className="mx-4 mb-3 flex-row items-center justify-between rounded-2xl bg-purple p-4">
                   <View className="flex-1">
                     <Text className="text-xs font-semibold uppercase tracking-wide text-[#D8CBFF]">
-                      Your day in {neighborhood} · {formatWeekdayDate(date)}
+                      Your day in {selectedAreas.join(' & ')} ·{' '}
+                      {formatWeekdayDate(date)}
                     </Text>
                     <Text className="mt-1 text-xl font-extrabold text-white">
                       {route.length} stops · ~{totalWalk} min walking
@@ -328,18 +346,36 @@ export default function PlanScreen() {
                           />
                         </Pressable>
 
-                        {!isLast && (
-                          <View className="mt-2 flex-row items-center gap-1.5">
-                            <Ionicons
-                              name="walk"
-                              size={15}
-                              color={colors.muted}
-                            />
-                            <Text className="text-xs text-muted">
-                              ~{enhanced.stops[i + 1].walkFromPrevMin} min walk
-                            </Text>
-                          </View>
-                        )}
+                        {!isLast &&
+                          (enhanced.stops[i + 1].startsNewArea ? (
+                            // Areas are kilometres apart — showing this leg as
+                            // a walk would claim a two-hour stroll across Seoul.
+                            <View className="mt-2 flex-row items-center gap-1.5">
+                              <Ionicons
+                                name="subway"
+                                size={15}
+                                color={colors.purple.DEFAULT}
+                              />
+                              <Text className="text-xs font-bold text-purple">
+                                Subway to{' '}
+                                {enhanced.stops[i + 1].popup.neighborhood} ·{' '}
+                                {enhanced.stops[i + 1].popup.subway.station}{' '}
+                                Station
+                              </Text>
+                            </View>
+                          ) : (
+                            <View className="mt-2 flex-row items-center gap-1.5">
+                              <Ionicons
+                                name="walk"
+                                size={15}
+                                color={colors.muted}
+                              />
+                              <Text className="text-xs text-muted">
+                                ~{enhanced.stops[i + 1].walkFromPrevMin} min
+                                walk
+                              </Text>
+                            </View>
+                          ))}
                       </View>
                     </View>
                   );
@@ -375,8 +411,9 @@ export default function PlanScreen() {
     <View className="flex-1 bg-bg">
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
         <Text className="text-base text-ink">
-          Pick a day and area, choose the pop-ups you want to visit, and we’ll
-          order them into a walking route.
+          Pick a day, choose the pop-ups you want to visit, and we’ll order them
+          into a route. Switch areas to add more — we’ll walk you round each one
+          and put a subway hop in between.
         </Text>
 
         {/* 1. Date */}
@@ -433,7 +470,11 @@ export default function PlanScreen() {
         {neighborhood && (
           <>
             <Text className="mb-2 mt-5 text-sm font-bold text-ink">
-              3. Choose pop-ups ({selectedIds.length} selected)
+              3. Choose pop-ups ({selectedIds.length} selected
+              {selectedAreas.length > 1
+                ? ` across ${selectedAreas.length} areas`
+                : ''}
+              )
             </Text>
             {areaPopups.length === 0 ? (
               // An empty area is expected, not an error — say what to do next
