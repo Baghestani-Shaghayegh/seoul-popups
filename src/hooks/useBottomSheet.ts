@@ -12,6 +12,14 @@ export interface BottomSheet {
   sheetHeight: number;
   /** Report the measured height of the always-visible peek (handle + summary). */
   setPeekHeight: (h: number) => void;
+  /**
+   * Snap between fully open and fully collapsed. Dragging worked, but the
+   * handle was the only way to do it and a 5px bar is not an obvious grab
+   * target — a tap is what people try first when they want the map back.
+   */
+  toggle: () => void;
+  /** True while the sheet is far enough down to count as closed. */
+  collapsed: boolean;
 }
 
 /**
@@ -29,6 +37,7 @@ export function useBottomSheet(
   topRatio = 0.24,
 ): BottomSheet {
   const [peekHeight, setPeekHeight] = useState(0);
+  const [collapsed, setCollapsed] = useState(false);
 
   const y = useRef(new Animated.Value(0)).current;
   const yVal = useRef(0); // latest value of `y`, for gesture math
@@ -41,9 +50,27 @@ export function useBottomSheet(
   useEffect(() => {
     const id = y.addListener(({ value }) => {
       yVal.current = value;
+      const { collapsed: c } = snaps.current;
+      // Halfway down counts as closed, so a chevron/label can follow the drag
+      // rather than only the snap.
+      if (c) setCollapsed(value > c / 2);
     });
     return () => y.removeListener(id);
   }, [y]);
+
+  const springTo = (target: number) =>
+    Animated.spring(y, {
+      toValue: target,
+      useNativeDriver: false,
+      bounciness: 0,
+      speed: 16,
+    }).start();
+
+  const toggle = () => {
+    const { expanded, collapsed: c } = snaps.current;
+    if (!c) return;
+    springTo(yVal.current > c / 2 ? expanded : c);
+  };
 
   // Recompute snap points whenever the geometry is known. Starts expanded
   // (y = 0), so nothing needs to be forced into place.
@@ -106,5 +133,7 @@ export function useBottomSheet(
     expandedTop,
     sheetHeight,
     setPeekHeight,
+    toggle,
+    collapsed,
   };
 }

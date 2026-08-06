@@ -249,7 +249,31 @@ export default function PlanScreen() {
                   sheet.setPeekHeight(e.nativeEvent.layout.height)
                 }
               >
-                <View className="my-2.5 h-[5px] w-10 self-center rounded-full bg-line-strong" />
+                {/* Tap target around the handle. The bar alone is 5px tall —
+                    fine to look at, far too small to aim at. */}
+                <Pressable
+                  onPress={sheet.toggle}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    sheet.collapsed
+                      ? 'Show the stop list'
+                      : 'Hide the stop list'
+                  }
+                  hitSlop={10}
+                  className="items-center py-2.5"
+                >
+                  <View className="h-[5px] w-10 rounded-full bg-line-strong" />
+                  <View className="mt-1 flex-row items-center gap-1">
+                    <Ionicons
+                      name={sheet.collapsed ? 'chevron-up' : 'chevron-down'}
+                      size={13}
+                      color={colors.faint}
+                    />
+                    <Text className="text-[11px] font-semibold text-faint">
+                      {sheet.collapsed ? 'Show stops' : 'Hide for map'}
+                    </Text>
+                  </View>
+                </Pressable>
                 <View className="mx-4 mb-3 flex-row items-center justify-between rounded-2xl bg-purple p-4">
                   <View className="flex-1">
                     <Text className="text-xs font-semibold uppercase tracking-wide text-[#D8CBFF]">
