@@ -46,12 +46,19 @@ export default function DiscoverScreen() {
   // Route params are validated before use (they can arrive via deep links)
   // and cleared once consumed — this tab stays mounted, so a later tap on a
   // Home area card / search bar updates params on the existing screen.
-  const { neighborhood, focus, date } = useLocalSearchParams<{
+  const {
+    neighborhood,
+    focus,
+    date,
+    sort: sortParam,
+  } = useLocalSearchParams<{
     neighborhood?: string;
     focus?: string;
     /** ISO day from Home's "Pick a day" rail — an exact-day filter, which no
      *  preset can express. */
     date?: string;
+    /** Sort key from Home's "Ending soon" rail. */
+    sort?: string;
   }>();
   const paramNeighborhood = NEIGHBORHOODS.includes(neighborhood as Neighborhood)
     ? (neighborhood as Neighborhood)
@@ -102,6 +109,17 @@ export default function DiscoverScreen() {
       setDatePreset('anytime');
       router.setParams({ date: '' });
     }, [date, router]),
+  );
+
+  // Same one-shot handling for the sort arriving from Home's "Ending soon".
+  useFocusEffect(
+    useCallback(() => {
+      if (!sortParam) return;
+      if (SORT_OPTIONS.some((o) => o.key === sortParam)) {
+        setSort(sortParam as SortKey);
+      }
+      router.setParams({ sort: '' });
+    }, [sortParam, router]),
   );
 
   const dateRange = useMemo(

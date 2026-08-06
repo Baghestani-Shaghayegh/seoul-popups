@@ -149,10 +149,17 @@ export default function HomeScreen() {
           {/* Ending soon */}
           {endingSoon.length > 0 && (
             <View className="mt-5">
+              {/* Was "Saved", which went to the Saved tab — a different idea
+                  entirely, and already a tab in the bar. "See all" continues
+                  this list: everything still running, soonest to end first. */}
               <SectionHeader
                 title="Ending soon"
-                actionLabel="Saved"
-                onSeeAll={() => router.push('/saved')}
+                onSeeAll={() =>
+                  router.push({
+                    pathname: '/discover',
+                    params: { sort: 'ending' },
+                  })
+                }
               />
               <ScrollView
                 horizontal
