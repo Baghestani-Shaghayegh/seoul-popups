@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { CollectionCard } from '@/components/home/CollectionCard';
 import { DayStrip } from '@/components/home/DayStrip';
 import { HomeGreeting } from '@/components/home/HomeGreeting';
 import { PlanMyDayCard } from '@/components/home/PlanMyDayCard';
@@ -10,8 +11,9 @@ import { SectionHeader } from '@/components/home/SectionHeader';
 import { FeatureCard } from '@/components/popups/FeatureCard';
 import { RailCard } from '@/components/popups/RailCard';
 import { ErrorState, LoadingState } from '@/components/ui/StateViews';
-import { useCollections, type Collection } from '@/hooks/useCollections';
+import { useCollections } from '@/hooks/useCollections';
 import { useHomeSections } from '@/hooks/useHomeSections';
+import { usePopups } from '@/hooks/usePopups';
 import { formatWeekdayDate, todayIso } from '@/lib/format';
 
 export default function HomeScreen() {
@@ -21,6 +23,9 @@ export default function HomeScreen() {
   const { liveCount, featured, dayPicks, endingSoon, loading, error, reload } =
     useHomeSections(selectedDay);
   const { collections } = useCollections();
+  // Shared module-level cache, already warm from useHomeSections — the
+  // collection cards resolve their own popup ids against it.
+  const { popups } = usePopups({});
 
   const openPopup = (id: string) =>
     router.push({ pathname: '/popup/[id]', params: { id } });
@@ -90,6 +95,7 @@ export default function HomeScreen() {
                   <CollectionCard
                     key={c.id}
                     collection={c}
+                    popups={popups}
                     onPress={() =>
                       router.push({
                         pathname: '/collection/[id]',
@@ -158,38 +164,5 @@ export default function HomeScreen() {
         </>
       )}
     </ScrollView>
-  );
-}
-
-function CollectionCard({
-  collection,
-  onPress,
-}: {
-  collection: Collection;
-  onPress: () => void;
-}) {
-  const count = collection.popupIds.length;
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => ({ opacity: pressed ? 0.92 : 1 })}
-      className="w-60 rounded-3xl bg-purple-light p-4"
-    >
-      <Text className="text-3xl">{collection.emoji ?? '✨'}</Text>
-      <Text
-        className="mt-2 text-base font-extrabold text-ink"
-        numberOfLines={1}
-      >
-        {collection.title}
-      </Text>
-      {collection.subtitle ? (
-        <Text className="mt-0.5 text-xs text-muted" numberOfLines={2}>
-          {collection.subtitle}
-        </Text>
-      ) : null}
-      <Text className="mt-2 text-[11px] font-bold text-purple">
-        {count} {count === 1 ? 'spot' : 'spots'} →
-      </Text>
-    </Pressable>
   );
 }
