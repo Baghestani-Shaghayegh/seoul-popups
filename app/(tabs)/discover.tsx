@@ -166,7 +166,7 @@ export default function DiscoverScreen() {
               ? 'Couldn’t load pop-ups'
               : `${sorted.length} ${
                   sorted.length === 1 ? 'pop-up' : 'pop-ups'
-                } happening near you`}
+                } in Seoul`}
         </Text>
       </View>
 

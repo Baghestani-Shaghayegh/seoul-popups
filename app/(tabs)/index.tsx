@@ -53,7 +53,12 @@ export default function HomeScreen() {
           {/* Plan my day hero */}
           <View className="mt-3.5">
             <PlanMyDayCard
-              eyebrow={`${liveCount} picks near you today`}
+              // "near you" would be a lie: liveCount is every published pop-up
+              // running today, with no distance filter — the Map screen is the
+              // only place that knows where you are.
+              eyebrow={`${liveCount} ${
+                liveCount === 1 ? 'pop-up' : 'pop-ups'
+              } happening today`}
               onPress={() => router.push('/plan')}
             />
           </View>

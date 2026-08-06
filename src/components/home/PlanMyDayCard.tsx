@@ -26,7 +26,7 @@ function Eyes({ height = 96 }: { height?: number }) {
 }
 
 interface PlanMyDayCardProps {
-  /** e.g. "6 picks near you today" */
+  /** e.g. "9 pop-ups happening today" */
   eyebrow: string;
   onPress?: () => void;
 }
