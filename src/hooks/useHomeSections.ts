@@ -5,9 +5,6 @@ import { isActiveOn, isActiveToday, isEndingSoon } from '@/lib/popupStatus';
 import type { Popup } from '@/types/popup';
 
 const RAIL_LIMIT = 6;
-// "Ending soon" should mean actually soon — a pop-up with weeks left isn't
-// urgent. Two weeks is the window; the rail hides itself when nothing qualifies.
-const ENDING_SOON_DAYS = 14;
 
 export interface HomeSections {
   liveCount: number;
@@ -39,7 +36,8 @@ export function useHomeSections(
       .slice(0, RAIL_LIMIT);
 
     const endingSoon = live
-      .filter((p) => isEndingSoon(p, ENDING_SOON_DAYS))
+      // Window lives in popupStatus so Home and Saved agree.
+      .filter((p) => isEndingSoon(p))
       .sort((a, b) => a.endDate.localeCompare(b.endDate))
       .slice(0, RAIL_LIMIT);
 

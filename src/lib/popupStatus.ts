@@ -36,8 +36,19 @@ export function isUpcoming(
   return popup.startDate > fromIso;
 }
 
+/**
+ * How near the end counts as "ending soon" in the UI.
+ *
+ * One constant because the phrase appeared with three different meanings:
+ * Home said 14 days, the Saved tab 7, and the push notification 3 — so a
+ * pop-up could be labelled "ending soon" on one screen and not the other.
+ * Push deliberately stays tighter (3 days, in notify-ending-soon): a label
+ * can be generous, an alert that interrupts you should not be.
+ */
+export const ENDING_SOON_DAYS = 7;
+
 /** True if the popup is running and ends within `days`. */
-export function isEndingSoon(popup: Popup, days = 7): boolean {
+export function isEndingSoon(popup: Popup, days = ENDING_SOON_DAYS): boolean {
   const left = daysUntilEnd(popup);
   return isActiveToday(popup) && left >= 0 && left <= days;
 }
