@@ -51,10 +51,16 @@ export default function NotificationsScreen() {
 
   // Opening the inbox IS reading it, so clear the badge on arrival rather than
   // making the user tap each row.
+  //
+  // Order matters: mark read FIRST and wait for it, then refetch. Firing both
+  // together let the read land before the write committed, so the refetch
+  // returned still-unread rows and put the dot straight back.
   useEffect(() => {
     if (!user) return;
-    reload();
-    markAllRead();
+    void (async () => {
+      await markAllRead();
+      reload();
+    })();
     // Only on mount: re-running when `notifications` changes would loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);

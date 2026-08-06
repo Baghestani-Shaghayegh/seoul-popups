@@ -26,7 +26,8 @@ interface NotificationsValue {
   loading: boolean;
   /** Re-reads from the server — used when the inbox is opened. */
   reload: () => void;
-  markAllRead: () => void;
+  /** Awaitable so callers can refetch only once the write has landed. */
+  markAllRead: () => Promise<void>;
 }
 
 const NotificationsContext = createContext<NotificationsValue | null>(null);
@@ -100,16 +101,18 @@ export function NotificationsProvider({
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
 
-  const markAllRead = useCallback(() => {
+  const markAllRead = useCallback(async () => {
     if (!userId || !isSupabaseConfigured) return;
     const now = new Date().toISOString();
     // Optimistic: the badge should clear the moment the inbox is opened.
-    // A failed write only means it reappears on the next load, which is a far
-    // smaller annoyance than a badge that lags behind what you have read.
     setNotifications((prev) =>
       prev.map((n) => (n.readAt ? n : { ...n, readAt: now })),
     );
-    void getSupabase()
+    // Awaited, and that matters: a supabase-js builder is a PromiseLike, not a
+    // Promise — it only sends the request from inside `then()`. `void builder`
+    // built this update and threw it away without ever calling the server, so
+    // read_at stayed null and the dot came back on every reload.
+    await getSupabase()
       .from('notifications')
       .update({ read_at: now })
       .eq('user_id', userId)

@@ -73,20 +73,29 @@ export function useSyncedIdSet(storageKey: string, table: string): SyncedIdSet {
 
       if (userId && isSupabaseConfigured) {
         const supabase = getSupabase();
-        if (has) {
-          void supabase
-            .from(table)
-            .delete()
-            .eq('user_id', userId)
-            .eq('popup_id', id);
-        } else {
-          void supabase
-            .from(table)
-            .upsert(
-              { user_id: userId, popup_id: id },
-              { onConflict: 'user_id,popup_id', ignoreDuplicates: true },
-            );
-        }
+        // The `await` is not optional, and this is the trap it fixes: a
+        // supabase-js query builder is a PromiseLike, not a Promise. It only
+        // issues the HTTP request from inside `then()`, so `void builder`
+        // constructs the query and discards it WITHOUT ever sending it —
+        // silently, with no error to notice. Every save and un-save made
+        // while signed in was lost this way; the only rows that reached
+        // `user_favorites` came from the awaited merge-up above.
+        void (async () => {
+          if (has) {
+            await supabase
+              .from(table)
+              .delete()
+              .eq('user_id', userId)
+              .eq('popup_id', id);
+          } else {
+            await supabase
+              .from(table)
+              .upsert(
+                { user_id: userId, popup_id: id },
+                { onConflict: 'user_id,popup_id', ignoreDuplicates: true },
+              );
+          }
+        })();
       } else {
         void AsyncStorage.setItem(storageKey, JSON.stringify(next));
       }
