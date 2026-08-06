@@ -46,6 +46,10 @@ export interface Popup {
    *  use (CONTENT.md §4) — the UI renders a branded card instead. */
   imageUrl?: string;
 
+  /** Hand-picked Home hero. At most one pop-up has this (migration 020);
+   *  when none does, Home falls back to the one ending soonest. */
+  featured: boolean;
+
   /** ISO date strings (YYYY-MM-DD). */
   startDate: string;
   endDate: string;

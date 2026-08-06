@@ -176,6 +176,30 @@ works like a spreadsheet, one row per popup. No code, no anon-key writes
 (RLS blocks those; see SECURITY.md §2). Prefer drafting many at once? Keep a
 Google Sheet with the §3 columns and use the Table Editor's CSV import.
 
+### Picking the Feature (weekly, ~30 seconds)
+
+The Home screen's biggest card is a hand-picked hero: tick `featured` on one
+`popups` row in the Table Editor. It is the one slot on Home where your taste
+shows — every other section there is a date filter. Before this it was
+automatic, which quietly meant "ends soonest" and showed the same pop-up as
+the "Ending soon" rail right below it.
+
+What makes a good pick:
+
+- **It has a real photo.** This is the largest card in the app; a house card
+  there looks broken.
+- **It still has a run left.** Featuring something that ends in two days
+  wastes the slot — prefer a couple of weeks or more.
+- **The name lands.** Something people react to (Gucci, Demon Slayer) beats
+  something niche, however good it is.
+- **It changed since last week.** A returning user should see something new.
+
+The database enforces the rest: at most one row can be `featured`
+(`popups_one_featured`), and it must be published and not yet ended
+(`popups_featured_must_be_current`) — a second tick fails loudly rather than
+letting the app pick one at random. Tick nothing and Home falls back to the
+pop-up ending soonest, so it is never empty.
+
 Weekly maintenance (same session as the scan):
 
 - Re-check `source_url` for popups still listed — extensions and early

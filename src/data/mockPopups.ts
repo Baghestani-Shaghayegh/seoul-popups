@@ -15,6 +15,7 @@ export const MOCK_POPUPS: Popup[] = [
     category: 'Beauty',
     imageUrl:
       'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&q=80',
+    featured: false,
     startDate: '2026-06-01',
     endDate: '2026-07-15',
     hours: '11:00 – 20:00',
@@ -33,6 +34,7 @@ export const MOCK_POPUPS: Popup[] = [
     category: 'Fashion',
     imageUrl:
       'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&q=80',
+    featured: false,
     startDate: '2026-06-10',
     endDate: '2026-08-01',
     hours: '12:00 – 21:00',
@@ -56,6 +58,7 @@ export const MOCK_POPUPS: Popup[] = [
     category: 'Fashion',
     imageUrl:
       'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80',
+    featured: false,
     startDate: '2026-05-20',
     endDate: '2026-06-30',
     hours: '10:30 – 22:00',
@@ -79,6 +82,7 @@ export const MOCK_POPUPS: Popup[] = [
     category: 'Fashion',
     imageUrl:
       'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80',
+    featured: false,
     startDate: '2026-06-15',
     endDate: '2026-09-01',
     hours: '11:00 – 21:00',
@@ -97,6 +101,7 @@ export const MOCK_POPUPS: Popup[] = [
     category: 'Beauty',
     imageUrl:
       'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&q=80',
+    featured: false,
     startDate: '2026-06-05',
     endDate: '2026-07-20',
     hours: '10:00 – 22:00',
@@ -120,6 +125,7 @@ export const MOCK_POPUPS: Popup[] = [
     category: 'Food',
     imageUrl:
       'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&q=80',
+    featured: false,
     startDate: '2026-06-01',
     endDate: '2026-07-31',
     hours: '11:00 – 21:00',
@@ -138,6 +144,7 @@ export const MOCK_POPUPS: Popup[] = [
     category: 'Lifestyle',
     imageUrl:
       'https://images.unsplash.com/photo-1558877385-8c1b8e6e6d3a?w=800&q=80',
+    featured: false,
     startDate: '2026-06-12',
     endDate: '2026-08-15',
     hours: '11:00 – 20:00',
@@ -161,6 +168,7 @@ export const MOCK_POPUPS: Popup[] = [
     category: 'Art',
     imageUrl:
       'https://images.unsplash.com/photo-1545989253-02cc26577f88?w=800&q=80',
+    featured: false,
     startDate: '2026-07-05',
     endDate: '2026-08-10',
     hours: '10:00 – 20:00',
@@ -184,6 +192,7 @@ export const MOCK_POPUPS: Popup[] = [
     category: 'Lifestyle',
     imageUrl:
       'https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=800&q=80',
+    featured: false,
     startDate: '2026-05-01',
     endDate: '2026-06-15',
     hours: '11:00 – 20:00',

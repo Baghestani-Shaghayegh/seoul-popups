@@ -45,7 +45,11 @@ export function useHomeSections(
 
     return {
       liveCount: live.length,
-      featured: live[0] ?? null,
+      // The hand-picked hero (migration 020 allows at most one), falling back
+      // to the pop-up ending soonest so Home is never without one. That
+      // fallback WAS the whole feature — which made "Feature" a second copy of
+      // the "Ending soon" rail below it, chosen by nobody.
+      featured: live.find((p) => p.featured) ?? live[0] ?? null,
       dayPicks,
       endingSoon,
     };

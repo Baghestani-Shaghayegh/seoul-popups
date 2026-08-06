@@ -51,7 +51,7 @@ interface UsePopupResult {
  * deliberately omitted; add them here when a screen needs them.
  */
 const POPUP_COLUMNS =
-  'id,name,tagline,description,neighborhood,category,image_url,' +
+  'id,name,tagline,description,neighborhood,category,image_url,featured,' +
   'start_date,end_date,hours,' +
   'subway_line,subway_station,subway_exit,subway_walk_minutes,' +
   'latitude,longitude,reservable,instagram_url,website_url,reservation_url';
@@ -65,6 +65,7 @@ interface PopupRow {
   neighborhood: Neighborhood;
   category: Category;
   image_url: string | null;
+  featured: boolean | null;
   start_date: string;
   end_date: string;
   hours: string | null;
@@ -90,6 +91,7 @@ function rowToPopup(row: PopupRow): Popup {
     neighborhood: row.neighborhood,
     category: row.category,
     imageUrl: row.image_url ?? undefined,
+    featured: row.featured ?? false,
     startDate: row.start_date,
     endDate: row.end_date,
     hours: row.hours ?? undefined,

@@ -66,7 +66,10 @@ export default function HomeScreen() {
           {/* Feature */}
           {featured && (
             <View className="mt-5">
-              <SectionHeader title="Feature" onSeeAll={openDiscover} />
+              {/* No "See all": this is one hand-picked pop-up, so there is no
+                  set of features to see. It used to push to Discover, which
+                  the rails below already do. */}
+              <SectionHeader title="Feature" />
               <FeatureCard
                 popup={featured}
                 onPress={() => openPopup(featured.id)}
