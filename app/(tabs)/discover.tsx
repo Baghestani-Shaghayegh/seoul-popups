@@ -8,6 +8,7 @@ import {
   Pressable,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -211,99 +212,112 @@ export default function DiscoverScreen() {
 
   return (
     <View className="flex-1 bg-bg" style={{ paddingTop: insets.top }}>
-      {/* Header */}
-      <View className="px-4 pb-2 pt-2">
-        <Text className="text-3xl font-extrabold text-ink">Discover</Text>
-        <Text className="mt-0.5 text-sm text-muted">
-          {loading
-            ? 'Finding pop-ups…'
-            : error
-              ? 'Couldn’t load pop-ups'
-              : `${sorted.length} ${
-                  sorted.length === 1 ? 'pop-up' : 'pop-ups'
-                } in Seoul`}
-        </Text>
-      </View>
+      {/* Tapping the title, the chips or any gap between them dismisses the
+          search keyboard. It cannot wrap the FlatList too: the list needs
+          keyboardShouldPersistTaps so the first tap on a card opens it rather
+          than being spent closing the keyboard. Scrolling covers the list. */}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View>
+          {/* Header */}
+          <View className="px-4 pb-2 pt-2">
+            <Text className="text-3xl font-extrabold text-ink">Discover</Text>
+            <Text className="mt-0.5 text-sm text-muted">
+              {loading
+                ? 'Finding pop-ups…'
+                : error
+                  ? 'Couldn’t load pop-ups'
+                  : `${sorted.length} ${
+                      sorted.length === 1 ? 'pop-up' : 'pop-ups'
+                    } in Seoul`}
+            </Text>
+          </View>
 
-      {/* Search */}
-      <View className="mx-4 mb-3 h-14 flex-row items-center gap-2.5 rounded-2xl border border-line-strong bg-surface px-4 shadow-sm">
-        <Ionicons name="search" size={20} color={colors.muted} />
-        <TextInput
-          ref={searchRef}
-          value={query}
-          onChangeText={setQuery}
-          placeholder="Search pop-ups, brands…"
-          placeholderTextColor={colors.muted}
-          className="h-full flex-1 text-base text-ink"
-          returnKeyType="search"
-          // Explicit, so the Search key closes the keyboard even on an empty
-          // result list where there is nothing to scroll.
-          onSubmitEditing={Keyboard.dismiss}
-        />
-        {query.length > 0 && (
-          <Pressable onPress={() => setQuery('')}>
-            <Ionicons name="close-circle" size={20} color={colors.muted} />
-          </Pressable>
-        )}
-      </View>
+          {/* Search */}
+          <View className="mx-4 mb-3 h-14 flex-row items-center gap-2.5 rounded-2xl border border-line-strong bg-surface px-4 shadow-sm">
+            <Ionicons name="search" size={20} color={colors.muted} />
+            <TextInput
+              ref={searchRef}
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Search pop-ups, brands…"
+              placeholderTextColor={colors.muted}
+              className="h-full flex-1 text-base text-ink"
+              returnKeyType="search"
+              // Explicit, so the Search key closes the keyboard even on an empty
+              // result list where there is nothing to scroll.
+              onSubmitEditing={Keyboard.dismiss}
+            />
+            {query.length > 0 && (
+              <Pressable onPress={() => setQuery('')}>
+                <Ionicons name="close-circle" size={20} color={colors.muted} />
+              </Pressable>
+            )}
+          </View>
 
-      {/* Multi-select filter buttons */}
-      <View className="flex-row flex-wrap items-center gap-2 px-4">
-        <FilterButton
-          label="Location"
-          count={neighborhoods.length}
-          open={openSheet === 'location'}
-          onPress={() => setOpenSheet('location')}
-        />
-        <FilterButton
-          label="Category"
-          count={categories.length}
-          open={openSheet === 'category'}
-          onPress={() => setOpenSheet('category')}
-        />
-        <FilterButton
-          label="Status"
-          count={statuses.length}
-          open={openSheet === 'status'}
-          onPress={() => setOpenSheet('status')}
-        />
-        {filtersActive && (
-          <Pressable
-            onPress={clearFilters}
-            accessibilityRole="button"
-            accessibilityLabel="Clear all filters"
-            hitSlop={6}
-            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-            className="ml-auto flex-row items-center gap-1 py-2"
-          >
-            <Ionicons name="close-circle" size={16} color={colors.muted} />
-            <Text className="text-sm font-semibold text-muted">Clear all</Text>
-          </Pressable>
-        )}
-      </View>
+          {/* Multi-select filter buttons */}
+          <View className="flex-row flex-wrap items-center gap-2 px-4">
+            <FilterButton
+              label="Location"
+              count={neighborhoods.length}
+              open={openSheet === 'location'}
+              onPress={() => setOpenSheet('location')}
+            />
+            <FilterButton
+              label="Category"
+              count={categories.length}
+              open={openSheet === 'category'}
+              onPress={() => setOpenSheet('category')}
+            />
+            <FilterButton
+              label="Status"
+              count={statuses.length}
+              open={openSheet === 'status'}
+              onPress={() => setOpenSheet('status')}
+            />
+            {filtersActive && (
+              <Pressable
+                onPress={clearFilters}
+                accessibilityRole="button"
+                accessibilityLabel="Clear all filters"
+                hitSlop={6}
+                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                className="ml-auto flex-row items-center gap-1 py-2"
+              >
+                <Ionicons name="close-circle" size={16} color={colors.muted} />
+                <Text className="text-sm font-semibold text-muted">
+                  Clear all
+                </Text>
+              </Pressable>
+            )}
+          </View>
 
-      {/* Period (left) + Sort (right) */}
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <Pressable
-          onPress={() => setOpenSheet('period')}
-          style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-          className="flex-row items-center gap-1 rounded-lg bg-well px-3 py-1.5"
-        >
-          <Text className="text-sm text-ink">Period: {periodLabel}</Text>
-          <Ionicons name="chevron-down" size={14} color={colors.muted} />
-        </Pressable>
+          {/* Period (left) + Sort (right) */}
+          <View className="flex-row items-center justify-between px-4 py-3">
+            <Pressable
+              onPress={() => setOpenSheet('period')}
+              style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+              className="flex-row items-center gap-1 rounded-lg bg-well px-3 py-1.5"
+            >
+              <Text className="text-sm text-ink">Period: {periodLabel}</Text>
+              <Ionicons name="chevron-down" size={14} color={colors.muted} />
+            </Pressable>
 
-        <Pressable
-          onPress={() => setOpenSheet('sort')}
-          style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-          className="flex-row items-center gap-1"
-        >
-          <Text className="text-sm font-semibold text-ink">{sortLabel}</Text>
-          <Ionicons name="chevron-down" size={16} color={colors.ink} />
-        </Pressable>
-      </View>
+            <Pressable
+              onPress={() => setOpenSheet('sort')}
+              style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+              className="flex-row items-center gap-1"
+            >
+              <Text className="text-sm font-semibold text-ink">
+                {sortLabel}
+              </Text>
+              <Ionicons name="chevron-down" size={16} color={colors.ink} />
+            </Pressable>
+          </View>
 
-      {/* Results grid */}
+          {/* Results grid */}
+        </View>
+      </TouchableWithoutFeedback>
+
       <FlatList
         data={sorted}
         keyExtractor={(item) => item.id}
