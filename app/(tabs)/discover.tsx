@@ -1,7 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  FlatList,
+  Keyboard,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FilterButton } from '@/components/popups/FilterButton';
@@ -228,6 +236,9 @@ export default function DiscoverScreen() {
           placeholderTextColor={colors.muted}
           className="h-full flex-1 text-base text-ink"
           returnKeyType="search"
+          // Explicit, so the Search key closes the keyboard even on an empty
+          // result list where there is nothing to scroll.
+          onSubmitEditing={Keyboard.dismiss}
         />
         {query.length > 0 && (
           <Pressable onPress={() => setQuery('')}>
@@ -301,6 +312,10 @@ export default function DiscoverScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        // Without this the search keyboard had no exit: the screen is a list,
+        // so scrolling it is the natural way to put the keyboard away.
+        // "interactive" follows the finger on iOS; Android dismisses on drag.
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
         renderItem={({ item }) => (
           <View className="mb-4 w-[48%]">
             <RailCard
