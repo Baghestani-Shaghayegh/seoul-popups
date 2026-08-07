@@ -25,8 +25,8 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const API_HUB = 'https://naverapihub.apigw.ntruss.com';
 const UA = 'SeoulPopupsBot/1.0 (+discovery; date hints)';
-const MAX_CANDIDATES = 25;
-const MAX_POSTS_PER_CANDIDATE = 3;
+const MAX_CANDIDATES = 40;
+const MAX_POSTS_PER_CANDIDATE = 5;
 const POLITE_DELAY_MS = 700;
 
 /**
@@ -94,6 +94,11 @@ Deno.serve(async () => {
     .select('id, title, detected_dates, extracted_start')
     .eq('status', 'new')
     .is('extracted_start', null)
+    // Highest score first. The first run spent 8 of 25 slots on LCDC and
+    // Shinsegae rows — they also lack dates, but their own articles carry them,
+    // so blog search adds nothing and starves the candidates that need it.
+    // Naver 지역 rows score 7 (category + neighbourhood + pin) and sort above.
+    .order('score', { ascending: false })
     .limit(MAX_CANDIDATES);
   if (error) return json({ ok: false, error: error.message }, 500);
 
