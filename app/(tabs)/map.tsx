@@ -60,6 +60,11 @@ export default function MapScreen() {
   const railRef = useRef<ScrollView>(null);
   const mapRef = useRef<PopupMapHandle>(null);
 
+  // The locate button sits just above the nearby sheet, whose height varies
+  // with its content (loading / error / empty / rail). Measure it rather than
+  // hardcoding an offset, with an estimate for the first frame.
+  const [sheetHeight, setSheetHeight] = useState(insets.bottom + 232);
+
   const onLocate = async () => {
     const c = await locate();
     if (c) {
@@ -93,27 +98,29 @@ export default function MapScreen() {
         showUser={permission === 'granted'}
       />
 
-      {/* Locate me */}
-      <Pressable
-        onPress={onLocate}
-        style={({ pressed }) => ({
-          opacity: pressed ? 0.9 : 1,
-          top: insets.top + 68,
-        })}
-        accessibilityRole="button"
-        accessibilityLabel="Find pop-ups near me"
-        className="absolute right-4 h-12 w-12 items-center justify-center rounded-2xl border border-line-strong bg-surface shadow-sm"
-      >
-        {locating ? (
-          <ActivityIndicator size="small" color={colors.brand.DEFAULT} />
-        ) : (
-          <Ionicons
-            name="locate"
-            size={20}
-            color={permission === 'granted' ? colors.brand.DEFAULT : colors.ink}
-          />
-        )}
-      </Pressable>
+      {/* Locate me — the offset lives on this wrapper because a Pressable's
+          function style is dropped by NativeWind on web. */}
+      <View className="absolute right-4" style={{ bottom: sheetHeight + 12 }}>
+        <Pressable
+          onPress={onLocate}
+          style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+          accessibilityRole="button"
+          accessibilityLabel="Find pop-ups near me"
+          className="h-12 w-12 items-center justify-center rounded-2xl border border-line-strong bg-surface shadow-sm"
+        >
+          {locating ? (
+            <ActivityIndicator size="small" color={colors.brand.DEFAULT} />
+          ) : (
+            <Ionicons
+              name="locate"
+              size={20}
+              color={
+                permission === 'granted' ? colors.brand.DEFAULT : colors.ink
+              }
+            />
+          )}
+        </Pressable>
+      </View>
 
       {/* Search this area */}
       <View
@@ -141,6 +148,7 @@ export default function MapScreen() {
       <View
         className="absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-line-strong bg-surface pt-2.5"
         style={{ paddingBottom: insets.bottom + 96 }}
+        onLayout={(e) => setSheetHeight(e.nativeEvent.layout.height)}
       >
         <View className="mb-3 h-[5px] w-10 self-center rounded-full bg-line-strong" />
         <View className="mb-3 flex-row items-baseline justify-between px-4">
