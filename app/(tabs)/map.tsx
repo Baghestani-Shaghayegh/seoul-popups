@@ -236,9 +236,18 @@ export default function MapScreen() {
           <Text className="text-base font-extrabold text-ink">
             {headerLabel}
           </Text>
-          <Pressable onPress={() => router.push('/discover')} hitSlop={8}>
-            <Text className="text-xs font-bold text-brand">List view</Text>
-          </Pressable>
+          <View className="flex-row items-baseline gap-3.5">
+            {/* Without this, panning away from a searched area shows an empty
+                map with no obvious way back to the full set. */}
+            {searchedArea && (
+              <Pressable onPress={() => setSearchedArea(null)} hitSlop={8}>
+                <Text className="text-xs font-bold text-muted">Clear area</Text>
+              </Pressable>
+            )}
+            <Pressable onPress={() => router.push('/discover')} hitSlop={8}>
+              <Text className="text-xs font-bold text-brand">List view</Text>
+            </Pressable>
+          </View>
         </View>
         {loading ? (
           <View className="flex-row items-center gap-2 px-4 py-6">
@@ -253,11 +262,24 @@ export default function MapScreen() {
             </Pressable>
           </View>
         ) : nearby.length === 0 ? (
-          <Text className="px-4 py-6 text-sm text-muted">
-            {searchedArea || categories.length
-              ? 'No pop-ups match here. Try another area or category.'
-              : 'No pop-ups nearby right now.'}
-          </Text>
+          <View className="flex-row items-center justify-between px-4 py-6">
+            <Text className="flex-1 text-sm text-muted">
+              {searchedArea || categories.length
+                ? 'No pop-ups match here.'
+                : 'No pop-ups nearby right now.'}
+            </Text>
+            {(searchedArea || categories.length > 0) && (
+              <Pressable
+                onPress={() => {
+                  setSearchedArea(null);
+                  setCategories([]);
+                }}
+                hitSlop={8}
+              >
+                <Text className="text-sm font-bold text-brand">Show all</Text>
+              </Pressable>
+            )}
+          </View>
         ) : (
           <ScrollView
             ref={railRef}
