@@ -13,7 +13,7 @@ import type { PopupMapHandle, PopupMapViewProps } from './PopupMapView';
  */
 export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
   function PopupMapView(_props, ref) {
-    useImperativeHandle(ref, () => ({ centerOn() {} }), []);
+    useImperativeHandle(ref, () => ({ centerOn() {}, fitToPopups() {} }), []);
     return (
       <View style={StyleSheet.absoluteFill} className="bg-[#DCEBFC]">
         <View className="absolute -left-10 top-24 h-40 w-56 rounded-full bg-[#D8F1E6]" />

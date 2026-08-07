@@ -131,6 +131,19 @@ export default function MapScreen() {
     }
   };
 
+  // Re-frame the map when the category filter changes. The pins change but the
+  // camera doesn't, so filtering while zoomed into one neighbourhood left the
+  // matches elsewhere off-screen — two Food pop-ups, one visible. Deliberately
+  // not tied to searchedArea: there the user just chose the view themselves.
+  const filterSettled = useRef(false);
+  useEffect(() => {
+    if (!filterSettled.current) {
+      filterSettled.current = true;
+      return;
+    }
+    mapRef.current?.fitToPopups();
+  }, [categories]);
+
   // When a pin is selected, bring its card to the front of the rail.
   useEffect(() => {
     if (!selectedId) return;

@@ -220,6 +220,10 @@ export interface PopupMapViewProps {
 /** Imperative handle so the screen can recenter the map on "near me". */
 export interface PopupMapHandle {
   centerOn: (coords: UserCoords) => void;
+  /** Re-frame the map around the current pop-ups. The screen calls this when
+   *  it changes what's on the map (e.g. a filter), since the one-time auto-fit
+   *  deliberately won't fire again. */
+  fitToPopups: () => void;
 }
 
 /**
@@ -264,16 +268,6 @@ export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
       mapRef.current?.animateToRegion(region, duration);
     }, []);
 
-    useImperativeHandle(
-      ref,
-      () => ({
-        centerOn(coords) {
-          animate({ ...coords, latitudeDelta: 0.02, longitudeDelta: 0.02 });
-        },
-      }),
-      [animate],
-    );
-
     // Frame all popups once. An animateToRegion too soon after mount is
     // dropped natively, and onMapReady isn't reliably called on iOS / Apple
     // Maps — the old fix was a blind 500ms timer, which still lost the race
@@ -282,8 +276,8 @@ export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
     // the timer kept as a fallback for the case where the map settles before
     // the popups have loaded. The ref guard keeps it to a single fit so it
     // never fights the user's panning; re-planning remounts the map.
-    const fitOnce = useCallback(() => {
-      if (didAutoFit.current || popups.length === 0) return;
+    const fitToPopups = useCallback(() => {
+      if (popups.length === 0) return;
       didAutoFit.current = true;
 
       // fitToCoordinates rather than a computed region: the popups spread
@@ -318,6 +312,22 @@ export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
         },
       );
     }, [popups, animate]);
+
+    const fitOnce = useCallback(() => {
+      if (didAutoFit.current) return;
+      fitToPopups();
+    }, [fitToPopups]);
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        centerOn(coords) {
+          animate({ ...coords, latitudeDelta: 0.02, longitudeDelta: 0.02 });
+        },
+        fitToPopups,
+      }),
+      [animate, fitToPopups],
+    );
 
     useEffect(() => {
       if (didAutoFit.current || popups.length === 0) return;
