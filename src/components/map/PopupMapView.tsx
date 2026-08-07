@@ -212,20 +212,52 @@ export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
       [animate],
     );
 
-    // Frame all popups once. We wait a beat rather than firing immediately (or
-    // in onMapReady, which iOS / Apple Maps doesn't reliably call): an
-    // animateToRegion right after mount is dropped natively, which left the map
-    // zoomed out to the whole city on open. The ref guard keeps it to a single
-    // fit so it never fights the user's panning; re-planning remounts the map.
+    // Frame all popups once. An animateToRegion too soon after mount is
+    // dropped natively, and onMapReady isn't reliably called on iOS / Apple
+    // Maps — the old fix was a blind 500ms timer, which still lost the race
+    // and left the map zoomed out over the whole city on open. A settled
+    // region report is proof the map is live, so fit from there instead, with
+    // the timer kept as a fallback for the case where the map settles before
+    // the popups have loaded. The ref guard keeps it to a single fit so it
+    // never fights the user's panning; re-planning remounts the map.
+    const fitOnce = useCallback(() => {
+      if (didAutoFit.current || popups.length === 0) return;
+      didAutoFit.current = true;
+
+      // fitToCoordinates rather than a computed region: the popups spread
+      // east-west (Hongdae to Seongsu) while the phone is tall and narrow, and
+      // setting that wide region makes iOS expand the north-south span to match
+      // the viewport's aspect — which zoomed out to the whole metro area and
+      // left every pin a speck. fitToCoordinates does the aspect maths itself.
+      // A single (or co-located) popup has no span to fit and would slam the
+      // camera to street level, so that case keeps the floored region.
+      const spread =
+        Math.max(...popups.map((p) => p.latitude)) -
+          Math.min(...popups.map((p) => p.latitude)) +
+        (Math.max(...popups.map((p) => p.longitude)) -
+          Math.min(...popups.map((p) => p.longitude)));
+      if (spread < 0.005) {
+        animate(regionForPopups(popups));
+        return;
+      }
+
+      settledAt.current = Date.now() + 750;
+      mapRef.current?.fitToCoordinates(
+        popups.map((p) => ({ latitude: p.latitude, longitude: p.longitude })),
+        {
+          // mapPadding already reserves the search / sheet chrome, so this is
+          // just breathing room so edge pins aren't flush to the bezel.
+          edgePadding: { top: 48, right: 48, bottom: 48, left: 48 },
+          animated: true,
+        },
+      );
+    }, [popups, animate]);
+
     useEffect(() => {
       if (didAutoFit.current || popups.length === 0) return;
-      const region = regionForPopups(popups);
-      const t = setTimeout(() => {
-        didAutoFit.current = true;
-        animate(region);
-      }, 500);
+      const t = setTimeout(fitOnce, 500);
       return () => clearTimeout(t);
-    }, [popups, animate]);
+    }, [popups, fitOnce]);
 
     // Center on the selected popup (e.g. when picked from the list below).
     useEffect(() => {
@@ -257,6 +289,11 @@ export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
         // room for the search bar (top) and the nearby sheet (bottom)
         mapPadding={{ top: 80, right: 0, bottom: 220, left: 0 }}
         onRegionChangeComplete={(region, details) => {
+          // First settled region = the map is live and will accept a move.
+          if (!didAutoFit.current) {
+            fitOnce();
+            return;
+          }
           if (details?.isGesture === false) return;
           if (Date.now() < settledAt.current) return;
           onUserRegionChange?.(region);
