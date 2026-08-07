@@ -130,6 +130,35 @@ function articleText(html: string): string | null {
 }
 
 /**
+ * Whole-page text, minus the chrome most likely to carry a date that is not the
+ * run's: scripts, styles, nav, header, footer.
+ *
+ * Used ONLY when ARTICLE_CONTAINERS matches nothing. Those five class names are
+ * newsroom conventions, and the Naver 지역 candidates are brand product pages
+ * that use none of them: the first 지역 run fetched 10 pages, articleText()
+ * found a container on exactly one, and the run extracted zero dates — while
+ * be-mill.com plainly states 2026.7.4 ~ 2026.09.30 further down the page.
+ * Falling back to og:description alone made those dates unreachable.
+ *
+ * Wider scope means a higher chance of catching a date that belongs to
+ * something else on the page, so this is not a free win: the caller records
+ * `scope:page_fallback` in extract_notes, and date_evidence keeps the verbatim
+ * substring, so triage can see which reading produced the answer. The year
+ * guard in toDates still applies — a year-less range here is still declined.
+ */
+function pageText(html: string): string | null {
+  const text = decodeEntities(
+    html
+      .replace(/<(script|style|noscript|svg|template)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+      .replace(/<(nav|header|footer)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+      .replace(/<[^>]+>/g, ' '),
+  )
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text.length > 200 ? text : null;
+}
+
+/**
  * The article's own publication date, used as the year for runs that omit one.
  *
  * `article:published_time` and `og:updated_time` are absent on ALL 21 pages in
@@ -388,7 +417,10 @@ Deno.serve(async () => {
       const summary = decodeEntities(meta(html, 'og:description') ?? '');
       const ogTitle = decodeEntities(meta(html, 'og:title') ?? c.title);
       const body = articleText(html);
-      const scope = `${ogTitle} ${body ?? summary}`;
+      // Only reached for pages with no recognised article container — see
+      // pageText's docstring for why brand pages need it.
+      const page = body ? null : pageText(html);
+      const scope = `${ogTitle} ${body ?? page ?? summary}`;
 
       const published = articleDate(html);
       const articleYear = published ? Number(published.slice(0, 4)) : null;
@@ -407,13 +439,23 @@ Deno.serve(async () => {
           '',
         )
         .trim();
+      // Take og:title ONLY when the stored title is unusable. That was the
+      // case this was written for — LCDC's event anchors carry no text, so
+      // scan-sources stored the raw URL. Preferring og:title unconditionally
+      // was wrong: a Naver 지역 title is the venue's actual pop-up name, and
+      // overwriting it with a brand homepage's og:title turned
+      // "버켄스탁 코엑스점 팝업" into "샌들, 신발 & 클로그 | 버켄스탁 코리아".
+      const storedUnusable =
+        !c.title || c.title.trim().length < 4 || /^https?:\/\//.test(c.title);
       const betterTitle =
-        cleanTitle.length > 3 && !/^https?:\/\//.test(cleanTitle)
-          ? cleanTitle
-          : c.title;
+        storedUnusable && cleanTitle.length > 3 ? cleanTitle : c.title;
 
       const notes = [
-        body ? 'scope:article_body' : 'scope:og_metadata_fallback',
+        body
+          ? 'scope:article_body'
+          : page
+            ? 'scope:page_fallback'
+            : 'scope:og_metadata_fallback',
         ...(dates?.notes ?? []),
       ];
       if (!dates) notes.push('no_date_pattern_matched');
@@ -461,7 +503,11 @@ Deno.serve(async () => {
 
       line.status = stale ? 'rejected_stale' : 'ok';
       line.published = published;
-      line.scope = body ? 'article_body' : 'og_metadata_fallback';
+      line.scope = body
+        ? 'article_body'
+        : page
+          ? 'page_fallback'
+          : 'og_metadata_fallback';
       line.dates = dates ? `${dates.start ?? '?'} → ${dates.end}` : null;
       line.evidence = dates?.evidence ?? null;
       line.venue = venueId ? venues.find((v) => v.id === venueId)?.name : null;
