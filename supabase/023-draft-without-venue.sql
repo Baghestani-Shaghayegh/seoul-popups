@@ -1,0 +1,24 @@
+-- 023 — draft a candidate that has no venues row (applied 2026-08-07).
+--
+-- 009's model assumed pop-ups happen at known venues: draft_from_candidate
+-- raised 'candidate has no venue' and inherited pin, subway and hours from the
+-- venues row. That holds for department stores, and it is why the Shinsegae and
+-- LCDC candidates draft cleanly.
+--
+-- Naver 지역 discovery (021) breaks the assumption. Its pop-ups sit at one-off
+-- addresses — 연무장3길 8-9, 굿즈모먼트 3층, a rented floor in 연남동 — and 0 of
+-- the 21 Instagram-linked candidates matched a venue. A venues row per address
+-- would mean 21 rows used once each, which is the duplication venues exists to
+-- prevent.
+--
+-- So: when venue_id is null the caller supplies the pin and subway EXPLICITLY.
+-- The rule the venue requirement protects is "the pin is verified, not
+-- guessed", and that rule is kept — coordinates come from Naver's own place
+-- data (scale confirmed against a known point, see 021) and subway is passed in
+-- by a human. What is dropped is the indirection through venues, not the
+-- verification. pin_precision records the difference: 'address', not 'venue'.
+--
+-- The venue path is untouched — same call, same behaviour, same guards.
+--
+-- The full function body is applied via the Supabase MCP as migration
+-- `draft_without_venue`; see git history for the exact text.
