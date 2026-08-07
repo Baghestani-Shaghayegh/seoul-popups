@@ -13,8 +13,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   PopupMapView,
+  type MapRegion,
   type PopupMapHandle,
 } from '@/components/map/PopupMapView';
+import type { FilterOption } from '@/components/popups/FilterSheet';
+import { MultiFilterSheet } from '@/components/popups/MultiFilterSheet';
 import { PopupImage } from '@/components/popups/PopupImage';
 import { colors } from '@/constants/theme';
 import { usePopups } from '@/hooks/usePopups';
@@ -22,10 +25,44 @@ import { useUserLocation } from '@/hooks/useUserLocation';
 import { formatExit } from '@/lib/format';
 import { endingLabel, isActiveToday } from '@/lib/popupStatus';
 import { haversineMeters } from '@/lib/route';
+import { CATEGORIES, type Category } from '@/types/popup';
 
 // Nearby card geometry, so tapping a pin can scroll its card into view.
 const CARD_WIDTH = 224; // w-56
 const CARD_GAP = 12; // gap-3
+
+const CATEGORY_OPTIONS: FilterOption<Category>[] = CATEGORIES.map((c) => ({
+  key: c,
+  label: c,
+}));
+
+/** Is this popup inside the box the map is showing? */
+function withinRegion(
+  region: MapRegion,
+  p: { latitude: number; longitude: number },
+): boolean {
+  return (
+    Math.abs(p.latitude - region.latitude) <= region.latitudeDelta / 2 &&
+    Math.abs(p.longitude - region.longitude) <= region.longitudeDelta / 2
+  );
+}
+
+/**
+ * Has the viewport moved far enough from the area we last searched to be worth
+ * offering a re-search? A quarter-span pan or a real zoom step counts; smaller
+ * drifts don't, so the button doesn't flicker on every nudge of the map.
+ */
+function isDifferentArea(searched: MapRegion, current: MapRegion): boolean {
+  const zoom = current.latitudeDelta / searched.latitudeDelta;
+  return (
+    Math.abs(current.latitude - searched.latitude) >
+      searched.latitudeDelta * 0.25 ||
+    Math.abs(current.longitude - searched.longitude) >
+      searched.longitudeDelta * 0.25 ||
+    zoom > 1.4 ||
+    zoom < 0.7
+  );
+}
 
 /**
  * Map screen: live pin map (native) with a synced "nearby" rail. Pins and cards
@@ -35,26 +72,43 @@ const CARD_GAP = 12; // gap-3
 export default function MapScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { popups, loading, error, reload } = usePopups({});
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const { popups, loading, error, reload } = usePopups({ categories });
   const { coords, permission, locating, locate } = useUserLocation();
+
+  // `region` is what the map is showing right now; `searchedArea` is the box
+  // the results are pinned to, and only changes when "Search this area" is
+  // tapped. Keeping them separate is what lets the button know it has
+  // something to offer.
+  const [region, setRegion] = useState<MapRegion | null>(null);
+  const [searchedArea, setSearchedArea] = useState<MapRegion | null>(null);
 
   // Once we know where the user is, "nearby" becomes literal — sort by
   // straight-line distance. Until then, keep the fetch order (soonest to end).
   const nearby = useMemo(() => {
-    const active = popups.filter(isActiveToday);
+    const active = popups
+      .filter(isActiveToday)
+      .filter((p) => !searchedArea || withinRegion(searchedArea, p));
     if (!coords) return active;
     return [...active].sort(
       (a, b) => haversineMeters(coords, a) - haversineMeters(coords, b),
     );
-  }, [popups, coords]);
+  }, [popups, coords, searchedArea]);
 
   const headerLabel = loading
     ? 'Finding pop-ups…'
     : error
       ? 'Couldn’t load pop-ups'
-      : coords
-        ? `${nearby.length} pop-ups near you`
-        : `${nearby.length} pop-ups nearby`;
+      : searchedArea
+        ? `${nearby.length} pop-ups in this area`
+        : coords
+          ? `${nearby.length} pop-ups near you`
+          : `${nearby.length} pop-ups nearby`;
+
+  // Offer a re-search once the map has been moved off the searched area.
+  const canSearchArea =
+    region !== null && (!searchedArea || isDifferentArea(searchedArea, region));
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const railRef = useRef<ScrollView>(null);
@@ -96,6 +150,7 @@ export default function MapScreen() {
         selectedId={selectedId}
         onSelect={setSelectedId}
         showUser={permission === 'granted'}
+        onUserRegionChange={setRegion}
       />
 
       {/* Locate me — the offset lives on this wrapper because a Pressable's
@@ -122,27 +177,53 @@ export default function MapScreen() {
         </Pressable>
       </View>
 
-      {/* Search this area */}
-      <View
-        className="absolute inset-x-4 flex-row gap-2.5"
-        style={{ top: insets.top + 8 }}
-      >
+      {/* Category filter — narrows the pins in place, no navigation. */}
+      <View className="absolute right-4" style={{ top: insets.top + 8 }}>
         <Pressable
-          onPress={() => router.push('/discover')}
+          onPress={() => setFilterOpen(true)}
           style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
-          className="h-12 flex-1 flex-row items-center gap-2.5 rounded-2xl border border-line-strong bg-surface px-4 shadow-sm"
+          accessibilityRole="button"
+          accessibilityLabel={
+            categories.length
+              ? `Filter by category, ${categories.length} selected`
+              : 'Filter by category'
+          }
+          className={`h-12 w-12 items-center justify-center rounded-2xl border shadow-sm ${
+            categories.length
+              ? 'border-brand bg-brand'
+              : 'border-line-strong bg-surface'
+          }`}
         >
-          <Ionicons name="search" size={18} color={colors.faint} />
-          <Text className="text-sm text-faint">Search this area</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => router.push('/discover')}
-          style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
-          className="h-12 w-12 items-center justify-center rounded-2xl border border-line-strong bg-surface shadow-sm"
-        >
-          <Ionicons name="options-outline" size={19} color={colors.ink} />
+          <Ionicons
+            name="options-outline"
+            size={19}
+            color={categories.length ? '#fff' : colors.ink}
+          />
         </Pressable>
       </View>
+
+      {/* Search this area — only offered once the map has actually moved. */}
+      {canSearchArea && (
+        <View
+          className="absolute inset-x-0 items-center"
+          style={{ top: insets.top + 8 }}
+        >
+          <Pressable
+            onPress={() => {
+              setSearchedArea(region);
+              setSelectedId(null);
+            }}
+            style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+            accessibilityRole="button"
+            className="h-12 flex-row items-center gap-2 rounded-2xl border border-line-strong bg-surface px-4 shadow-sm"
+          >
+            <Ionicons name="search" size={17} color={colors.brand.DEFAULT} />
+            <Text className="text-sm font-bold text-brand">
+              Search this area
+            </Text>
+          </Pressable>
+        </View>
+      )}
 
       {/* Nearby events sheet */}
       <View
@@ -173,7 +254,9 @@ export default function MapScreen() {
           </View>
         ) : nearby.length === 0 ? (
           <Text className="px-4 py-6 text-sm text-muted">
-            No pop-ups nearby right now.
+            {searchedArea || categories.length
+              ? 'No pop-ups match here. Try another area or category.'
+              : 'No pop-ups nearby right now.'}
           </Text>
         ) : (
           <ScrollView
@@ -230,6 +313,19 @@ export default function MapScreen() {
           </ScrollView>
         )}
       </View>
+
+      <MultiFilterSheet
+        visible={filterOpen}
+        title="Category"
+        options={CATEGORY_OPTIONS}
+        selectedKeys={categories}
+        onApply={(keys) => {
+          setCategories(keys);
+          // The selected pin may no longer be on the map.
+          setSelectedId(null);
+        }}
+        onClose={() => setFilterOpen(false)}
+      />
     </View>
   );
 }

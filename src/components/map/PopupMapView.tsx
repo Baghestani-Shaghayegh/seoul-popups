@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -28,6 +29,14 @@ const CATEGORY_ICON: Record<Category, keyof typeof Ionicons.glyphMap> = {
   Art: 'color-palette',
   Lifestyle: 'bag-handle',
 };
+
+/** The visible map viewport: a centre plus the span it covers. */
+export interface MapRegion {
+  latitude: number;
+  longitude: number;
+  latitudeDelta: number;
+  longitudeDelta: number;
+}
 
 /** Fallback view over central Seoul when there are no popups to frame. */
 const SEOUL_REGION: Region = {
@@ -148,6 +157,9 @@ export interface PopupMapViewProps {
   /** Plan-my-day preview: popup id → stop number, shown on the pin instead
    *  of the category icon. */
   stopOrder?: Record<string, number>;
+  /** Fires with the newly visible region after the *user* pans or zooms.
+   *  Our own animations are filtered out — see `animate` below. */
+  onUserRegionChange?: (region: MapRegion) => void;
 }
 
 /** Imperative handle so the screen can recenter the map on "near me". */
@@ -170,25 +182,34 @@ export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
       routeCoords,
       routeDashed,
       stopOrder,
+      onUserRegionChange,
     },
     ref,
   ) {
     const mapRef = useRef<MapView>(null);
     const didAutoFit = useRef(false);
+    const settledAt = useRef(0);
 
     const initialRegion = useMemo(() => regionForPopups(popups), [popups]);
+
+    // Every move we make ourselves — auto-fit, recenter, select — also fires
+    // onRegionChangeComplete, which would look exactly like the user panning.
+    // `isGesture` would tell them apart but it's Google-Maps-only (so never on
+    // iOS), hence the time window: ignore region reports until our animation
+    // has finished settling.
+    const animate = useCallback((region: Region, duration = 350) => {
+      settledAt.current = Date.now() + duration + 400;
+      mapRef.current?.animateToRegion(region, duration);
+    }, []);
 
     useImperativeHandle(
       ref,
       () => ({
         centerOn(coords) {
-          mapRef.current?.animateToRegion(
-            { ...coords, latitudeDelta: 0.02, longitudeDelta: 0.02 },
-            350,
-          );
+          animate({ ...coords, latitudeDelta: 0.02, longitudeDelta: 0.02 });
         },
       }),
-      [],
+      [animate],
     );
 
     // Frame all popups once. We wait a beat rather than firing immediately (or
@@ -201,26 +222,23 @@ export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
       const region = regionForPopups(popups);
       const t = setTimeout(() => {
         didAutoFit.current = true;
-        mapRef.current?.animateToRegion(region, 350);
+        animate(region);
       }, 500);
       return () => clearTimeout(t);
-    }, [popups]);
+    }, [popups, animate]);
 
     // Center on the selected popup (e.g. when picked from the list below).
     useEffect(() => {
       if (!selectedId) return;
       const p = popups.find((x) => x.id === selectedId);
       if (!p) return;
-      mapRef.current?.animateToRegion(
-        {
-          latitude: p.latitude,
-          longitude: p.longitude,
-          latitudeDelta: 0.012,
-          longitudeDelta: 0.012,
-        },
-        350,
-      );
-    }, [selectedId, popups]);
+      animate({
+        latitude: p.latitude,
+        longitude: p.longitude,
+        latitudeDelta: 0.012,
+        longitudeDelta: 0.012,
+      });
+    }, [selectedId, popups, animate]);
 
     return (
       <MapView
@@ -238,6 +256,11 @@ export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
         showsCompass={false}
         // room for the search bar (top) and the nearby sheet (bottom)
         mapPadding={{ top: 80, right: 0, bottom: 220, left: 0 }}
+        onRegionChangeComplete={(region, details) => {
+          if (details?.isGesture === false) return;
+          if (Date.now() < settledAt.current) return;
+          onUserRegionChange?.(region);
+        }}
       >
         {routeCoords && routeCoords.length > 1 && (
           <Polyline
