@@ -79,19 +79,39 @@ function useBriefTracking(dep: unknown): boolean {
   return tracking;
 }
 
+/**
+ * Pop-ups at the same address stack pixel-perfect, so the map silently shows
+ * fewer pins than the list (three Hongdae pop-ups share one coordinate). Group
+ * them so one pin can stand for all of them and say how many. The ~11m bucket
+ * only catches genuinely co-located pins — near neighbours stay separate.
+ */
+function groupByCoordinate(popups: Popup[]): Popup[][] {
+  const groups = new Map<string, Popup[]>();
+  for (const p of popups) {
+    const key = `${p.latitude.toFixed(4)},${p.longitude.toFixed(4)}`;
+    const existing = groups.get(key);
+    if (existing) existing.push(p);
+    else groups.set(key, [p]);
+  }
+  return [...groups.values()];
+}
+
 function PopupPin({
   popup,
   selected,
   onPress,
   orderNumber,
+  count = 1,
 }: {
   popup: Popup;
   selected: boolean;
-  onPress: (id: string) => void;
+  onPress: () => void;
   /** When set (Plan-my-day preview), shows the stop's position instead of a category icon. */
   orderNumber?: number;
+  /** How many pop-ups this pin stands for; >1 draws a count badge. */
+  count?: number;
 }) {
-  const tracking = useBriefTracking(`${selected}:${orderNumber ?? ''}`);
+  const tracking = useBriefTracking(`${selected}:${orderNumber ?? ''}:${count}`);
   const size = selected ? 42 : 34;
   const bg = selected ? colors.purple.DEFAULT : colors.brand.DEFAULT;
   return (
@@ -99,43 +119,78 @@ function PopupPin({
       coordinate={{ latitude: popup.latitude, longitude: popup.longitude }}
       anchor={{ x: 0.5, y: 0.5 }}
       tracksViewChanges={tracking}
-      onPress={() => onPress(popup.id)}
+      onPress={onPress}
       // zIndex lifts the selected pin above neighbours (Seongsu popups overlap).
       zIndex={selected ? 10 : 1}
     >
+      {/* Padded wrapper so the count badge sits inside the marker's measured
+          bounds — overflowing it gets clipped on Android. */}
       <View
         style={{
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          backgroundColor: bg,
-          borderWidth: 3,
-          borderColor: '#fff',
+          width: size + 14,
+          height: size + 14,
           alignItems: 'center',
           justifyContent: 'center',
-          shadowColor: '#462846',
-          shadowOpacity: 0.3,
-          shadowRadius: 4,
-          shadowOffset: { width: 0, height: 2 },
-          elevation: 5,
         }}
       >
-        {orderNumber ? (
-          <Text
+        <View
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: bg,
+            borderWidth: 3,
+            borderColor: '#fff',
+            alignItems: 'center',
+            justifyContent: 'center',
+            shadowColor: '#462846',
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+            shadowOffset: { width: 0, height: 2 },
+            elevation: 5,
+          }}
+        >
+          {orderNumber ? (
+            <Text
+              style={{
+                color: '#fff',
+                fontWeight: '800',
+                fontSize: selected ? 17 : 14,
+              }}
+            >
+              {orderNumber}
+            </Text>
+          ) : (
+            <Ionicons
+              name={CATEGORY_ICON[popup.category]}
+              size={selected ? 20 : 16}
+              color="#fff"
+            />
+          )}
+        </View>
+        {count > 1 && (
+          <View
             style={{
-              color: '#fff',
-              fontWeight: '800',
-              fontSize: selected ? 17 : 14,
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              minWidth: 19,
+              height: 19,
+              borderRadius: 9.5,
+              paddingHorizontal: 3,
+              backgroundColor: selected
+                ? colors.brand.DEFAULT
+                : colors.purple.DEFAULT,
+              borderWidth: 2,
+              borderColor: '#fff',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            {orderNumber}
-          </Text>
-        ) : (
-          <Ionicons
-            name={CATEGORY_ICON[popup.category]}
-            size={selected ? 20 : 16}
-            color="#fff"
-          />
+            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 10 }}>
+              {count}
+            </Text>
+          </View>
         )}
       </View>
     </Marker>
@@ -192,6 +247,13 @@ export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
 
     const initialRegion = useMemo(() => regionForPopups(popups), [popups]);
 
+    // Plan-my-day numbers each stop, so merging two stops into one pin would
+    // lose a number — only stack pins on the plain map.
+    const pinGroups = useMemo(
+      () => (stopOrder ? popups.map((p) => [p]) : groupByCoordinate(popups)),
+      [popups, stopOrder],
+    );
+
     // Every move we make ourselves — auto-fit, recenter, select — also fires
     // onRegionChangeComplete, which would look exactly like the user panning.
     // `isGesture` would tell them apart but it's Google-Maps-only (so never on
@@ -241,7 +303,11 @@ export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
         return;
       }
 
-      settledAt.current = Date.now() + 750;
+      // Generous window: fitToCoordinates' animation runs longer than a plain
+      // animateToRegion and reports its region more than once, and any report
+      // that escapes this is read as a user pan — which pops "Search this
+      // area" on open, before the map has been touched.
+      settledAt.current = Date.now() + 1500;
       mapRef.current?.fitToCoordinates(
         popups.map((p) => ({ latitude: p.latitude, longitude: p.longitude })),
         {
@@ -309,13 +375,19 @@ export const PopupMapView = forwardRef<PopupMapHandle, PopupMapViewProps>(
             lineDashPattern={routeDashed ? [10, 8] : undefined}
           />
         )}
-        {popups.map((p) => (
+        {pinGroups.map((group) => (
           <PopupPin
-            key={p.id}
-            popup={p}
-            selected={p.id === selectedId}
-            onPress={onSelect}
-            orderNumber={stopOrder?.[p.id]}
+            key={group[0].id}
+            popup={group[0]}
+            count={group.length}
+            selected={group.some((p) => p.id === selectedId)}
+            // Tapping a stack walks through it, so every pop-up underneath is
+            // reachable; for a lone pin this is just "select it".
+            onPress={() => {
+              const i = group.findIndex((p) => p.id === selectedId);
+              onSelect(group[(i + 1) % group.length].id);
+            }}
+            orderNumber={stopOrder?.[group[0].id]}
           />
         ))}
       </MapView>
