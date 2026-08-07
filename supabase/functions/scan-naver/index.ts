@@ -46,6 +46,20 @@ const QUERIES = [
   '압구정 팝업스토어',
   '신사동 팝업스토어',
   '삼성동 팝업스토어',
+  // Category queries, not neighbourhood ones. The 15 above are phrased around
+  // places, and across a full run they surfaced exactly three beauty-tagged
+  // results city-wide — a general 팝업스토어 search is dominated by character
+  // and anime pop-ups, which are simply more numerous. Naver's own taxonomy has
+  // a `팝업스토어>뷰티 팝업` sub-category, so asking for it directly reaches
+  // stock the place queries never rank.
+  '성수 뷰티 팝업',
+  '강남 뷰티 팝업',
+  '홍대 뷰티 팝업',
+  '화장품 팝업스토어',
+  '코스메틱 팝업스토어',
+  '스킨케어 팝업스토어',
+  '올리브영 팝업',
+  '뷰티 팝업스토어 서울',
 ];
 
 const SOURCE_URL = `${API_HUB}/search/v1/local`;
