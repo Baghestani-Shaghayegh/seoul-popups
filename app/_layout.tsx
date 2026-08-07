@@ -70,6 +70,18 @@ export default function RootLayout() {
                         presentation: 'card',
                       }}
                     />
+                    {/* Unlisted: no tab, no link. Reached by typing /triage,
+                        and the queue is empty for anyone not in public.admins
+                        because the gate lives in the Edge Function. */}
+                    <Stack.Screen
+                      name="triage"
+                      options={{
+                        headerShown: true,
+                        title: 'Triage',
+                        headerBackTitle: 'Back',
+                        presentation: 'card',
+                      }}
+                    />
                   </Stack>
                 </VisitedProvider>
               </FavoritesProvider>
