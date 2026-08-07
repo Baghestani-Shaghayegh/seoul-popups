@@ -46,6 +46,11 @@ interface AuthValue {
   /** True when the account has an email/password identity to change. */
   hasPassword: boolean;
   signOut: () => Promise<void>;
+  /**
+   * Permanently deletes the signed-in account and everything it owns. There is
+   * no undo and no grace period — see the delete-account Edge Function.
+   */
+  deleteAccount: () => Promise<{ error: string | null }>;
 }
 
 const NAVER_CLIENT_ID = process.env.EXPO_PUBLIC_NAVER_CLIENT_ID;
@@ -218,6 +223,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
       signOut: async () => {
         if (isSupabaseConfigured) await getSupabase().auth.signOut();
+      },
+      deleteAccount: async () => {
+        if (!isSupabaseConfigured) return { error: NOT_CONFIGURED };
+        const supabase = getSupabase();
+        const { data, error } = await supabase.functions.invoke<{
+          ok?: boolean;
+          error?: string;
+        }>('delete-account', { method: 'POST' });
+        // invoke() only rejects on transport/non-2xx; a 500 carrying our own
+        // { error } message arrives as `error` with the body hidden, so report
+        // whichever we actually got rather than a generic failure.
+        if (error) return { error: data?.error ?? error.message };
+        if (data?.error) return { error: data.error };
+        // The account is gone but this device still holds its tokens. Clear
+        // them locally so the app returns to guest state instead of retrying
+        // with a session whose user no longer exists.
+        await supabase.auth.signOut();
+        return { error: null };
       },
       // An OAuth-only account has no `email` identity, so there is no current
       // password to confirm — it is setting one, not changing one.

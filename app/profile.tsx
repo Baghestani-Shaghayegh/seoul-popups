@@ -14,12 +14,14 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/ui/Avatar';
+import { PRIVACY_POLICY_URL, SUPPORT_URL } from '@/constants/legal';
 import { colors } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 import { useFavorites } from '@/hooks/useFavorites';
 import { usePopups } from '@/hooks/usePopups';
 import { useProfile } from '@/hooks/useProfile';
 import { useVisited } from '@/hooks/useVisited';
+import { openExternalUrl } from '@/lib/links';
 import { pickAndUploadAvatar } from '@/lib/uploadAvatar';
 
 /**
@@ -39,6 +41,7 @@ export default function ProfileScreen() {
     loading: authLoading,
     changePassword,
     hasPassword,
+    deleteAccount,
   } = useAuth();
   const { displayName, avatarUrl, setDisplayName, setAvatarUrl } = useProfile();
   const { favoriteIds } = useFavorites();
@@ -154,6 +157,64 @@ export default function ProfileScreen() {
         text: 'Sign out',
         style: 'destructive',
         onPress: () => void doSignOut(),
+      },
+    ]);
+  };
+
+  const [deleting, setDeleting] = useState(false);
+
+  const doDeleteAccount = async () => {
+    setError(null);
+    setMessage(null);
+    setDeleting(true);
+    const { error: e } = await deleteAccount();
+    if (e) {
+      setDeleting(false);
+      return setError(e);
+    }
+    // deleteAccount() has already cleared the local session, so the guard
+    // effect above would bounce to /auth on its own. Go home instead: being
+    // dropped on a sign-in sheet right after deleting an account reads as
+    // "that didn't work". The app is fully usable as a guest.
+    router.replace('/');
+  };
+
+  /**
+   * Required by App Store Guideline 5.1.1(v), and irreversible — so it asks
+   * twice, and the second prompt spells out what goes rather than repeating
+   * "are you sure". Same web/native split as onSignOut: react-native-web's
+   * Alert is a no-op, which would make this button silently dead in the browser.
+   */
+  const CONFIRM_TITLE = 'Delete account?';
+  const CONFIRM_BODY =
+    'This permanently deletes your profile, photo, saved pop-ups, and visits. It cannot be undone.';
+
+  const onDeleteAccount = () => {
+    if (deleting) return;
+    if (Platform.OS === 'web') {
+      if (window.confirm(`${CONFIRM_TITLE}\n\n${CONFIRM_BODY}`)) {
+        void doDeleteAccount();
+      }
+      return;
+    }
+    Alert.alert(CONFIRM_TITLE, CONFIRM_BODY, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () =>
+          Alert.alert(
+            'Last chance',
+            'There is no undo and no grace period. Delete this account?',
+            [
+              { text: 'Keep my account', style: 'cancel' },
+              {
+                text: 'Delete forever',
+                style: 'destructive',
+                onPress: () => void doDeleteAccount(),
+              },
+            ],
+          ),
       },
     ]);
   };
@@ -352,6 +413,49 @@ export default function ProfileScreen() {
       >
         <Text className="text-base font-extrabold text-brand">Sign out</Text>
       </Pressable>
+
+      {/* Legal. App Store Connect wants these reachable from inside the app,
+          not only on the store listing. */}
+      <View className="mt-7 flex-row justify-center gap-6">
+        <Pressable
+          onPress={() => openExternalUrl(PRIVACY_POLICY_URL)}
+          hitSlop={8}
+          style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+        >
+          <Text className="text-sm font-semibold text-muted">
+            Privacy policy
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => openExternalUrl(SUPPORT_URL)}
+          hitSlop={8}
+          style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+        >
+          <Text className="text-sm font-semibold text-muted">Support</Text>
+        </Pressable>
+      </View>
+
+      {/* Delete account. Set apart from Sign out on purpose — they are one tap
+          from each other and only one of them is recoverable. */}
+      <View className="mt-10 border-t border-line pt-6">
+        <Pressable
+          onPress={onDeleteAccount}
+          disabled={deleting}
+          style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+          className="h-12 flex-row items-center justify-center"
+        >
+          {deleting ? (
+            <ActivityIndicator color={colors.muted} />
+          ) : (
+            <Text className="text-sm font-bold text-muted underline">
+              Delete account
+            </Text>
+          )}
+        </Pressable>
+        <Text className="mt-1 text-center text-xs text-faint">
+          Permanently removes your profile, saves, and visits.
+        </Text>
+      </View>
     </ScrollView>
   );
 }
